@@ -1,1 +1,2 @@
-gcc -Wall -pthread -o line_out_line_in line_out_line_in.c -lpigpio -lrt
+all:
+	gcc -Wall -pthread -o line_out_line_in line_out_line_in.c -lpigpio -lrt
