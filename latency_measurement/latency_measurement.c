@@ -28,79 +28,6 @@ int measurementStatus = MEASUREMENT_FINISHED;
 int calibrationStatus = CALIBRATION_FINISHED;
 int gpioStatus;
 
-void initGpioLibrary() {
-
-    // Initialize library
-    gpioStatus = gpioInitialise();
-    //printf("Status after gpioInitialise: %d\n", gpioStatus);
-
-    // Set GPIO Modes
-    gpioSetMode(NO_ADDITIONAL_GAIN, PI_OUTPUT);
-    gpioSetMode(ADDITIONAL_GAIN, PI_OUTPUT);
-    gpioSetMode(LINE_OUT, PI_OUTPUT);
-    gpioSetMode(LINE_IN, PI_INPUT);
-
-    // Register GPIO state change callback
-    gpioSetAlertFunc(LINE_OUT, onLineOut);
-    gpioSetAlertFunc(LINE_IN, onLineIn);
-}
-
-void waitForUserInput() {
-    while (measurementStatus == MEASUREMENT_FINISHED && calibrationStatus == CALIBRATION_FINISHED) {
-        // Wait for start measurement button callback -> MEASUREMENT_RUNNING
-        // Or wait for start calibration button callback -> CALIBRATION_RUNNING
-    }
-    if (measurementStatus == MEASUREMENT_RUNNING) {
-        startMeasurement();
-    }
-    if (calibrationStatus == CALIBRATION_RUNNING) {
-        // TODO
-        //startCalibration();
-    }
-}
-
-void startMeasurement() {
-    double signalIntervalInS, maxLatencyInS;
-
-    // The interval from the first to the second signal is SIGNAL_START_INTERVAL_IN_S
-    signalIntervalInS = SIGNAL_START_INTERVAL_IN_S;
-    for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
-
-        // After the first signal that arrived, the signal interval converges to the maximum measured latency + SIGNAL_LENGTH_IN_S delay
-        if (maxLatencyInMicros != -1 && i > 0) {
-            maxLatencyInS = (double) maxLatencyInMicros / 1000000.0;
-            signalIntervalInS = maxLatencyInS + 1 / i * maxLatencyInS + SIGNAL_LENGTH_IN_S;
-        }
-
-        // Send 3.3V squarewave signals through the line output with specified length and interval
-        sendSignalViaLineOut(SIGNAL_LENGTH_IN_S, signalIntervalInS);
-        // TODO: if (measurementMode == USB, PCIe...
-    }
-    // TODO: Saving measurements to .csv format
-    //measurementStatus = MEASUREMENT_FINISHED;
-    //waitForUserInput();
-}
-
-/* TODO
-void startCalibration() {
-
-    calibrationStatus = CALIBRATION_FINISHED;
-    waitForUserInput();
-}
-*/
-
-// Line-out signal creation
-void sendSignalViaLineOut(double signalLengthInS, double signalIntervalInS) {
-
-    // Send signal through LINE_OUT gpio pin
-    printf("\n\n----- Measurement %d started -----\n", i + 1);
-    gpioStatus = gpioWrite(LINE_OUT, 1);
-    //printf("status (0 = OK; <0 = ERROR): %d\n", gpioStatus);
-    time_sleep(signalLengthInS);
-    gpioStatus = gpioWrite(LINE_OUT, 0);
-    //printf("status (0 = OK; <0 = ERROR): %d\n", gpioStatus);
-    time_sleep(signalIntervalInS);
-}
 
 // Line-out callback
 void onLineOut(int gpio, int level, uint32_t tick) {
@@ -125,7 +52,7 @@ void onLineIn(int gpio, int level, uint32_t tick) {
             endTimestamp = tick;
             signalStatus = SIGNAL_ARRIVED;
 
-            latencyInMicros = endTick - startTick;
+            latencyInMicros = endTimestamp - startTimestamp;
 
             // The uint32_t tick parameter represents the number of microseconds since boot.
             // This wraps around from 4294967295 to 0 approximately every 72 minutes.
@@ -159,6 +86,80 @@ void onLineIn(int gpio, int level, uint32_t tick) {
                 avgLatencyInMicros = sumOfLatenciesInMicros / validMeasurmentsCount;
             }
         }  
+    }
+}
+
+void initGpioLibrary() {
+
+    // Initialize library
+    gpioStatus = gpioInitialise();
+    //printf("Status after gpioInitialise: %d\n", gpioStatus);
+
+    // Set GPIO Modes
+    gpioSetMode(NO_ADDITIONAL_INPUT_GAIN, PI_OUTPUT);
+    gpioSetMode(ADDITIONAL_INPUT_GAIN, PI_OUTPUT);
+    gpioSetMode(LINE_OUT, PI_OUTPUT);
+    gpioSetMode(LINE_IN, PI_INPUT);
+
+    // Register GPIO state change callback
+    gpioSetAlertFunc(LINE_OUT, onLineOut);
+    gpioSetAlertFunc(LINE_IN, onLineIn);
+}
+
+void startMeasurement() {
+    double signalIntervalInS, maxLatencyInS;
+
+    // The interval from the first to the second signal is SIGNAL_START_INTERVAL_IN_S
+    signalIntervalInS = SIGNAL_START_INTERVAL_IN_S;
+    for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
+
+        // After the first signal that arrived, the signal interval converges to the maximum measured latency + SIGNAL_LENGTH_IN_S delay
+        if (maxLatencyInMicros != -1 && i > 0) {
+            maxLatencyInS = (double) maxLatencyInMicros / 1000000.0;
+            signalIntervalInS = maxLatencyInS + 1 / i * maxLatencyInS + SIGNAL_LENGTH_IN_S;
+        }
+
+        // Send 3.3V squarewave signals through the line output with specified length and interval
+        printf("\n\n----- Measurement %d started -----\n", i + 1);
+        sendSignalViaLineOut(SIGNAL_LENGTH_IN_S, signalIntervalInS);
+        // TODO: if (measurementMode == USB, PCIe...
+    }
+    // TODO: Saving measurements to .csv format
+    //measurementStatus = MEASUREMENT_FINISHED;
+    //waitForUserInput();
+}
+
+/* TODO
+void startCalibration() {
+
+    calibrationStatus = CALIBRATION_FINISHED;
+    waitForUserInput();
+}
+*/
+
+// Line-out signal creation
+void sendSignalViaLineOut(double signalLengthInS, double signalIntervalInS) {
+
+    // Send signal through LINE_OUT gpio pin
+    gpioStatus = gpioWrite(LINE_OUT, 1);
+    //printf("status (0 = OK; <0 = ERROR): %d\n", gpioStatus);
+    time_sleep(signalLengthInS);
+    gpioStatus = gpioWrite(LINE_OUT, 0);
+    //printf("status (0 = OK; <0 = ERROR): %d\n", gpioStatus);
+    time_sleep(signalIntervalInS);
+}
+
+void waitForUserInput() {
+    while (measurementStatus == MEASUREMENT_FINISHED && calibrationStatus == CALIBRATION_FINISHED) {
+        // Wait for start measurement button callback -> MEASUREMENT_RUNNING
+        // Or wait for start calibration button callback -> CALIBRATION_RUNNING
+    }
+    if (measurementStatus == MEASUREMENT_RUNNING) {
+        startMeasurement();
+    }
+    if (calibrationStatus == CALIBRATION_RUNNING) {
+        // TODO
+        //startCalibration();
     }
 }
 
