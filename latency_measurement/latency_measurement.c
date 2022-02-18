@@ -106,6 +106,18 @@ void initGpioLibrary() {
     gpioSetAlertFunc(LINE_IN, onLineIn);
 }
 
+// Line-out signal creation
+void sendSignalViaLineOut(double signalLengthInS, double signalIntervalInS) {
+
+    // Send signal through LINE_OUT gpio pin
+    gpioStatus = gpioWrite(LINE_OUT, 1);
+    //printf("status (0 = OK; <0 = ERROR): %d\n", gpioStatus);
+    time_sleep(signalLengthInS);
+    gpioStatus = gpioWrite(LINE_OUT, 0);
+    //printf("status (0 = OK; <0 = ERROR): %d\n", gpioStatus);
+    time_sleep(signalIntervalInS);
+}
+
 void startMeasurement() {
     double signalIntervalInS, maxLatencyInS;
 
@@ -136,18 +148,6 @@ void startCalibration() {
     waitForUserInput();
 }
 */
-
-// Line-out signal creation
-void sendSignalViaLineOut(double signalLengthInS, double signalIntervalInS) {
-
-    // Send signal through LINE_OUT gpio pin
-    gpioStatus = gpioWrite(LINE_OUT, 1);
-    //printf("status (0 = OK; <0 = ERROR): %d\n", gpioStatus);
-    time_sleep(signalLengthInS);
-    gpioStatus = gpioWrite(LINE_OUT, 0);
-    //printf("status (0 = OK; <0 = ERROR): %d\n", gpioStatus);
-    time_sleep(signalIntervalInS);
-}
 
 void waitForUserInput() {
     while (measurementStatus == MEASUREMENT_FINISHED && calibrationStatus == CALIBRATION_FINISHED) {
