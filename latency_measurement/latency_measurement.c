@@ -3,6 +3,8 @@
 
 #define LINE_OUT 17 // GPIO 17
 #define LINE_IN 27 // GPIO 27
+#define NO_ADDITIONAL_INPUT_GAIN 22 // GPIO 22
+#define ADDITIONAL_INPUT_GAIN 23 // GPIO 23
 #define TOTAL_MEASUREMENTS 10
 #define SIGNAL_LENGTH_IN_S 0.001
 #define SIGNAL_START_INTERVAL_IN_S 1.0
@@ -33,6 +35,8 @@ void initGpioLibrary() {
     //printf("Status after gpioInitialise: %d\n", gpioStatus);
 
     // Set GPIO Modes
+    gpioSetMode(NO_ADDITIONAL_GAIN, PI_OUTPUT);
+    gpioSetMode(ADDITIONAL_GAIN, PI_OUTPUT);
     gpioSetMode(LINE_OUT, PI_OUTPUT);
     gpioSetMode(LINE_IN, PI_INPUT);
 
@@ -62,10 +66,10 @@ void startMeasurement() {
     signalIntervalInS = SIGNAL_START_INTERVAL_IN_S;
     for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
 
-        // After the first signal that arrived, the signal interval converges to the maximum measured latency + 1 millisecond delay
+        // After the first signal that arrived, the signal interval converges to the maximum measured latency + SIGNAL_LENGTH_IN_S delay
         if (maxLatencyInMicros != -1 && i > 0) {
             maxLatencyInS = (double) maxLatencyInMicros / 1000000.0;
-            signalIntervalInS = maxLatencyInS + 1 / i * maxLatencyInS + 0.001;
+            signalIntervalInS = maxLatencyInS + 1 / i * maxLatencyInS + SIGNAL_LENGTH_IN_S;
         }
 
         // Send 3.3V squarewave signals through the line output with specified length and interval
@@ -169,6 +173,8 @@ int main(void) {
     }
 
     // waitForUserInput();
+    gpioStatus = gpioWrite(NO_ADDITIONAL_INPUT_GAIN, 1);
+    gpioStatus = gpioWrite(ADDITIONAL_INPUT_GAIN, 0);
     startMeasurement();
 
     // TODO: Remove status variable or handle errors
