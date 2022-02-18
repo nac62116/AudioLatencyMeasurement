@@ -3,8 +3,6 @@
 
 #define LINE_OUT 17 // GPIO 17
 #define LINE_IN 27 // GPIO 27
-#define NO_ADDITIONAL_INPUT_GAIN 22 // GPIO 22
-#define ADDITIONAL_INPUT_GAIN 23 // GPIO 23
 #define TOTAL_MEASUREMENTS 10
 #define SIGNAL_LENGTH_IN_S 0.001
 #define SIGNAL_START_INTERVAL_IN_S 1.0
@@ -96,8 +94,6 @@ void initGpioLibrary() {
     //printf("Status after gpioInitialise: %d\n", gpioStatus);
 
     // Set GPIO Modes
-    gpioSetMode(NO_ADDITIONAL_INPUT_GAIN, PI_OUTPUT);
-    gpioSetMode(ADDITIONAL_INPUT_GAIN, PI_OUTPUT);
     gpioSetMode(LINE_OUT, PI_OUTPUT);
     gpioSetMode(LINE_IN, PI_INPUT);
 
@@ -174,8 +170,6 @@ int main(void) {
     }
 
     // waitForUserInput();
-    gpioStatus = gpioWrite(NO_ADDITIONAL_INPUT_GAIN, 1);
-    gpioStatus = gpioWrite(ADDITIONAL_INPUT_GAIN, 0);
     startMeasurement();
 
     // TODO: Remove status variable or handle errors
