@@ -6,6 +6,7 @@
 #define TOTAL_MEASUREMENTS 10
 #define SIGNAL_LENGTH_IN_S 0.001
 #define SIGNAL_START_INTERVAL_IN_S 1.0
+#define SIGNAL_MINIMUM_INTERVAL_IN_S 0.02
 #define SIGNAL_ARRIVED 1
 #define SIGNAL_ON_THE_WAY 0
 #define MEASUREMENT_RUNNING 1
@@ -124,7 +125,12 @@ void startMeasurement() {
         // After the first signal that arrived, the signal interval converges to the maximum measured latency + SIGNAL_LENGTH_IN_S delay
         if (maxLatencyInMicros != -1 && i > 0) {
             maxLatencyInS = (double) maxLatencyInMicros / 1000000.0;
-            signalIntervalInS = maxLatencyInS + 1 / i * maxLatencyInS + SIGNAL_LENGTH_IN_S;
+            if (maxLatencyInS <= SIGNAL_MINIMUM_INTERVAL_IN_S) {
+                signalIntervalInS = maxLatencyInS + 1 / i * maxLatencyInS + SIGNAL_MINIMUM_INTERVAL_IN_S;
+            }
+            else {
+                signalIntervalInS = maxLatencyInS + 1 / i * maxLatencyInS;
+            }
         }
 
         // Send 3.3V squarewave signals through the line output with specified length and interval
