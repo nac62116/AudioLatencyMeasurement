@@ -5,21 +5,20 @@ Hardware parameter code base retrieved from https://www.linuxjournal.com/article
 
 #include <alsa/asoundlib.h>
 
-#define ALSA_PCM_SOFT_RESAMPLE 0
-#define ALSA_PCM_LATENCY 0
-#define ALSA_PCM_SAMPLE_RATE 44100
-
-static char *device = "hw:1,0";          /* USB playback device */
-//static char *device = "hw:2,0";        /* HDMI 1 playback device */
-//static char *device = "hw:0,0";        /* HDMI 0 playback device */
+const double SIGNAL_LENGTH_IN_S = 0.001;
+const int ALSA_PCM_SOFT_RESAMPLE = 0;
+const unsigned int ALSA_PCM_LATENCY = 0;
+const unsigned int ALSA_PCM_SAMPLE_RATE = 44100;
+const int BUFFER_SIZE = ALSA_PCM_SAMPLE_RATE * SIGNAL_LENGTH_IN_S;
 
 snd_output_t *output = NULL;
+char *alsaPcmDevice = "hw:1,0";          /* USB playback device */
+//const char *device = "hw:2,0";        /* HDMI 1 playback device */
+//const char *device = "hw:0,0";        /* HDMI 0 playback device */
 snd_pcm_format_t formatType;
 snd_pcm_access_t accessType;
 unsigned int channels;
-unsigned int samplingRate = ALSA_PCM_SAMPLE_RATE;
-int bufferSize = ALSA_PCM_SAMPLE_RATE * 0.001;
-unsigned char buffer[bufferSize];  /* some random data */
+unsigned char buffer[BUFFER_SIZE];  /* some random data */
 
 /* Display information about the PCM interface */
 void getHardwareParameters() {
@@ -30,7 +29,7 @@ void getHardwareParameters() {
     int dir;
 
     /* Open PCM device for playback. */
-    rc = snd_pcm_open(&handle, device,
+    rc = snd_pcm_open(&handle, alsaPcmDevice,
             SND_PCM_STREAM_PLAYBACK, 0);
     if (rc < 0) {
         fprintf(stderr,
@@ -60,7 +59,7 @@ void getHardwareParameters() {
 
     /* 44100 bits/second sampling rate (CD quality) */
     snd_pcm_hw_params_set_rate_near(handle,
-            params, &samplingRate, &dir);
+            params, &ALSA_PCM_SAMPLE_RATE, &dir);
 
     /* Write the parameters to the driver */
     rc = snd_pcm_hw_params(handle, params);
@@ -109,7 +108,7 @@ void sendSignalViaALSA() {
                                       formatType,
                                       accessType,
                                       channels,
-                                      samplingRate,
+                                      ALSA_PCM_SAMPLE_RATE,
                                       ALSA_PCM_SOFT_RESAMPLE,
                                       ALSA_PCM_LATENCY)) < 0) {
                 printf("Playback open error: %s\n", snd_strerror(err));
