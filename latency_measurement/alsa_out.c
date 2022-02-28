@@ -9,7 +9,6 @@ const double SIGNAL_LENGTH_IN_S = 0.001;
 const int ALSA_PCM_SOFT_RESAMPLE = 0;
 const unsigned int ALSA_PCM_LATENCY = 0;
 const unsigned int ALSA_PCM_SAMPLE_RATE = 44100;
-const int BUFFER_SIZE = 441;
 
 snd_output_t *output = NULL;
 char *alsaPcmDevice = "hw:1,0";          /* USB playback device */
@@ -19,8 +18,8 @@ snd_pcm_format_t formatType;
 snd_pcm_access_t accessType;
 unsigned int channels;
 unsigned int sampleRate = ALSA_PCM_SAMPLE_RATE;
-// buffer size = sample rate * signal length in seconds
-unsigned char buffer[BUFFER_SIZE];
+// BUFFER_SIZE = ALSA_PCM_SAMPLE_RATE * SIGNAL_LENGTH_IN_S
+unsigned char buffer[441];
 
 /* Display information about the PCM interface */
 void getHardwareParameters() {
