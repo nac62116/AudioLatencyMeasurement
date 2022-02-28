@@ -3,6 +3,7 @@ Playback code base retrieved from https://www.alsa-project.org/alsa-doc/alsa-lib
 Hardware parameter code base retrieved from https://www.linuxjournal.com/article/6735 on 28th February 2022
 */
 
+#include <pigpio.h>
 #include <alsa/asoundlib.h>
 
 /* Use the newer ALSA API */
@@ -126,6 +127,8 @@ void sendSignalViaALSA() {
 }
 
 int main(void) {
+    gpioInitialise();
     getHardwareParameters();
+    time_sleep(1);
     sendSignalViaALSA();
 }
