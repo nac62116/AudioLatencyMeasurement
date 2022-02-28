@@ -96,7 +96,7 @@ void sendSignalViaALSA() {
         snd_pcm_sframes_t frames;
 
         for (i = 0; i < sizeof(buffer); i++) {
-            buffer[i] = 0xff;
+            buffer[i] = 1 & 0xff;
         }
 
         if ((err = snd_pcm_open(&handle, alsaPcmDevice, SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
@@ -116,7 +116,7 @@ void sendSignalViaALSA() {
                 exit(EXIT_FAILURE);
         }
 
-        for (i = 0; i < 16; i++) {
+        for (i = 0; i < 1; i++) {
                 frames = snd_pcm_writei(handle, buffer, sizeof(buffer));
                 if (frames < 0)
                         frames = snd_pcm_recover(handle, frames, 0);
