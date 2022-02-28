@@ -11,9 +11,15 @@ static char *device = "hw:1,0";          /* USB playback device */
 snd_output_t *output = NULL;
 unsigned char buffer[16*1024];                          /* some random data */
 
+/* Display information about the PCM interface */
 void displayHardwareParameters() {
-    /* Display information about the PCM interface */
-
+    int rc;
+    snd_pcm_t *handle;
+    snd_pcm_hw_params_t *params;
+    unsigned int val, val2;
+    int dir;
+    snd_pcm_uframes_t frames;
+    
     printf("PCM handle name = '%s'\n",
             snd_pcm_name(handle));
 
