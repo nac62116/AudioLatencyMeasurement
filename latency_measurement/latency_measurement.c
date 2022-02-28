@@ -6,13 +6,21 @@
 #define TOTAL_MEASUREMENTS 10
 #define SIGNAL_LENGTH_IN_S 0.001
 #define SIGNAL_START_INTERVAL_IN_S 1.0
-#define SIGNAL_MINIMUM_INTERVAL_IN_S 0.02
+#define SIGNAL_MINIMUM_INTERVAL_IN_S 0.02 // Minimum interval to ensure correct amplification
 #define SIGNAL_ARRIVED 1
 #define SIGNAL_ON_THE_WAY 0
-#define MEASUREMENT_RUNNING 1
-#define MEASUREMENT_FINISHED 0
-#define CALIBRATION_RUNNING 1
-#define CALIBRATION_FINISHED 0
+#define DISPLAY_AVERAGE 1
+#define DISPLAY_MAXIMUM 2
+#define DISPLAY_MINIMUM 3
+
+// User inputs
+#define START_MEASUREMENT 1 // TODO: GPIO numbers
+#define START_CALIBRATION 2
+#define LINE_LEVEL_MODE 3
+#define PCIE_MODE 4
+#define USB_MODE 5
+#define HDMI_MODE 6
+#define CHANGE_DISPLAY 7
 
 uint32_t startTimestamp, endTimestamp;
 int latencyInMicros;
@@ -23,9 +31,11 @@ int minLatencyInMicros = -1;
 int sumOfLatenciesInMicros = 0;
 int avgLatencyInMicros;
 int signalStatus;
-int measurementStatus = MEASUREMENT_FINISHED;
-int calibrationStatus = CALIBRATION_FINISHED;
 int gpioStatus;
+int measurementMode = LINE_LEVEL_MODE;
+int displayModes[] = [DISPLAY_AVERAGE, DISPLAY_MAXIMUM, DISPLAY_MINIMUM];
+int displayMode = DISPLAY_AVERAGE;
+int displayModeCount = 0;
 
 
 // Line-out callback
@@ -83,8 +93,35 @@ void onLineIn(int gpio, int level, uint32_t tick) {
                 // avg
                 sumOfLatenciesInMicros += latencyInMicros;
                 avgLatencyInMicros = sumOfLatenciesInMicros / validMeasurmentsCount;
+
+                // TODO: displayDescriptiveValues(displayMode, avg, max, min)
             }
         }  
+    }
+}
+
+void onUserInput(int gpio, int level, uint32_t tick) {
+
+    if (level == 1) {
+        if (gpio == START_MEASUREMENT) {
+            startMeasurement(measurementMode);
+        }
+        else if (gpio == START_CALIBRATION) {
+            startCalibration();
+        }
+        else if (gpio == CHANGE_DISPLAY) {
+            if (displayModeCount == displayModes.length - 1) {
+                displayModeCount = 0;
+            }
+            else {
+                displayModeCount += 1;
+            }
+            displayMode = displayModes[displayModeCount];
+        }
+        // TODO: measurementMode changes
+        else {
+            
+        }
     }
 }
 
@@ -115,18 +152,19 @@ void sendSignalViaLineOut(double signalLengthInS, double signalIntervalInS) {
     time_sleep(signalIntervalInS);
 }
 
-void startMeasurement() {
+void startMeasurement(int measurementMode) {
     double signalIntervalInS, maxLatencyInS;
 
     // The interval from the first to the second signal is SIGNAL_START_INTERVAL_IN_S
     signalIntervalInS = SIGNAL_START_INTERVAL_IN_S;
     for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
 
-        // After the first signal that arrived, the signal interval converges to the maximum measured latency + SIGNAL_LENGTH_IN_S delay
+        // After the first signal that arrived, the signal interval converges to the maximum measured latency
+        // If its smaller than SIGNAL_MINIMUM_INTERVAL_IN_S it converges to that value
         if (maxLatencyInMicros != -1 && i > 0) {
             maxLatencyInS = (double) maxLatencyInMicros / 1000000.0;
             if (maxLatencyInS <= SIGNAL_MINIMUM_INTERVAL_IN_S) {
-                signalIntervalInS = maxLatencyInS + 1 / i * maxLatencyInS + SIGNAL_MINIMUM_INTERVAL_IN_S;
+                signalIntervalInS = SIGNAL_MINIMUM_INTERVAL_IN_S + 1 / i * maxLatencyInS;
             }
             else {
                 signalIntervalInS = maxLatencyInS + 1 / i * maxLatencyInS;
@@ -134,34 +172,24 @@ void startMeasurement() {
         }
 
         // Send 3.3V squarewave signals through the line output with specified length and interval
-        printf("\n\n----- Measurement %d started -----\n", i + 1);
-        sendSignalViaLineOut(SIGNAL_LENGTH_IN_S, signalIntervalInS);
-        // TODO: if (measurementMode == USB, PCIe...
+        if (measurementMode == LINE_LEVEL_MODE) {
+            printf("\n\n----- Measurement %d started -----\n", i + 1);
+            sendSignalViaLineOut(SIGNAL_LENGTH_IN_S, signalIntervalInS);
+        }
+        // TODO: else if (measurementMode == USB, PCIe...
     }
     // TODO: Saving measurements to .csv format
-    //measurementStatus = MEASUREMENT_FINISHED;
-    //waitForUserInput();
 }
 
 /* TODO
 void startCalibration() {
 
-    calibrationStatus = CALIBRATION_FINISHED;
-    waitForUserInput();
 }
 */
 
 void waitForUserInput() {
-    while (measurementStatus == MEASUREMENT_FINISHED && calibrationStatus == CALIBRATION_FINISHED) {
-        // Wait for start measurement button callback -> MEASUREMENT_RUNNING
-        // Or wait for start calibration button callback -> CALIBRATION_RUNNING
-    }
-    if (measurementStatus == MEASUREMENT_RUNNING) {
-        startMeasurement();
-    }
-    if (calibrationStatus == CALIBRATION_RUNNING) {
-        // TODO
-        //startCalibration();
+    while (1) {
+        // Waiting for input gpio callbacks in onUserInput()
     }
 }
 
@@ -176,7 +204,7 @@ int main(void) {
     }
 
     // waitForUserInput();
-    startMeasurement();
+    startMeasurement(LINE_LEVEL_MODE);
 
     // TODO: Remove status variable or handle errors
     printf("\n%d\n", gpioStatus);
