@@ -1,5 +1,5 @@
 /*
-Code base retrieved from https://www.alsa-project.org/alsa-doc/alsa-lib/_2test_2pcm__min_8c-example.html on 28th February 2022
+Playback code base retrieved from https://www.alsa-project.org/alsa-doc/alsa-lib/_2test_2pcm__min_8c-example.html on 28th February 2022
 Hardware parameter code base retrieved from https://www.linuxjournal.com/article/6735 on 28th February 2022
 */
 
@@ -31,7 +31,7 @@ void getHardwareParameters() {
     snd_pcm_uframes_t frames;
 
     /* Open PCM device for playback. */
-    rc = snd_pcm_open(&handle, *device,
+    rc = snd_pcm_open(&handle, device,
             SND_PCM_STREAM_PLAYBACK, 0);
     if (rc < 0) {
         fprintf(stderr,
@@ -68,8 +68,6 @@ void getHardwareParameters() {
     printf("format = '%s' (%s)\n", *formatType);
 
     snd_pcm_close(handle);
-
-    return 0;
 }
 
 void sendSignalViaALSA() {
