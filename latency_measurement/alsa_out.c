@@ -20,7 +20,7 @@ snd_output_t *output = NULL;
 snd_pcm_format_t formatType;
 snd_pcm_access_t accessType;
 unsigned int channels;
-unsigned int samplingRate = DEFAULT_PCM_SAMPLING_RATE;
+unsigned int samplingRate = ALSA_PCM_SAMPLING_RATE;
 unsigned char buffer[16*1024];  /* some random data */
 
 /* Display information about the PCM interface */
