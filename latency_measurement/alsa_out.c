@@ -9,7 +9,7 @@ const double SIGNAL_LENGTH_IN_S = 0.001;
 const int ALSA_PCM_SOFT_RESAMPLE = 0;
 const unsigned int ALSA_PCM_LATENCY = 0;
 const unsigned int ALSA_PCM_SAMPLE_RATE = 44100;
-const int BUFFER_SIZE = ALSA_PCM_SAMPLE_RATE * SIGNAL_LENGTH_IN_S;
+#define BUFFER_SIZE = ALSA_PCM_SAMPLE_RATE * SIGNAL_LENGTH_IN_S;
 
 snd_output_t *output = NULL;
 char *alsaPcmDevice = "hw:1,0";          /* USB playback device */
@@ -18,6 +18,7 @@ char *alsaPcmDevice = "hw:1,0";          /* USB playback device */
 snd_pcm_format_t formatType;
 snd_pcm_access_t accessType;
 unsigned int channels;
+unsigned int sampleRate = ALSA_PCM_SAMPLE_RATE;
 unsigned char buffer[BUFFER_SIZE];  /* some random data */
 
 /* Display information about the PCM interface */
@@ -98,7 +99,7 @@ void sendSignalViaALSA() {
             buffer[i] = 0xff;
         }
 
-        if ((err = snd_pcm_open(&handle, device, SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
+        if ((err = snd_pcm_open(&handle, alsaPcmDevice, SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
                 printf("Playback open error: %s\n", snd_strerror(err));
                 exit(EXIT_FAILURE);
         }
@@ -108,7 +109,7 @@ void sendSignalViaALSA() {
                                       formatType,
                                       accessType,
                                       channels,
-                                      ALSA_PCM_SAMPLE_RATE,
+                                      sampleRate,
                                       ALSA_PCM_SOFT_RESAMPLE,
                                       ALSA_PCM_LATENCY)) < 0) {
                 printf("Playback open error: %s\n", snd_strerror(err));
