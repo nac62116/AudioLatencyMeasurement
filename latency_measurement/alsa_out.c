@@ -86,6 +86,7 @@ void getHardwareParameters() {
 
     snd_pcm_hw_params_get_rate(params, &val, &dir);
     // Always measuring with ALSA_PCM_SAMPLING_RATE except if its not supported by the hardware
+    printf("sampling rate: %d", val);
     if (val < ALSA_PCM_SAMPLING_RATE) {
         samplingRate = val;
     }
