@@ -7,6 +7,7 @@ Hardware parameter code base retrieved from https://www.linuxjournal.com/article
 
 #define ALSA_PCM_SOFT_RESAMPLE 0
 #define ALSA_PCM_LATENCY 0
+#define ALSA_PCM_SAMPLE_RATE 44100
 
 static char *device = "hw:1,0";          /* USB playback device */
 //static char *device = "hw:2,0";        /* HDMI 1 playback device */
@@ -16,8 +17,8 @@ snd_output_t *output = NULL;
 snd_pcm_format_t formatType;
 snd_pcm_access_t accessType;
 unsigned int channels;
-unsigned int samplingRate = 44100;
-int bufferSize = samplingRate * 0.001 * 1;
+unsigned int samplingRate = ALSA_PCM_SAMPLE_RATE;
+int bufferSize = ALSA_PCM_SAMPLE_RATE * 0.001;
 unsigned char buffer[bufferSize];  /* some random data */
 
 /* Display information about the PCM interface */
