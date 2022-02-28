@@ -72,24 +72,13 @@ void getHardwareParameters() {
         exit(1);
     }
 
-    /* Display information about the PCM interface */
+    /* Get information about the PCM interface */
 
-    snd_pcm_hw_params_get_access(params,
-            (snd_pcm_access_t *) &val);
-    printf("access type = %s\n",
-            snd_pcm_access_name((snd_pcm_access_t)val));
+    snd_pcm_hw_params_get_access(params, (snd_pcm_access_t *) &val);
     accessType = (snd_pcm_access_t *) val;
 
-    snd_pcm_hw_params_get_format(params, (snd_pcm_format_t *)&val);
-    printf("format = '%s' (%s)\n",
-            snd_pcm_format_name((snd_pcm_format_t)val),
-            snd_pcm_format_description(
-                (snd_pcm_format_t)val));
+    snd_pcm_hw_params_get_format(params, (snd_pcm_format_t *) &val);
     formatType = (snd_pcm_format_t *) val;
-
-    
-    printf("\n\nformat type: %d\n", formatType);
-    printf("\n\naccess type: %d\n", accessType);
 }
 
 void sendSignalViaALSA() {
@@ -108,12 +97,12 @@ void sendSignalViaALSA() {
 
 
         if ((err = snd_pcm_set_params(handle,
-                                      SND_PCM_FORMAT_U8,
-                                      SND_PCM_ACCESS_RW_INTERLEAVED,
-                                      1,
-                                      48000,
-                                      1,
-                                      500000)) < 0) {   /* 0.5sec */
+                                      formatType,
+                                      accessType,
+                                      channels,
+                                      samplingRate,
+                                      soft_resample,
+                                      pcmLatency)) < 0) {
                 printf("Playback open error: %s\n", snd_strerror(err));
                 exit(EXIT_FAILURE);
         }
@@ -135,5 +124,5 @@ void sendSignalViaALSA() {
 
 int main(void) {
     getHardwareParameters();
-    //sendSignalViaALSA();
+    sendSignalViaALSA();
 }
