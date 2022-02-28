@@ -82,6 +82,8 @@ void getHardwareParameters() {
 
     printf("\n\n format type:%d\n", formatType);
     printf("\n\n access type:%d\n", accessType);
+
+    snd_pcm_close(handle);
 }
 
 void sendSignalViaALSA() {
@@ -128,6 +130,6 @@ void sendSignalViaALSA() {
 int main(void) {
     gpioInitialise();
     getHardwareParameters();
-    time_sleep(1);
+    //time_sleep(1);
     sendSignalViaALSA();
 }
