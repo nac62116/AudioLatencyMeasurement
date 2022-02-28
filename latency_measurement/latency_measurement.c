@@ -137,7 +137,7 @@ void sendSignalViaLineOut(double signalIntervalInS) {
 }
 
 /* Get information about the PCM interface */
-void getPCMHardwareParameters() {
+void getPCMHardwareParameters(const char *alsaPcmDevice) {
     int rc;
     snd_pcm_t *handle;
     snd_pcm_hw_params_t *params;
@@ -202,7 +202,7 @@ void getPCMHardwareParameters() {
     snd_pcm_close(handle);
 }
 
-void sendSignalViaALSA(double signalIntervalInS, char *alsaPcmDevice) {
+void sendSignalViaALSA(double signalIntervalInS, const char *alsaPcmDevice) {
     int err;
     snd_pcm_t *handle;
 
@@ -296,14 +296,13 @@ void onUserInput(int gpio, int level, uint32_t tick) {
         else {
             measurementMode = gpio;
             if (gpio == ALSA_USB_MODE) {
-                alsaPcmDevice = ALSA_USB_OUT;
+                getPCMHardwareParameters(ALSA_USB_OUT);
             }
             else if (gpio == ALSA_HDMI_MODE) {
-                alsaPcmDevice = ALSA_HDMI1_OUT;
+                getPCMHardwareParameters(ALSA_HDMI1_OUT);
             }
             // TODO: measurementMode changes
             else {}
-            getPCMHardwareParameters();
         }
     }
 }
@@ -327,7 +326,7 @@ void initALSA() {
     for (int i = 0; i < sizeof(buffer); i++) {
         buffer[i] = 0xff;
     }
-    getPCMHardwareParameters();
+    getPCMHardwareParameters(ALSA_USB_OUT);
 }
 
 /*void waitForUserInput() {
