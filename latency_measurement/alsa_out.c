@@ -16,7 +16,7 @@ snd_output_t *output = NULL;
 snd_pcm_format_t *formatType;
 snd_pcm_access_t *accessType;
 unsigned int channels = 1;
-unsigned int rate = 48000;
+unsigned int samplingRate = 48000;
 int soft_resample = 0;
 unsigned int pcmLatency = 0;
 unsigned char buffer[16*1024];  /* some random data */
@@ -46,26 +46,24 @@ void getHardwareParameters() {
     /* Fill it in with default values. */
     snd_pcm_hw_params_any(handle, params);
 
-    /* Set the desired hardware parameters. 
+    /* Set the desired hardware parameters. */
 
-    // Interleaved mode 
+    /* Interleaved mode */
     snd_pcm_hw_params_set_access(handle, params,
             SND_PCM_ACCESS_RW_INTERLEAVED);
 
-    // Signed 16-bit little-endian format
+    /* Signed 16-bit little-endian format */
     snd_pcm_hw_params_set_format(handle, params,
             SND_PCM_FORMAT_S16_LE);
 
-    // Two channels (stereo) 
-    snd_pcm_hw_params_set_channels(handle, params, 2);
+    /* One channels (mono) */
+    snd_pcm_hw_params_set_channels(handle, params, channels);
 
-    // 44100 bits/second sampling rate (CD quality)
-    val = 44100;
+    /* 44100 bits/second sampling rate (CD quality) */
     snd_pcm_hw_params_set_rate_near(handle,
-            params, &val, &dir);
-    */
+            params, &samplingRate, &dir);
 
-    // Write the parameters to the driver
+    /* Write the parameters to the driver */
     rc = snd_pcm_hw_params(handle, params);
     if (rc < 0) {
         fprintf(stderr,
