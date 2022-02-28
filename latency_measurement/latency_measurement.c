@@ -39,7 +39,7 @@ const int CHANGE_DISPLAY = 7;
 char *alsaUSBOut = "hw:1,0";
 char *alsaHDMI1Out = "hw:2,0";
 char *alsaHDMI0Out = "hw:0,0";
-char *alsaPcmDevice = alsaUSBOut;
+char *alsaPcmDevice = *alsaUSBOut;
 snd_pcm_format_t formatType;
 snd_pcm_access_t accessType;
 unsigned int channels;
