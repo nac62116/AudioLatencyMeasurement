@@ -1,9 +1,10 @@
 #include <pigpio.h>
 #include <stdio.h>
 
+#define TOTAL_MEASUREMENTS 10
+
 #define LINE_OUT 17 // GPIO 17
 #define LINE_IN 27 // GPIO 27
-#define TOTAL_MEASUREMENTS 10
 #define SIGNAL_LENGTH_IN_S 0.001
 #define SIGNAL_START_INTERVAL_IN_S 1.0
 #define SIGNAL_MINIMUM_INTERVAL_IN_S 0.02 // Minimum interval to ensure correct amplification

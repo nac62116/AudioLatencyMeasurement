@@ -5,7 +5,9 @@ Hardware parameter code base retrieved from https://www.linuxjournal.com/article
 
 #include <alsa/asoundlib.h>
 
-const double SIGNAL_LENGTH_IN_S = 0.001;
+// BUFFER_SIZE = ALSA_PCM_PREFERRED_SAMPLE_RATE (48000 kHz) * SIGNAL_LENGTH_IN_S (0.001 s)
+#define BUFFER_SIZE 480
+
 const int ALSA_PCM_SOFT_RESAMPLE = 0;
 const unsigned int ALSA_PCM_LATENCY = 0;
 const unsigned int ALSA_PCM_PREFERRED_SAMPLE_RATE = 48000;
@@ -18,8 +20,7 @@ snd_pcm_format_t formatType;
 snd_pcm_access_t accessType;
 unsigned int channels;
 unsigned int sampleRate = ALSA_PCM_PREFERRED_SAMPLE_RATE;
-// BUFFER_SIZE = standard sample rate (48000 kHz) * SIGNAL_LENGTH_IN_S
-unsigned char buffer[480];
+unsigned char buffer[BUFFER_SIZE];
 
 /* Display information about the PCM interface */
 void getHardwareParameters() {
