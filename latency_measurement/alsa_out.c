@@ -13,8 +13,8 @@ static char *device = "hw:1,0";          /* USB playback device */
 //static char *device = "hw:0,0";        /* HDMI 0 playback device */
 
 snd_output_t *output = NULL;
-snd_pcm_format_t *formatType;
-snd_pcm_access_t *accessType;
+snd_pcm_format_t formatType;
+snd_pcm_access_t accessType;
 unsigned int channels = 1;
 unsigned int samplingRate = 48000;
 int soft_resample = 0;
@@ -75,10 +75,13 @@ void getHardwareParameters() {
     /* Get information about the PCM interface */
 
     snd_pcm_hw_params_get_access(params, (snd_pcm_access_t *) &val);
-    accessType = (snd_pcm_access_t *) val;
+    accessType = (snd_pcm_access_t) val;
 
     snd_pcm_hw_params_get_format(params, (snd_pcm_format_t *) &val);
-    formatType = (snd_pcm_format_t *) val;
+    formatType = (snd_pcm_format_t) val;
+
+    printf("\n\n format type:%d\n", formatType);
+    printf("\n\n access type:%d\n", accessType);
 }
 
 void sendSignalViaALSA() {
