@@ -13,9 +13,6 @@ ALSA hardware parameter code base retrieved from https://www.linuxjournal.com/ar
 
 const int LINE_IN = 27; // GPIO 27
 const int LINE_OUT = 17; // GPIO 17
-const char *ALSA_USB_OUT = "hw:1,0";
-const char *ALSA_HDMI1_OUT = "hw:2,0";
-const char *ALSA_HDMI0_OUT = "hw:0,0";
 const int ALSA_PCM_SOFT_RESAMPLE = 0;
 const unsigned int ALSA_PCM_LATENCY = 0;
 const unsigned int ALSA_PCM_PREFERRED_SAMPLE_RATE = 48000;
@@ -38,7 +35,11 @@ const int ALSA_HDMI_MODE = 6;
 const int CHANGE_DISPLAY = 7;
 
 // ALSA variables
-char *alsaPcmDevice = ALSA_USB_OUT;
+
+char *alsaUSBOut = "hw:1,0";
+char *alsaHDMI1Out = "hw:2,0";
+char *alsaHDMI0Out = "hw:0,0";
+char *alsaPcmDevice = alsaUSBOut;
 snd_pcm_format_t formatType;
 snd_pcm_access_t accessType;
 unsigned int channels;
@@ -292,10 +293,10 @@ void onUserInput(int gpio, int level, uint32_t tick) {
         else {
             measurementMode = gpio;
             if (gpio == ALSA_USB_MODE) {
-                alsaPcmDevice = ALSA_USB_OUT;
+                alsaPcmDevice = alsaUSBOut;
             }
             else if (gpio == ALSA_HDMI_MODE) {
-                alsaPcmDevice = ALSA_HDMI1_OUT;
+                alsaPcmDevice = alsaHDMI1Out;
             }
             // TODO: measurementMode changes
             else {}
