@@ -31,7 +31,7 @@ void getHardwareParameters() {
     snd_pcm_uframes_t frames;
 
     /* Open PCM device for playback. */
-    rc = snd_pcm_open(&handle, "default",
+    rc = snd_pcm_open(&handle, device,
             SND_PCM_STREAM_PLAYBACK, 0);
     if (rc < 0) {
         fprintf(stderr,
@@ -85,12 +85,14 @@ void getHardwareParameters() {
             (snd_pcm_access_t *) &val);
     printf("access type = %s\n",
             snd_pcm_access_name((snd_pcm_access_t)val));
+    accessType = (snd_pcm_access_t) val;
 
     snd_pcm_hw_params_get_format(params, (snd_pcm_format_t *)&val);
     printf("format = '%s' (%s)\n",
             snd_pcm_format_name((snd_pcm_format_t)val),
             snd_pcm_format_description(
                 (snd_pcm_format_t)val));
+    formatType = (snd_pcm_format_t) val;
 
     snd_pcm_hw_params_get_subformat(params,
             (snd_pcm_subformat_t *)&val);
@@ -120,6 +122,9 @@ void getHardwareParameters() {
     snd_pcm_hw_params_get_buffer_size(params,
             (snd_pcm_uframes_t *) &val);
     printf("buffer size = %d frames\n", val);
+
+    printf("\n\nformat type: %d\n", formatType);
+    printf("\n\naccess type: %d\n", accessType);
 }
 
 void sendSignalViaALSA() {
