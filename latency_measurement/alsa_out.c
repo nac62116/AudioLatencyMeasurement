@@ -27,9 +27,8 @@ void getHardwareParameters() {
     int rc;
     snd_pcm_t *handle;
     snd_pcm_hw_params_t *params;
-    unsigned int val, val2;
+    unsigned int val;
     int dir;
-    snd_pcm_uframes_t frames;
 
     /* Open PCM device for playback. */
     rc = snd_pcm_open(&handle, device,
