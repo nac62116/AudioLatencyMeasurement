@@ -17,7 +17,7 @@ snd_pcm_format_t formatType;
 snd_pcm_access_t accessType;
 unsigned int channels;
 unsigned int samplingRate = 44100;
-int bufferSize = (int) (samplingRate * 0.001);
+int bufferSize = samplingRate * 0.001;
 unsigned char buffer[bufferSize];  /* some random data */
 
 /* Display information about the PCM interface */
