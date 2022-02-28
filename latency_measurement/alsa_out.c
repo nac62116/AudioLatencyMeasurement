@@ -21,7 +21,7 @@ unsigned int channels;
 unsigned int sampleRate = ALSA_PCM_PREFERRED_SAMPLE_RATE;
 unsigned char buffer[BUFFER_SIZE];
 
-/* Display information about the PCM interface */
+/* Get information about the PCM interface */
 void getHardwareParameters() {
     int rc;
     snd_pcm_t *handle;
