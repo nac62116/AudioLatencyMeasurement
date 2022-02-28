@@ -63,6 +63,7 @@ void getHardwareParameters() {
     val = 44100;
     snd_pcm_hw_params_set_rate_near(handle,
             params, &val, &dir);
+    */
 
     // Write the parameters to the driver
     rc = snd_pcm_hw_params(handle, params);
@@ -72,7 +73,6 @@ void getHardwareParameters() {
                 snd_strerror(rc));
         exit(1);
     }
-    */
 
     /* Display information about the PCM interface */
 
