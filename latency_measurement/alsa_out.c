@@ -96,7 +96,7 @@ void sendSignalViaALSA() {
         snd_pcm_sframes_t frames;
 
         for (i = 0; i < sizeof(buffer); i++) {
-            buffer[i] = 1 & 0xff;
+            buffer[i] = random() & 0xff;
         }
 
         if ((err = snd_pcm_open(&handle, alsaPcmDevice, SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
