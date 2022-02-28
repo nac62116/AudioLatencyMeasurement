@@ -104,7 +104,7 @@ void sendSignalViaALSA() {
         if ((err = snd_pcm_set_params(handle,
                                       formatType,
                                       accessType,
-                                      channels,
+                                      1,
                                       samplingRate,
                                       soft_resample,
                                       pcmLatency)) < 0) {
