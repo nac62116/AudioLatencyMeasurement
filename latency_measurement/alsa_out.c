@@ -1,74 +1,79 @@
 /*
 Code base retrieved from https://www.alsa-project.org/alsa-doc/alsa-lib/_2test_2pcm__min_8c-example.html on 28th February 2022
+Hardware parameter code base retrieved from https://www.linuxjournal.com/article/6735 on 28th February 2022
 */
 
 #include <alsa/asoundlib.h>
+
+/* Use the newer ALSA API */
+#define ALSA_PCM_NEW_HW_PARAMS_API
 
 static char *device = "hw:1,0";          /* USB playback device */
 //static char *device = "hw:2,0";        /* HDMI 1 playback device */
 //static char *device = "hw:0,0";        /* HDMI 0 playback device */
 
 snd_output_t *output = NULL;
+snd_pcm_format_t *formatType;
+snd_pcm_access_t *accessType;
+unsigned int channels = 1;
+unsigned int rate = 48000;
+int soft_resample = 0;
+unsigned int pcmLatency = 0;
 unsigned char buffer[16*1024];                          /* some random data */
 
 /* Display information about the PCM interface */
-void displayHardwareParameters() {
+void getHardwareParameters() {
     int rc;
     snd_pcm_t *handle;
     snd_pcm_hw_params_t *params;
     unsigned int val, val2;
     int dir;
     snd_pcm_uframes_t frames;
-    
-    printf("PCM handle name = '%s'\n",
-            snd_pcm_name(handle));
 
-    printf("PCM state = %s\n",
-            snd_pcm_state_name(snd_pcm_state(handle)));
+    /* Open PCM device for playback. */
+    rc = snd_pcm_open(&handle, *device,
+            SND_PCM_STREAM_PLAYBACK, 0);
+    if (rc < 0) {
+        fprintf(stderr,
+                "unable to open pcm device: %s\n",
+                snd_strerror(rc));
+        exit(1);
+    }
+
+    /* Allocate a hardware parameters object. */
+    snd_pcm_hw_params_alloca(&params);
+
+    /* Fill it in with default values. */
+    snd_pcm_hw_params_any(handle, params);
+
+    /* Write the parameters to the driver */
+    rc = snd_pcm_hw_params(handle, params);
+    if (rc < 0) {
+        fprintf(stderr,
+                "unable to set hw parameters: %s\n",
+                snd_strerror(rc));
+        exit(1);
+    }
+
+    /* Display information about the PCM interface */
 
     snd_pcm_hw_params_get_access(params,
             (snd_pcm_access_t *) &val);
+    *accessType = (snd_pcm_access_t) val;
     printf("access type = %s\n",
-            snd_pcm_access_name((snd_pcm_access_t)val));
+            *accessType);
 
-    snd_pcm_hw_params_get_format(params, &val);
-    printf("format = '%s' (%s)\n",
-            snd_pcm_format_name((snd_pcm_format_t)val),
-            snd_pcm_format_description(
-                (snd_pcm_format_t)val));
+    snd_pcm_hw_params_get_format(params, (snd_pcm_format_t *) &val);
+    *formatType = (snd_pcm_format_t) val;
+    printf("format = '%s' (%s)\n", *formatType);
 
-    snd_pcm_hw_params_get_subformat(params,
-            (snd_pcm_subformat_t *)&val);
-    printf("subformat = '%s' (%s)\n",
-            snd_pcm_subformat_name((snd_pcm_subformat_t)val),
-            snd_pcm_subformat_description(
-                (snd_pcm_subformat_t)val));
+    snd_pcm_close(handle);
 
-    snd_pcm_hw_params_get_channels(params, &val);
-    printf("channels = %d\n", val);
-
-    snd_pcm_hw_params_get_rate(params, &val, &dir);
-    printf("rate = %d bps\n", val);
-
-    snd_pcm_hw_params_get_period_time(params,
-            &val, &dir);
-    printf("period time = %d us\n", val);
-
-    snd_pcm_hw_params_get_period_size(params,
-            &frames, &dir);
-    printf("period size = %d frames\n", (int)frames);
-
-    snd_pcm_hw_params_get_buffer_time(params,
-            &val, &dir);
-    printf("buffer time = %d us\n", val);
-
-    snd_pcm_hw_params_get_buffer_size(params,
-            (snd_pcm_uframes_t *) &val);
-    printf("buffer size = %d frames\n", val);
+    return 0;
 }
 
-int main(void) {
-        int err;
+void sendSignalViaALSA() {
+    int err;
         unsigned int i;
         snd_pcm_t *handle;
         snd_pcm_sframes_t frames;
@@ -81,7 +86,6 @@ int main(void) {
                 exit(EXIT_FAILURE);
         }
 
-        displayHardwareParameters();
 
         if ((err = snd_pcm_set_params(handle,
                                       SND_PCM_FORMAT_U8,
@@ -107,5 +111,9 @@ int main(void) {
         }
 
         snd_pcm_close(handle);
-        return 0;
+}
+
+int main(void) {
+    getHardwareParameters();
+    //sendSignalViaALSA();
 }
