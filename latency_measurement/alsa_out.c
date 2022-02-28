@@ -85,14 +85,14 @@ void getHardwareParameters() {
             (snd_pcm_access_t *) &val);
     printf("access type = %s\n",
             snd_pcm_access_name((snd_pcm_access_t)val));
-    accessType = (snd_pcm_access_t) val;
+    accessType = (snd_pcm_access_t *) val;
 
     snd_pcm_hw_params_get_format(params, (snd_pcm_format_t *)&val);
     printf("format = '%s' (%s)\n",
             snd_pcm_format_name((snd_pcm_format_t)val),
             snd_pcm_format_description(
                 (snd_pcm_format_t)val));
-    formatType = (snd_pcm_format_t) val;
+    formatType = (snd_pcm_format_t *) val;
 
     snd_pcm_hw_params_get_subformat(params,
             (snd_pcm_subformat_t *)&val);
