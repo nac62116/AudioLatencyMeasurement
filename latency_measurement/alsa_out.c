@@ -3,11 +3,14 @@ Playback code base retrieved from https://www.alsa-project.org/alsa-doc/alsa-lib
 Hardware parameter code base retrieved from https://www.linuxjournal.com/article/6735 on 28th February 2022
 */
 
-#include <pigpio.h>
 #include <alsa/asoundlib.h>
 
 /* Use the newer ALSA API */
 #define ALSA_PCM_NEW_HW_PARAMS_API
+
+#define ALSA_PCM_SAMPLING_RATE 44100
+#define ALSA_PCM_SOFT_RESAMPLE 0
+#define ALSA_PCM_LATENCY 0
 
 static char *device = "hw:1,0";          /* USB playback device */
 //static char *device = "hw:2,0";        /* HDMI 1 playback device */
@@ -16,10 +19,8 @@ static char *device = "hw:1,0";          /* USB playback device */
 snd_output_t *output = NULL;
 snd_pcm_format_t formatType;
 snd_pcm_access_t accessType;
-unsigned int channels = 2;
-unsigned int samplingRate = 48000;
-int soft_resample = 0;
-unsigned int pcmLatency = 0;
+unsigned int channels;
+unsigned int samplingRate = DEFAULT_PCM_SAMPLING_RATE;
 unsigned char buffer[16*1024];  /* some random data */
 
 /* Display information about the PCM interface */
@@ -80,8 +81,19 @@ void getHardwareParameters() {
     snd_pcm_hw_params_get_format(params, (snd_pcm_format_t *) &val);
     formatType = (snd_pcm_format_t) val;
 
+    snd_pcm_hw_params_get_channels(params, &val);
+    channels = val;
+
+    snd_pcm_hw_params_get_rate(params, &val, &dir);
+    // Always measuring with ALSA_PCM_SAMPLING_RATE except if its not supported by the hardware
+    if (val < ALSA_PCM_SAMPLING_RATE) {
+        samplingRate = val;
+    }
+
     printf("\n\n format type:%d\n", formatType);
     printf("\n\n access type:%d\n", accessType);
+    printf("\n\n channels:%d\n", channels);
+    printf("\n\n sampling rate:%d\n", samplingRate);
 
     snd_pcm_close(handle);
 }
@@ -106,8 +118,8 @@ void sendSignalViaALSA() {
                                       accessType,
                                       channels,
                                       samplingRate,
-                                      soft_resample,
-                                      pcmLatency)) < 0) {
+                                      ALSA_PCM_SOFT_RESAMPLE,
+                                      ALSA_PCM_LATENCY)) < 0) {
                 printf("Playback open error: %s\n", snd_strerror(err));
                 exit(EXIT_FAILURE);
         }
@@ -128,8 +140,6 @@ void sendSignalViaALSA() {
 }
 
 int main(void) {
-    gpioInitialise();
     getHardwareParameters();
-    //time_sleep(1);
     sendSignalViaALSA();
 }
