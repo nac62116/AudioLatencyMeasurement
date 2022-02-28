@@ -16,7 +16,7 @@ static char *device = "hw:1,0";          /* USB playback device */
 snd_output_t *output = NULL;
 snd_pcm_format_t formatType;
 snd_pcm_access_t accessType;
-unsigned int channels = 1;
+unsigned int channels = 2;
 unsigned int samplingRate = 48000;
 int soft_resample = 0;
 unsigned int pcmLatency = 0;
@@ -104,7 +104,7 @@ void sendSignalViaALSA() {
         if ((err = snd_pcm_set_params(handle,
                                       formatType,
                                       accessType,
-                                      1,
+                                      channels,
                                       samplingRate,
                                       soft_resample,
                                       pcmLatency)) < 0) {
