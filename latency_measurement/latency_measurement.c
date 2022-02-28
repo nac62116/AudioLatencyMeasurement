@@ -33,7 +33,7 @@ int avgLatencyInMicros;
 int signalStatus;
 int gpioStatus;
 int measurementMode = LINE_LEVEL_MODE;
-int displayModes[] = [DISPLAY_AVERAGE, DISPLAY_MAXIMUM, DISPLAY_MINIMUM];
+int displayModes[] = {DISPLAY_AVERAGE, DISPLAY_MAXIMUM, DISPLAY_MINIMUM};
 int displayMode = DISPLAY_AVERAGE;
 int displayModeCount = 0;
 
@@ -100,46 +100,6 @@ void onLineIn(int gpio, int level, uint32_t tick) {
     }
 }
 
-void onUserInput(int gpio, int level, uint32_t tick) {
-
-    if (level == 1) {
-        if (gpio == START_MEASUREMENT) {
-            startMeasurement(measurementMode);
-        }
-        else if (gpio == START_CALIBRATION) {
-            startCalibration();
-        }
-        else if (gpio == CHANGE_DISPLAY) {
-            if (displayModeCount == displayModes.length - 1) {
-                displayModeCount = 0;
-            }
-            else {
-                displayModeCount += 1;
-            }
-            displayMode = displayModes[displayModeCount];
-        }
-        // TODO: measurementMode changes
-        else {
-            
-        }
-    }
-}
-
-void initGpioLibrary() {
-
-    // Initialize library
-    gpioStatus = gpioInitialise();
-    //printf("Status after gpioInitialise: %d\n", gpioStatus);
-
-    // Set GPIO Modes
-    gpioSetMode(LINE_OUT, PI_OUTPUT);
-    gpioSetMode(LINE_IN, PI_INPUT);
-
-    // Register GPIO state change callback
-    gpioSetAlertFunc(LINE_OUT, onLineOut);
-    gpioSetAlertFunc(LINE_IN, onLineIn);
-}
-
 // Line-out signal creation
 void sendSignalViaLineOut(double signalLengthInS, double signalIntervalInS) {
 
@@ -181,17 +141,56 @@ void startMeasurement(int measurementMode) {
     // TODO: Saving measurements to .csv format
 }
 
-/* TODO
+// TODO
 void startCalibration() {
-
+    //
 }
-*/
 
-void waitForUserInput() {
+void onUserInput(int gpio, int level, uint32_t tick) {
+
+    if (level == 1) {
+        if (gpio == START_MEASUREMENT) {
+            startMeasurement(measurementMode);
+        }
+        else if (gpio == START_CALIBRATION) {
+            startCalibration();
+        }
+        else if (gpio == CHANGE_DISPLAY) {
+            if (displayModeCount == sizeof(displayModes) / sizeof(displayModes[0]) - 1) {
+                displayModeCount = 0;
+            }
+            else {
+                displayModeCount += 1;
+            }
+            displayMode = displayModes[displayModeCount];
+        }
+        // TODO: measurementMode changes
+        else {
+            
+        }
+    }
+}
+
+void initGpioLibrary() {
+
+    // Initialize library
+    gpioStatus = gpioInitialise();
+    //printf("Status after gpioInitialise: %d\n", gpioStatus);
+
+    // Set GPIO Modes
+    gpioSetMode(LINE_OUT, PI_OUTPUT);
+    gpioSetMode(LINE_IN, PI_INPUT);
+
+    // Register GPIO state change callback
+    gpioSetAlertFunc(LINE_OUT, onLineOut);
+    gpioSetAlertFunc(LINE_IN, onLineIn);
+}
+
+/*void waitForUserInput() {
     while (1) {
         // Waiting for input gpio callbacks in onUserInput()
     }
-}
+}*/
 
 int main(void) {
 
