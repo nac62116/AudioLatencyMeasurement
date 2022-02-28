@@ -75,12 +75,6 @@ void getHardwareParameters() {
 
     /* Display information about the PCM interface */
 
-    printf("PCM handle name = '%s'\n",
-            snd_pcm_name(handle));
-
-    printf("PCM state = %s\n",
-            snd_pcm_state_name(snd_pcm_state(handle)));
-
     snd_pcm_hw_params_get_access(params,
             (snd_pcm_access_t *) &val);
     printf("access type = %s\n",
@@ -94,35 +88,7 @@ void getHardwareParameters() {
                 (snd_pcm_format_t)val));
     formatType = (snd_pcm_format_t *) val;
 
-    snd_pcm_hw_params_get_subformat(params,
-            (snd_pcm_subformat_t *)&val);
-    printf("subformat = '%s' (%s)\n",
-            snd_pcm_subformat_name((snd_pcm_subformat_t)val),
-            snd_pcm_subformat_description(
-                (snd_pcm_subformat_t)val));
-
-    snd_pcm_hw_params_get_channels(params, &val);
-    printf("channels = %d\n", val);
-
-    snd_pcm_hw_params_get_rate(params, &val, &dir);
-    printf("rate = %d bps\n", val);
-
-    snd_pcm_hw_params_get_period_time(params,
-            &val, &dir);
-    printf("period time = %d us\n", val);
-
-    snd_pcm_hw_params_get_period_size(params,
-            &frames, &dir);
-    printf("period size = %d frames\n", (int)frames);
-
-    snd_pcm_hw_params_get_buffer_time(params,
-            &val, &dir);
-    printf("buffer time = %d us\n", val);
-
-    snd_pcm_hw_params_get_buffer_size(params,
-            (snd_pcm_uframes_t *) &val);
-    printf("buffer size = %d frames\n", val);
-
+    
     printf("\n\nformat type: %d\n", formatType);
     printf("\n\naccess type: %d\n", accessType);
 }
