@@ -79,7 +79,7 @@ int main() {
     printf("access type = %s\n",
             snd_pcm_access_name((snd_pcm_access_t)val));
 
-    snd_pcm_hw_params_get_format(params, &val);
+    snd_pcm_hw_params_get_format(params, (snd_pcm_format_t *)&val);
     printf("format = '%s' (%s)\n",
             snd_pcm_format_name((snd_pcm_format_t)val),
             snd_pcm_format_description(
