@@ -8,7 +8,6 @@ Hardware parameter code base retrieved from https://www.linuxjournal.com/article
 /* Use the newer ALSA API */
 #define ALSA_PCM_NEW_HW_PARAMS_API
 
-#define ALSA_PCM_SAMPLING_RATE 44100
 #define ALSA_PCM_SOFT_RESAMPLE 0
 #define ALSA_PCM_LATENCY 0
 
@@ -20,6 +19,7 @@ snd_output_t *output = NULL;
 snd_pcm_format_t formatType;
 snd_pcm_access_t accessType;
 unsigned int channels;
+unsigned int samplingRate = 44100;
 unsigned char buffer[16*1024];  /* some random data */
 
 /* Display information about the PCM interface */
@@ -61,7 +61,7 @@ void getHardwareParameters() {
 
     /* 44100 bits/second sampling rate (CD quality) */
     snd_pcm_hw_params_set_rate_near(handle,
-            params, ALSA_PCM_SAMPLING_RATE, &dir);
+            params, &samplingRate, &dir);
 
     /* Write the parameters to the driver */
     rc = snd_pcm_hw_params(handle, params);
@@ -109,7 +109,7 @@ void sendSignalViaALSA() {
                                       formatType,
                                       accessType,
                                       channels,
-                                      ALSA_PCM_SAMPLING_RATE,
+                                      samplingRate,
                                       ALSA_PCM_SOFT_RESAMPLE,
                                       ALSA_PCM_LATENCY)) < 0) {
                 printf("Playback open error: %s\n", snd_strerror(err));
