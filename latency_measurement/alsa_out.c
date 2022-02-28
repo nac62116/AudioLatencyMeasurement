@@ -4,7 +4,8 @@ Code base retrieved from https://www.alsa-project.org/alsa-doc/alsa-lib/_2test_2
 
 #include <alsa/asoundlib.h>
 
-static char *device = "sysdefault:CARD=USB";                        /* playback device */
+//static char *device = "sysdefault:CARD=USB";                        /* USB playback device */
+static char *device = "sysdefault:CARD=vc4hdmi0";                        /* HDMI playback device */
 
 snd_output_t *output = NULL;
 unsigned char buffer[16*1024];                          /* some random data */
