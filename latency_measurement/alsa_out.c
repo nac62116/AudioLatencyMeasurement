@@ -61,7 +61,7 @@ void getHardwareParameters() {
 
     /* 44100 bits/second sampling rate (CD quality) */
     snd_pcm_hw_params_set_rate_near(handle,
-            params, &samplingRate, &dir);
+            params, &ALSA_PCM_SAMPLING_RATE, &dir);
 
     /* Write the parameters to the driver */
     rc = snd_pcm_hw_params(handle, params);
