@@ -20,7 +20,6 @@ snd_output_t *output = NULL;
 snd_pcm_format_t formatType;
 snd_pcm_access_t accessType;
 unsigned int channels;
-unsigned int samplingRate = ALSA_PCM_SAMPLING_RATE;
 unsigned char buffer[16*1024];  /* some random data */
 
 /* Display information about the PCM interface */
@@ -84,17 +83,9 @@ void getHardwareParameters() {
     snd_pcm_hw_params_get_channels(params, &val);
     channels = val;
 
-    snd_pcm_hw_params_get_rate(params, &val, &dir);
-    // Always measuring with ALSA_PCM_SAMPLING_RATE except if its not supported by the hardware
-    printf("sampling rate: %d", val);
-    if (val < ALSA_PCM_SAMPLING_RATE) {
-        samplingRate = val;
-    }
-
     printf("\n\n format type:%d\n", formatType);
     printf("\n\n access type:%d\n", accessType);
     printf("\n\n channels:%d\n", channels);
-    printf("\n\n sampling rate:%d\n", samplingRate);
 
     snd_pcm_close(handle);
 }
@@ -118,7 +109,7 @@ void sendSignalViaALSA() {
                                       formatType,
                                       accessType,
                                       channels,
-                                      samplingRate,
+                                      ALSA_PCM_SAMPLING_RATE,
                                       ALSA_PCM_SOFT_RESAMPLE,
                                       ALSA_PCM_LATENCY)) < 0) {
                 printf("Playback open error: %s\n", snd_strerror(err));
