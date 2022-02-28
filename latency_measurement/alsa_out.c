@@ -5,9 +5,6 @@ Hardware parameter code base retrieved from https://www.linuxjournal.com/article
 
 #include <alsa/asoundlib.h>
 
-/* Use the newer ALSA API */
-#define ALSA_PCM_NEW_HW_PARAMS_API
-
 #define ALSA_PCM_SOFT_RESAMPLE 0
 #define ALSA_PCM_LATENCY 0
 
@@ -20,7 +17,7 @@ snd_pcm_format_t formatType;
 snd_pcm_access_t accessType;
 unsigned int channels;
 unsigned int samplingRate = 44100;
-unsigned char buffer[16*1024];  /* some random data */
+unsigned char buffer[samplingRate*0.001];  /* some random data */
 
 /* Display information about the PCM interface */
 void getHardwareParameters() {
@@ -96,8 +93,9 @@ void sendSignalViaALSA() {
         snd_pcm_t *handle;
         snd_pcm_sframes_t frames;
 
-        for (i = 0; i < sizeof(buffer); i++)
-                buffer[i] = random() & 0xff;
+        for (i = 0; i < sizeof(buffer); i++) {
+            buffer[i] = 0xff;
+        }
 
         if ((err = snd_pcm_open(&handle, device, SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
                 printf("Playback open error: %s\n", snd_strerror(err));
