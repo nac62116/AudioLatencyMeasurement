@@ -8,6 +8,7 @@ Hardware parameter code base retrieved from https://www.linuxjournal.com/article
 const double SIGNAL_LENGTH_IN_S = 0.001;
 const int ALSA_PCM_SOFT_RESAMPLE = 0;
 const unsigned int ALSA_PCM_LATENCY = 0;
+const unsigned int ALSA_PCM_PREFERRED_SAMPLE_RATE = 48000;
 
 snd_output_t *output = NULL;
 char *alsaPcmDevice = "hw:1,0";          /* USB playback device */
@@ -16,7 +17,7 @@ char *alsaPcmDevice = "hw:1,0";          /* USB playback device */
 snd_pcm_format_t formatType;
 snd_pcm_access_t accessType;
 unsigned int channels;
-unsigned int sampleRate;
+unsigned int sampleRate = ALSA_PCM_PREFERRED_SAMPLE_RATE;
 // BUFFER_SIZE = standard sample rate (48000 kHz) * SIGNAL_LENGTH_IN_S
 unsigned char buffer[480];
 
@@ -54,12 +55,11 @@ void getHardwareParameters() {
     snd_pcm_hw_params_set_format(handle, params,
             SND_PCM_FORMAT_S16_LE);
 
-    /* One channels (mono) 
+    /* Two channels (stereo) */
     snd_pcm_hw_params_set_channels(handle, params, channels);
 
-     44100 bits/second sampling rate (CD quality) 
-    snd_pcm_hw_params_set_rate_near(handle,
-            params, &sampleRate, &dir);*/
+    /* 48000 bits/second sampling rate */
+    snd_pcm_hw_params_set_rate_near(handle, params, &sampleRate, &dir);
 
     /* Write the parameters to the driver */
     rc = snd_pcm_hw_params(handle, params);
