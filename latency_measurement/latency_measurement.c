@@ -36,10 +36,9 @@ const int CHANGE_DISPLAY = 7;
 
 // ALSA variables
 
-char *alsaUSBOut = "hw:1,0";
-char *alsaHDMI1Out = "hw:2,0";
-char *alsaHDMI0Out = "hw:0,0";
-char *alsaPcmDevice = *alsaUSBOut;
+const char *ALSA_USB_OUT = "hw:1,0";
+const char *ALSA_HDMI1_OUT = "hw:2,0";
+const char *ALSA_HDMI0_OUT = "hw:0,0";
 snd_pcm_format_t formatType;
 snd_pcm_access_t accessType;
 unsigned int channels;
@@ -57,7 +56,7 @@ int sumOfLatenciesInMicros = 0;
 int avgLatencyInMicros;
 int signalStatus;
 int gpioStatus;
-int measurementMode = LINE_LEVEL_MODE;
+int measurementMode = ALSA_USB_MODE;
 int displayModes[] = {DISPLAY_AVERAGE, DISPLAY_MAXIMUM, DISPLAY_MINIMUM};
 int displayMode = DISPLAY_AVERAGE;
 int displayModeCount = 0;
@@ -203,7 +202,7 @@ void getPCMHardwareParameters() {
     snd_pcm_close(handle);
 }
 
-void sendSignalViaALSA(double signalIntervalInS) {
+void sendSignalViaALSA(double signalIntervalInS, char *alsaPcmDevice) {
     int err;
     snd_pcm_t *handle;
 
@@ -258,10 +257,14 @@ void startMeasurement(int measurementMode) {
             printf("\n\n----- Measurement %d started -----\n", i + 1);
             sendSignalViaLineOut(signalIntervalInS);
         }
-        else {
-            sendSignalViaALSA(signalIntervalInS);
+        else if (measurementMode == ALSA_USB_MODE) {
+            sendSignalViaALSA(signalIntervalInS, ALSA_USB_OUT);
+        }
+        else if (measurementMode == ALSA_HDMI_MODE) {
+            sendSignalViaALSA(signalIntervalInS, ALSA_HDMI1_OUT);
         }
         // TODO: else if (measurementMode == USB, PCIe...
+        else {}
     }
     // TODO: Saving measurements to .csv format
 }
@@ -293,10 +296,10 @@ void onUserInput(int gpio, int level, uint32_t tick) {
         else {
             measurementMode = gpio;
             if (gpio == ALSA_USB_MODE) {
-                alsaPcmDevice = alsaUSBOut;
+                alsaPcmDevice = ALSA_USB_OUT;
             }
             else if (gpio == ALSA_HDMI_MODE) {
-                alsaPcmDevice = alsaHDMI1Out;
+                alsaPcmDevice = ALSA_HDMI1_OUT;
             }
             // TODO: measurementMode changes
             else {}
@@ -346,7 +349,7 @@ int main(void) {
     }
 
     // waitForUserInput();
-    startMeasurement(ALSA_USB_MODE);
+    startMeasurement(measurementMode);
 
     // TODO: Remove status variable or handle errors
     printf("\n%d\n", gpioStatus);
