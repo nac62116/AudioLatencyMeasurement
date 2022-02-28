@@ -186,11 +186,11 @@ void initGpioLibrary() {
     gpioSetAlertFunc(LINE_IN, onLineIn);
 }
 
-void initAlsa() {
+/*void initALSA() {
     for (int i = 0; i < sizeof(buffer); i++) {
         buffer[i] = 0xff;
     }
-}
+}*/
 
 /*void waitForUserInput() {
     while (1) {
@@ -203,7 +203,7 @@ int main(void) {
     // TODO: init gpio callbacks for the measurementMode LINE_LEVEL, USB, PCIE...
     initGpioLibrary();
 
-    initAlsa();
+    //initALSA();
 
     // Fill measurement array with -1 values to mark invalid measurements
     for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
