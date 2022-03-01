@@ -22,6 +22,7 @@ int main() {
     unsigned int val, val2;
     int dir;
     snd_pcm_uframes_t frames;
+    snd_pcm_info_t *info;
 
     /* Open PCM device for playback. */
     rc = snd_pcm_open(&handle, "hw:2,0",
@@ -67,6 +68,8 @@ int main() {
     }
 
     /* Display information about the PCM interface */
+
+    printf("PCM device name = '%s'\n", snd_pcm_info_get_name(info));
 
     printf("PCM handle name = '%s'\n",
             snd_pcm_name(handle));
