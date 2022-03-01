@@ -56,7 +56,7 @@ int sumOfLatenciesInMicros = 0;
 int avgLatencyInMicros;
 int signalStatus;
 int gpioStatus;
-int measurementMode = ALSA_USB_MODE;
+int measurementMode = ALSA_HDMI_MODE;
 int displayModes[] = {DISPLAY_AVERAGE, DISPLAY_MAXIMUM, DISPLAY_MINIMUM};
 int displayMode = DISPLAY_AVERAGE;
 int displayModeCount = 0;
@@ -323,9 +323,9 @@ void initGpioLibrary() {
 
 void initALSA() {
     for (int i = 0; i < sizeof(buffer); i++) {
-        buffer[i] = 0xff;
+        buffer[i] = random() & 0xff;
     }
-    getPCMHardwareParameters(ALSA_USB_OUT);
+    getPCMHardwareParameters(ALSA_HDMI1_OUT);
 }
 
 /*void waitForUserInput() {
@@ -336,7 +336,7 @@ void initALSA() {
 
 int main(void) {
 
-    // TODO: init gpio callbacks for the measurementMode LINE_LEVEL, USB, PCIE...
+    // TODO: init gpio callbacks for the user inputs
     initGpioLibrary();
 
     initALSA();
