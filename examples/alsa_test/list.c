@@ -69,8 +69,6 @@ int main() {
 
     /* Display information about the PCM interface */
 
-    printf("PCM device name = '%d'\n", snd_pcm_info_get_card(info));
-
     printf("PCM handle name = '%s'\n",
             snd_pcm_name(handle));
 
