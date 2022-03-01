@@ -9,7 +9,7 @@ ALSA hardware parameter code base retrieved from https://www.linuxjournal.com/ar
 
 #define TOTAL_MEASUREMENTS 10
 // BUFFER_SIZE = ALSA_PCM_PREFERRED_SAMPLE_RATE (48000 kHz) * SIGNAL_LENGTH_IN_S (0.001 s)
-#define BUFFER_SIZE 480
+#define BUFFER_SIZE 20000
 
 const int LINE_IN = 27; // GPIO 27
 const int LINE_OUT = 17; // GPIO 17
@@ -233,7 +233,7 @@ void sendSignalViaALSA(double signalIntervalInS, const char *alsaPcmDevice) {
     time_sleep(signalIntervalInS);
 }
 
-void startMeasurement(int measurementMode) {
+void startMeasurement() {
     double signalIntervalInS, maxLatencyInS;
 
     // The interval from the first to the second signal is SIGNAL_START_INTERVAL_IN_S
@@ -252,9 +252,8 @@ void startMeasurement(int measurementMode) {
             }
         }
 
-        // Send 3.3V squarewave signals through the line output with specified length and interval
+        printf("\n\n----- Measurement %d started -----\n", i + 1);
         if (measurementMode == LINE_LEVEL_MODE) {
-            printf("\n\n----- Measurement %d started -----\n", i + 1);
             sendSignalViaLineOut(signalIntervalInS);
         }
         else if (measurementMode == ALSA_USB_MODE) {
@@ -278,7 +277,7 @@ void onUserInput(int gpio, int level, uint32_t tick) {
 
     if (level == 1) {
         if (gpio == START_MEASUREMENT) {
-            startMeasurement(measurementMode);
+            startMeasurement();
         }
         else if (gpio == START_CALIBRATION) {
             startCalibration();
@@ -348,7 +347,7 @@ int main(void) {
     }
 
     // waitForUserInput();
-    startMeasurement(measurementMode);
+    startMeasurement();
 
     // TODO: Remove status variable or handle errors
     printf("\n%d\n", gpioStatus);
