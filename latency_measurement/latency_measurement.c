@@ -187,6 +187,7 @@ int getPCMHardwareParameters(const char *alsaPcmDevice) {
         fprintf(stderr,
                 "unable to set hw parameters: %s\n",
                 snd_strerror(rc));
+        snd_pcm_close(handle);
         status = -1;
         return(status);
     }
@@ -210,16 +211,20 @@ int getPCMHardwareParameters(const char *alsaPcmDevice) {
     return(status);
 }
 
-int sendSignalViaALSA(double signalIntervalInS, const char *alsaPcmDevice) {
+snd_pcm_t* openPCMDevice(const char *alsaPcmDevice) {
     int err;
-    int status = 0;
     snd_pcm_t *handle;
 
     if ((err = snd_pcm_open(&handle, alsaPcmDevice, SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
         printf("Playback open error: %s\n", snd_strerror(err));
-        status = -1;
-        return(status);
+        return(NULL);
     }
+    return(handle);
+}
+
+int setPCMHardwareParameters(snd_pcm_t *handle) {
+    int err;
+    int status = 0;
 
 
     if ((err = snd_pcm_set_params(handle,
@@ -233,20 +238,43 @@ int sendSignalViaALSA(double signalIntervalInS, const char *alsaPcmDevice) {
         status = -1;
         return(status);
     }
+}
 
+int sendSignalViaALSA(double signalIntervalInS, snd_pcm_t *handle) {
+    
     signalStatus = SIGNAL_ON_THE_WAY;
     // Send signal through alsa pcm device
     snd_pcm_writei(handle, buffer, sizeof(buffer));
     // Start measurement
     startTimestamp = gpioTick();
-
-    snd_pcm_close(handle);
     time_sleep(signalIntervalInS);
+
     return(status);
 }
 
 void startMeasurement() {
     double signalIntervalInS, maxLatencyInS;
+    snd_pcm_t *handle;
+
+    // TODO: Get handle for HDMI and PCIe
+    if (measurementMode == ALSA_USB_MODE) {
+        handle = openPCMDevice(ALSA_USB_TOP_OUT);
+        if (handle == NULL) {
+            handle = openPCMDevice(ALSA_USB_BOTTOM_OUT);
+            if (handle == NULL) {
+                // TODO: Display this error message
+                printf("\n\nNo USB-Audio device found.\n\n");
+                return;
+            }
+        }
+        alsaStatus = setPCMHardwareParameters(handle);
+        if (alsaStatus < 0) {
+            // TODO: Display this error message
+            printf("\n\nError setting hardware parameters of USB-Audio device.\n\n");
+            snd_pcm_close(handle);
+            return;
+        }
+    }
 
     // The interval from the first to the second signal is SIGNAL_START_INTERVAL_IN_S
     signalIntervalInS = SIGNAL_START_INTERVAL_IN_S;
@@ -268,20 +296,18 @@ void startMeasurement() {
         if (measurementMode == LINE_LEVEL_MODE) {
             sendSignalViaLineOut(signalIntervalInS);
         }
+        // TODO: || HDMI_MODE || PCIE_MODE ... or else {}
         else if (measurementMode == ALSA_USB_MODE) {
-            alsaStatus = sendSignalViaALSA(signalIntervalInS, ALSA_USB_TOP_OUT);
-            if (alsaStatus < 0) {
-                alsaStatus = sendSignalViaALSA(signalIntervalInS, ALSA_USB_BOTTOM_OUT);
-                if (alsaStatus < 0) {
-                    // TODO: Display error: No usb audio device found
-                }
-            }
+            alsaStatus = sendSignalViaALSA(signalIntervalInS, handle);
         }
         else if (measurementMode == ALSA_HDMI_MODE) {
-            alsaStatus = sendSignalViaALSA(signalIntervalInS, ALSA_HDMI1_OUT);
+            alsaStatus = sendSignalViaALSA(signalIntervalInS,handle);
         }
         // TODO: else if (measurementMode == USB, PCIe...
         else {}
+    }
+    if (handle != NULL) {
+        snd_pcm_close(handle);
     }
     // TODO: Saving measurements to .csv format
 }
