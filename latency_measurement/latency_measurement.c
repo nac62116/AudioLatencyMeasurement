@@ -248,6 +248,7 @@ void sendSignalViaALSA(double signalIntervalInS, snd_pcm_t *handle) {
     snd_pcm_writei(handle, buffer, sizeof(buffer));
     // Start measurement
     startTimestamp = gpioTick();
+    snd_pcm_close(handle);
     time_sleep(signalIntervalInS);
 }
 
@@ -305,9 +306,6 @@ void startMeasurement() {
         }
         // TODO: else if (measurementMode == USB, PCIe...
         else {}
-    }
-    if (handle != NULL) {
-        snd_pcm_close(handle);
     }
     // TODO: Saving measurements to .csv format
 }
