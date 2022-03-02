@@ -43,7 +43,7 @@ const char *ALSA_HDMI1_OUT = "hw:2,0";
 const char *ALSA_HDMI0_OUT = "hw:0,0";
 snd_pcm_format_t formatType;
 snd_pcm_access_t accessType;
-snd_pcm_uframes_t *bufferSize;
+snd_pcm_uframes_t bufferSize;
 unsigned int channels;
 unsigned int sampleRate = ALSA_PCM_PREFERRED_SAMPLE_RATE;
 
@@ -182,7 +182,7 @@ int getPCMHardwareParameters(const char *alsaPcmDevice) {
     snd_pcm_hw_params_set_rate_near(handle, params, &sampleRate, &dir);
 
     /* 1024 bytes preferred buffersize */
-    snd_pcm_hw_params_set_buffer_size_near(handle, params, &bufferSize, &dir)
+    snd_pcm_hw_params_set_buffer_size_near(handle, params, &bufferSize);
 
     /* Write the parameters to the driver */
     rc = snd_pcm_hw_params(handle, params);
@@ -394,8 +394,6 @@ int main(void) {
 
     // TODO: init gpio callbacks for the user inputs
     initGpioLibrary();
-
-    initALSA();
 
     // TODO: Remove this and set LINE_LEVEL_MODE as default mode
     alsaStatus = getPCMHardwareParameters(ALSA_USB_TOP_OUT);
