@@ -36,8 +36,8 @@ const int CHANGE_DISPLAY = 7;
 
 // ALSA variables
 
-const char *ALSA_USB_TOP_OUT = "hw:CARD=usb_audio_top";
-const char *ALSA_USB_BOTTOM_OUT = "hw:CARD=usb_audio_bot";
+const char *ALSA_USB_TOP_OUT = "plughw:CARD=usb_audio_top";
+const char *ALSA_USB_BOTTOM_OUT = "plughw:CARD=usb_audio_bot";
 // TODO: create udev rules for changing card ids of pcie and hdmi sound devices
 const char *ALSA_HDMI1_OUT = "hw:2,0";
 const char *ALSA_HDMI0_OUT = "hw:0,0";
@@ -46,6 +46,7 @@ snd_pcm_access_t accessType;
 snd_pcm_uframes_t bufferSize;
 unsigned int channels;
 unsigned int sampleRate = ALSA_PCM_PREFERRED_SAMPLE_RATE;
+unsigned char buffer[BUFFER_SIZE];
 
 // Latency measurement
 int measurementMode = ALSA_USB_MODE;
@@ -234,10 +235,10 @@ int setPCMHardwareParameters(snd_pcm_t *handle) {
 
 
     if ((err = snd_pcm_set_params(handle,
-                                    formatType,
-                                    accessType,
-                                    channels,
-                                    sampleRate,
+                                    SND_PCM_FORMAT_U8,
+                                    SND_PCM_ACCESS_RW_INTERLEAVED,
+                                    1,
+                                    ALSA_PCM_PREFERRED_SAMPLE_RATE,
                                     ALSA_PCM_SOFT_RESAMPLE,
                                     ALSA_PCM_LATENCY)) < 0) {
         printf("Playback open error: %s\n", snd_strerror(err));
@@ -247,14 +248,11 @@ int setPCMHardwareParameters(snd_pcm_t *handle) {
     return(status);
 }
 
-unsigned char* prepareAudioBuffer() {
-    const int size = (const int) bufferSize;
-    unsigned char buffer[size];
-
+void prepareAudioBuffer() {
+    
     for (int i = 0; i < sizeof(buffer); i++) {
         buffer[i] = random() & 0xff;
     }
-    return(&buffer);
 }
 
 void sendSignalViaALSA(double signalIntervalInS, snd_pcm_t *handle, unsigned char *buffer) {
@@ -292,7 +290,6 @@ void startMeasurement() {
             snd_pcm_close(handle);
             return;
         }
-        buffer = prepareAudioBuffer();
     }
 
     // The interval from the first to the second signal is SIGNAL_START_INTERVAL_IN_S
@@ -396,14 +393,14 @@ int main(void) {
     // TODO: init gpio callbacks for the user inputs
     initGpioLibrary();
 
-    // TODO: Remove this and set LINE_LEVEL_MODE as default mode
+    /* TODO: Remove this and set LINE_LEVEL_MODE as default mode
     alsaStatus = getPCMHardwareParameters(ALSA_USB_TOP_OUT);
     if (alsaStatus < 0) {
         alsaStatus = getPCMHardwareParameters(ALSA_USB_BOTTOM_OUT);
         if (alsaStatus < 0) {
             printf("\n\nNo USB-Audio device found.\n\n");
         }
-    }
+    }*/
 
     // Fill measurement array with -1 values to mark invalid measurements
     for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
