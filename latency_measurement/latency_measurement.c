@@ -269,8 +269,8 @@ void sendSignalViaALSA(double signalIntervalInS) {
     snd_pcm_writei(handle, buffer, sizeof(buffer));
     // Start measurement
     startTimestamp = gpioTick();
-    snd_pcm_close(handle);
     time_sleep(signalIntervalInS);
+    snd_pcm_close(handle);
 }
 
 void startMeasurement() {
