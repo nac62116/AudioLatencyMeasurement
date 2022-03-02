@@ -156,7 +156,7 @@ int getPCMHardwareParameters(const char *alsaPcmDevice) {
                 "unable to open pcm device: %s\n",
                 snd_strerror(rc));
         exit(1);
-        status = -1:
+        status = -1;
         return(status);
     }
 
@@ -210,7 +210,7 @@ int getPCMHardwareParameters(const char *alsaPcmDevice) {
     return(status);
 }
 
-void sendSignalViaALSA(double signalIntervalInS, const char *alsaPcmDevice) {
+int sendSignalViaALSA(double signalIntervalInS, const char *alsaPcmDevice) {
     int err;
     int status = 0;
     snd_pcm_t *handle;
