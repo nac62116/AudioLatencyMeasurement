@@ -9,7 +9,7 @@ ALSA hardware parameter code base retrieved from https://www.linuxjournal.com/ar
 
 #define TOTAL_MEASUREMENTS 10
 // BUFFER_SIZE = ALSA_PCM_PREFERRED_SAMPLE_RATE (48000 kHz) * SIGNAL_LENGTH_IN_S (0.001 s)
-#define BUFFER_SIZE 20000
+#define BUFFER_SIZE 1024
 
 const int LINE_IN = 27; // GPIO 27
 const int LINE_OUT = 17; // GPIO 17
@@ -36,14 +36,13 @@ const int CHANGE_DISPLAY = 7;
 
 // ALSA variables
 
-const char *ALSA_USB_TOP_OUT = "plughw:CARD=usb_audio_top";
-const char *ALSA_USB_BOTTOM_OUT = "plughw:CARD=usb_audio_bot";
+const char *ALSA_USB_TOP_OUT = "hw:CARD=usb_audio_top";
+const char *ALSA_USB_BOTTOM_OUT = "hw:CARD=usb_audio_bot";
 // TODO: create udev rules for changing card ids of pcie and hdmi sound devices
 const char *ALSA_HDMI1_OUT = "hw:2,0";
 const char *ALSA_HDMI0_OUT = "hw:0,0";
 snd_pcm_format_t formatType;
 snd_pcm_access_t accessType;
-snd_pcm_uframes_t bufferSize;
 unsigned int channels;
 unsigned int sampleRate = ALSA_PCM_PREFERRED_SAMPLE_RATE;
 unsigned char buffer[BUFFER_SIZE];
@@ -182,9 +181,6 @@ int getPCMHardwareParameters(const char *alsaPcmDevice) {
     /* 48000 bits/second preferred sampling rate */
     snd_pcm_hw_params_set_rate_near(handle, params, &sampleRate, &dir);
 
-    /* 1024 bytes preferred buffersize */
-    snd_pcm_hw_params_set_buffer_size_near(handle, params, &bufferSize);
-
     /* Write the parameters to the driver */
     rc = snd_pcm_hw_params(handle, params);
     if (rc < 0) {
@@ -203,9 +199,6 @@ int getPCMHardwareParameters(const char *alsaPcmDevice) {
 
     snd_pcm_hw_params_get_format(params, (snd_pcm_format_t *) &val);
     formatType = (snd_pcm_format_t) val;
-
-    snd_pcm_hw_params_get_buffer_size(params, (snd_pcm_uframes_t *) &val);
-    bufferSize = (snd_pcm_uframes_t) val;
 
     snd_pcm_hw_params_get_channels(params, &val);
     channels = val;
@@ -235,10 +228,10 @@ int setPCMHardwareParameters(snd_pcm_t *handle) {
 
 
     if ((err = snd_pcm_set_params(handle,
-                                    SND_PCM_FORMAT_U8,
-                                    SND_PCM_ACCESS_RW_INTERLEAVED,
-                                    1,
-                                    ALSA_PCM_PREFERRED_SAMPLE_RATE,
+                                    formatType,
+                                    accessType,
+                                    channels,
+                                    sampleRate,
                                     ALSA_PCM_SOFT_RESAMPLE,
                                     ALSA_PCM_LATENCY)) < 0) {
         printf("Playback open error: %s\n", snd_strerror(err));
@@ -259,7 +252,12 @@ void sendSignalViaALSA(double signalIntervalInS, snd_pcm_t *handle) {
     
     signalStatus = SIGNAL_ON_THE_WAY;
     // Send signal through alsa pcm device
-    snd_pcm_writei(handle, buffer, sizeof(buffer));
+    if (accessType == SND_PCM_ACCESS_RW_INTERLEAVED) {
+        snd_pcm_writei(handle, buffer, sizeof(buffer));
+    }
+    else {
+        snd_pcm_writen(handle, buffer, sizeof(buffer));
+    }
     // Start measurement
     startTimestamp = gpioTick();
     time_sleep(SIGNAL_LENGTH_IN_S);
@@ -395,14 +393,14 @@ int main(void) {
     // TODO: init gpio callbacks for the user inputs
     initGpioLibrary();
 
-    /* TODO: Remove this and set LINE_LEVEL_MODE as default mode
+    // TODO: Remove this and set LINE_LEVEL_MODE as default mode
     alsaStatus = getPCMHardwareParameters(ALSA_USB_TOP_OUT);
     if (alsaStatus < 0) {
         alsaStatus = getPCMHardwareParameters(ALSA_USB_BOTTOM_OUT);
         if (alsaStatus < 0) {
             printf("\n\nNo USB-Audio device found.\n\n");
         }
-    }*/
+    }
 
     // Fill measurement array with -1 values to mark invalid measurements
     for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
