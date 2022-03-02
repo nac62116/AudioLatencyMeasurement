@@ -36,7 +36,9 @@ const int CHANGE_DISPLAY = 7;
 
 // ALSA variables
 
-const char *ALSA_USB_OUT = "hw:1,0";
+const char *ALSA_USB_TOP_OUT = "hw:CARD=usb_audio_top";
+const char *ALSA_USB_BOTTOM_OUT = "hw:CARD=usb_audio_bottom";
+// TODO: create udev rules for changing card ids of pcie and hdmi sound devices
 const char *ALSA_HDMI1_OUT = "hw:2,0";
 const char *ALSA_HDMI0_OUT = "hw:0,0";
 snd_pcm_format_t formatType;
@@ -46,6 +48,7 @@ unsigned int sampleRate = ALSA_PCM_PREFERRED_SAMPLE_RATE;
 unsigned char buffer[BUFFER_SIZE];
 
 // Latency measurement
+int measurementMode = ALSA_USB_MODE;
 uint32_t startTimestamp, endTimestamp;
 int latencyInMicros;
 int latencyMeasurementsInMicros[TOTAL_MEASUREMENTS];
@@ -56,7 +59,7 @@ int sumOfLatenciesInMicros = 0;
 int avgLatencyInMicros;
 int signalStatus;
 int gpioStatus;
-int measurementMode = ALSA_HDMI_MODE;
+int alsaStatus;
 int displayModes[] = {DISPLAY_AVERAGE, DISPLAY_MAXIMUM, DISPLAY_MINIMUM};
 int displayMode = DISPLAY_AVERAGE;
 int displayModeCount = 0;
@@ -137,12 +140,13 @@ void sendSignalViaLineOut(double signalIntervalInS) {
 }
 
 /* Get information about the PCM interface */
-void getPCMHardwareParameters(const char *alsaPcmDevice) {
+int getPCMHardwareParameters(const char *alsaPcmDevice) {
     int rc;
     snd_pcm_t *handle;
     snd_pcm_hw_params_t *params;
     unsigned int val;
     int dir;
+    int status = 0;
 
     /* Open PCM device for playback. */
     rc = snd_pcm_open(&handle, alsaPcmDevice,
@@ -152,6 +156,8 @@ void getPCMHardwareParameters(const char *alsaPcmDevice) {
                 "unable to open pcm device: %s\n",
                 snd_strerror(rc));
         exit(1);
+        status = -1:
+        return(status);
     }
 
     /* Allocate a hardware parameters object. */
@@ -200,15 +206,20 @@ void getPCMHardwareParameters(const char *alsaPcmDevice) {
     sampleRate = val;
 
     snd_pcm_close(handle);
+
+    return(status);
 }
 
 void sendSignalViaALSA(double signalIntervalInS, const char *alsaPcmDevice) {
     int err;
+    int status = 0;
     snd_pcm_t *handle;
 
     if ((err = snd_pcm_open(&handle, alsaPcmDevice, SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
-            printf("Playback open error: %s\n", snd_strerror(err));
-            exit(EXIT_FAILURE);
+        printf("Playback open error: %s\n", snd_strerror(err));
+        exit(EXIT_FAILURE);
+        status = -1;
+        return(status);
     }
 
 
@@ -219,8 +230,10 @@ void sendSignalViaALSA(double signalIntervalInS, const char *alsaPcmDevice) {
                                     sampleRate,
                                     ALSA_PCM_SOFT_RESAMPLE,
                                     ALSA_PCM_LATENCY)) < 0) {
-            printf("Playback open error: %s\n", snd_strerror(err));
-            exit(EXIT_FAILURE);
+        printf("Playback open error: %s\n", snd_strerror(err));
+        exit(EXIT_FAILURE);
+        status = -1;
+        return(status);
     }
 
     signalStatus = SIGNAL_ON_THE_WAY;
@@ -231,6 +244,7 @@ void sendSignalViaALSA(double signalIntervalInS, const char *alsaPcmDevice) {
 
     snd_pcm_close(handle);
     time_sleep(signalIntervalInS);
+    return(status);
 }
 
 void startMeasurement() {
@@ -257,10 +271,16 @@ void startMeasurement() {
             sendSignalViaLineOut(signalIntervalInS);
         }
         else if (measurementMode == ALSA_USB_MODE) {
-            sendSignalViaALSA(signalIntervalInS, ALSA_USB_OUT);
+            alsaStatus = sendSignalViaALSA(signalIntervalInS, ALSA_USB_TOP_OUT);
+            if (alsaStatus < 0) {
+                alsaStatus = sendSignalViaALSA(signalIntervalInS, ALSA_USB_BOTTOM_OUT);
+                if (alsaStatus < 0) {
+                    // TODO: Display error: No usb audio device found
+                }
+            }
         }
         else if (measurementMode == ALSA_HDMI_MODE) {
-            sendSignalViaALSA(signalIntervalInS, ALSA_HDMI1_OUT);
+            alsaStatus = sendSignalViaALSA(signalIntervalInS, ALSA_HDMI1_OUT);
         }
         // TODO: else if (measurementMode == USB, PCIe...
         else {}
@@ -295,10 +315,16 @@ void onUserInput(int gpio, int level, uint32_t tick) {
         else {
             measurementMode = gpio;
             if (gpio == ALSA_USB_MODE) {
-                getPCMHardwareParameters(ALSA_USB_OUT);
+                alsaStatus = getPCMHardwareParameters(ALSA_USB_TOP_OUT);
+                if (alsaStatus < 0) {
+                    alsaStatus = getPCMHardwareParameters(ALSA_USB_BOTTOM_OUT);
+                    if (alsaStatus < 0) {
+                        // TODO: Display error: No usb audio device found
+                    }
+                }
             }
             else if (gpio == ALSA_HDMI_MODE) {
-                getPCMHardwareParameters(ALSA_HDMI1_OUT);
+                alsaStatus = getPCMHardwareParameters(ALSA_HDMI1_OUT);
             }
             // TODO: measurementMode changes
             else {}
@@ -325,7 +351,6 @@ void initALSA() {
     for (int i = 0; i < sizeof(buffer); i++) {
         buffer[i] = 0xff;
     }
-    getPCMHardwareParameters(ALSA_HDMI1_OUT);
 }
 
 /*void waitForUserInput() {
@@ -340,6 +365,15 @@ int main(void) {
     initGpioLibrary();
 
     initALSA();
+
+    // TODO: Remove this and set LINE_LEVEL_MODE as default mode
+    alsaStatus = getPCMHardwareParameters(ALSA_USB_TOP_OUT);
+    if (alsaStatus < 0) {
+        alsaStatus = getPCMHardwareParameters(ALSA_USB_BOTTOM_OUT);
+        if (alsaStatus < 0) {
+            printf("\n\nNo USB-Audio device found.\n\n");
+        }
+    }
 
     // Fill measurement array with -1 values to mark invalid measurements
     for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
