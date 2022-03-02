@@ -254,7 +254,7 @@ unsigned char* prepareAudioBuffer() {
     for (int i = 0; i < sizeof(buffer); i++) {
         buffer[i] = random() & 0xff;
     }
-    return(buffer);
+    return(*buffer);
 }
 
 void sendSignalViaALSA(double signalIntervalInS, snd_pcm_t *handle, unsigned char *buffer) {
