@@ -270,7 +270,6 @@ void sendSignalViaALSA(double signalIntervalInS, snd_pcm_t *handle) {
 void startMeasurement() {
     double signalIntervalInS, maxLatencyInS;
     snd_pcm_t *handle;
-    unsigned char *buffer;
 
     // TODO: Get handle for HDMI and PCIe
     if (measurementMode == ALSA_USB_MODE) {
