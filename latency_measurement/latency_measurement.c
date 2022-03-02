@@ -255,7 +255,7 @@ void prepareAudioBuffer() {
     }
 }
 
-void sendSignalViaALSA(double signalIntervalInS, snd_pcm_t *handle, unsigned char *buffer) {
+void sendSignalViaALSA(double signalIntervalInS, snd_pcm_t *handle) {
     
     signalStatus = SIGNAL_ON_THE_WAY;
     // Send signal through alsa pcm device
@@ -314,10 +314,13 @@ void startMeasurement() {
         }
         // TODO: || HDMI_MODE || PCIE_MODE ... or else {}
         else if (measurementMode == ALSA_USB_MODE) {
-            sendSignalViaALSA(signalIntervalInS, handle, buffer);
+            sendSignalViaALSA(signalIntervalInS, handle);
         }
         // TODO: else if (measurementMode == USB, PCIe...
         else {}
+    }
+    if (handle != NULL) {
+        snd_pcm_close(handle);
     }
     // TODO: Saving measurements to .csv format
 }
