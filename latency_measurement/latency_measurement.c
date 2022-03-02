@@ -155,7 +155,6 @@ int getPCMHardwareParameters(const char *alsaPcmDevice) {
         fprintf(stderr,
                 "unable to open pcm device: %s\n",
                 snd_strerror(rc));
-        exit(1);
         status = -1;
         return(status);
     }
@@ -188,7 +187,8 @@ int getPCMHardwareParameters(const char *alsaPcmDevice) {
         fprintf(stderr,
                 "unable to set hw parameters: %s\n",
                 snd_strerror(rc));
-        exit(1);
+        status = -1;
+        return(status);
     }
 
     /* Get information about the PCM interface */
@@ -217,7 +217,6 @@ int sendSignalViaALSA(double signalIntervalInS, const char *alsaPcmDevice) {
 
     if ((err = snd_pcm_open(&handle, alsaPcmDevice, SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
         printf("Playback open error: %s\n", snd_strerror(err));
-        exit(EXIT_FAILURE);
         status = -1;
         return(status);
     }
@@ -231,7 +230,6 @@ int sendSignalViaALSA(double signalIntervalInS, const char *alsaPcmDevice) {
                                     ALSA_PCM_SOFT_RESAMPLE,
                                     ALSA_PCM_LATENCY)) < 0) {
         printf("Playback open error: %s\n", snd_strerror(err));
-        exit(EXIT_FAILURE);
         status = -1;
         return(status);
     }
