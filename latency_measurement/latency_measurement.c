@@ -37,7 +37,7 @@ const int CHANGE_DISPLAY = 7;
 // ALSA variables
 
 const char *ALSA_USB_TOP_OUT = "hw:CARD=usb_audio_top";
-const char *ALSA_USB_BOTTOM_OUT = "hw:CARD=usb_audio_bottom";
+const char *ALSA_USB_BOTTOM_OUT = "hw:CARD=usb_audio_bot";
 // TODO: create udev rules for changing card ids of pcie and hdmi sound devices
 const char *ALSA_HDMI1_OUT = "hw:2,0";
 const char *ALSA_HDMI0_OUT = "hw:0,0";
