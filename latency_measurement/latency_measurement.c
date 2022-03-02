@@ -238,9 +238,10 @@ int setPCMHardwareParameters(snd_pcm_t *handle) {
         status = -1;
         return(status);
     }
+    return(status);
 }
 
-int sendSignalViaALSA(double signalIntervalInS, snd_pcm_t *handle) {
+void sendSignalViaALSA(double signalIntervalInS, snd_pcm_t *handle) {
     
     signalStatus = SIGNAL_ON_THE_WAY;
     // Send signal through alsa pcm device
@@ -248,8 +249,6 @@ int sendSignalViaALSA(double signalIntervalInS, snd_pcm_t *handle) {
     // Start measurement
     startTimestamp = gpioTick();
     time_sleep(signalIntervalInS);
-
-    return(status);
 }
 
 void startMeasurement() {
@@ -298,10 +297,10 @@ void startMeasurement() {
         }
         // TODO: || HDMI_MODE || PCIE_MODE ... or else {}
         else if (measurementMode == ALSA_USB_MODE) {
-            alsaStatus = sendSignalViaALSA(signalIntervalInS, handle);
+            sendSignalViaALSA(signalIntervalInS, handle);
         }
         else if (measurementMode == ALSA_HDMI_MODE) {
-            alsaStatus = sendSignalViaALSA(signalIntervalInS,handle);
+            sendSignalViaALSA(signalIntervalInS,handle);
         }
         // TODO: else if (measurementMode == USB, PCIe...
         else {}
