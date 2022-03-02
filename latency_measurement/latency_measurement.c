@@ -370,7 +370,7 @@ void initGpioLibrary() {
 
 void initALSA() {
     for (int i = 0; i < sizeof(buffer); i++) {
-        buffer[i] = i % 2 & 0xff;
+        buffer[i] = i % 2 * 255;
     }
 }
 
