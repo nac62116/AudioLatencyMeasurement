@@ -349,7 +349,7 @@ void initGpioLibrary() {
 
 void initALSA() {
     for (int i = 0; i < sizeof(buffer); i++) {
-        buffer[i] = 0xff;
+        buffer[i] = random() & 0xff;
     }
 }
 
