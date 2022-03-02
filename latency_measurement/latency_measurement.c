@@ -297,6 +297,7 @@ void startMeasurement() {
         }
         // TODO: || HDMI_MODE || PCIE_MODE ... or else {}
         else if (measurementMode == ALSA_USB_MODE) {
+            printf("USB Signal");
             sendSignalViaALSA(signalIntervalInS, handle);
         }
         else if (measurementMode == ALSA_HDMI_MODE) {
