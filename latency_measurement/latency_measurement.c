@@ -9,7 +9,7 @@ ALSA hardware parameter code base retrieved from https://www.linuxjournal.com/ar
 
 #define TOTAL_MEASUREMENTS 10
 // BUFFER_SIZE = ALSA_PCM_PREFERRED_SAMPLE_RATE (48000 kHz) * SIGNAL_LENGTH_IN_S (0.001 s)
-#define BUFFER_SIZE 480
+#define BUFFER_SIZE 20000
 
 const int LINE_IN = 27; // GPIO 27
 const int LINE_OUT = 17; // GPIO 17
