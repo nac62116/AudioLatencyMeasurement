@@ -241,19 +241,7 @@ int setPCMHardwareParameters(snd_pcm_t *handle) {
     return(status);
 }
 
-void sendSignalViaALSA(double signalIntervalInS, snd_pcm_t *handle) {
-    
-    signalStatus = SIGNAL_ON_THE_WAY;
-    // Send signal through alsa pcm device
-    snd_pcm_writei(handle, buffer, sizeof(buffer));
-    // Start measurement
-    startTimestamp = gpioTick();
-    snd_pcm_close(handle);
-    time_sleep(signalIntervalInS);
-}
-
-void startMeasurement() {
-    double signalIntervalInS, maxLatencyInS;
+void sendSignalViaALSA(double signalIntervalInS) {
     snd_pcm_t *handle;
 
     // TODO: Get handle for HDMI and PCIe
@@ -275,6 +263,18 @@ void startMeasurement() {
             return;
         }
     }
+    
+    signalStatus = SIGNAL_ON_THE_WAY;
+    // Send signal through alsa pcm device
+    snd_pcm_writei(handle, buffer, sizeof(buffer));
+    // Start measurement
+    startTimestamp = gpioTick();
+    snd_pcm_close(handle);
+    time_sleep(signalIntervalInS);
+}
+
+void startMeasurement() {
+    double signalIntervalInS, maxLatencyInS;
 
     // The interval from the first to the second signal is SIGNAL_START_INTERVAL_IN_S
     signalIntervalInS = SIGNAL_START_INTERVAL_IN_S;
@@ -298,11 +298,10 @@ void startMeasurement() {
         }
         // TODO: || HDMI_MODE || PCIE_MODE ... or else {}
         else if (measurementMode == ALSA_USB_MODE) {
-            printf("USB Signal");
-            sendSignalViaALSA(signalIntervalInS, handle);
+            sendSignalViaALSA(signalIntervalInS);
         }
         else if (measurementMode == ALSA_HDMI_MODE) {
-            sendSignalViaALSA(signalIntervalInS,handle);
+            sendSignalViaALSA(signalIntervalInS);
         }
         // TODO: else if (measurementMode == USB, PCIe...
         else {}
