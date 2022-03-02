@@ -43,9 +43,9 @@ const char *ALSA_HDMI1_OUT = "hw:2,0";
 const char *ALSA_HDMI0_OUT = "hw:0,0";
 snd_pcm_format_t formatType;
 snd_pcm_access_t accessType;
+snd_pcm_uframes_t *bufferSize;
 unsigned int channels;
 unsigned int sampleRate = ALSA_PCM_PREFERRED_SAMPLE_RATE;
-unsigned char buffer[BUFFER_SIZE];
 
 // Latency measurement
 int measurementMode = ALSA_USB_MODE;
@@ -178,8 +178,11 @@ int getPCMHardwareParameters(const char *alsaPcmDevice) {
     /* Two channels (stereo) */
     snd_pcm_hw_params_set_channels(handle, params, channels);
 
-    /* 48000 bits/second sampling rate */
+    /* 48000 bits/second preferred sampling rate */
     snd_pcm_hw_params_set_rate_near(handle, params, &sampleRate, &dir);
+
+    /* 1024 bytes preferred buffersize */
+    snd_pcm_hw_params_set_buffer_size_near(handle, params, &bufferSize, &dir)
 
     /* Write the parameters to the driver */
     rc = snd_pcm_hw_params(handle, params);
@@ -199,6 +202,9 @@ int getPCMHardwareParameters(const char *alsaPcmDevice) {
 
     snd_pcm_hw_params_get_format(params, (snd_pcm_format_t *) &val);
     formatType = (snd_pcm_format_t) val;
+
+    snd_pcm_hw_params_get_buffer_size(params, (snd_pcm_uframes_t *) &val);
+    bufferSize = (snd_pcm_uframes_t) val;
 
     snd_pcm_hw_params_get_channels(params, &val);
     channels = val;
@@ -241,8 +247,31 @@ int setPCMHardwareParameters(snd_pcm_t *handle) {
     return(status);
 }
 
-void sendSignalViaALSA(double signalIntervalInS) {
+unsigned char* prepareAudioBuffer() {
+    const int size = (const int) bufferSize;
+    unsigned char buffer[size];
+
+    for (int i = 0; i < sizeof(buffer); i++) {
+        buffer[i] = random() & 0xff;
+    }
+}
+
+void sendSignalViaALSA(double signalIntervalInS, snd_pcm_t *handle, unsigned char *buffer) {
+    
+    signalStatus = SIGNAL_ON_THE_WAY;
+    // Send signal through alsa pcm device
+    snd_pcm_writei(handle, buffer, sizeof(buffer));
+    // Start measurement
+    startTimestamp = gpioTick();
+    time_sleep(SIGNAL_LENGTH_IN_S);
+    snd_pcm_drop(handle);
+    time_sleep(signalIntervalInS);
+}
+
+void startMeasurement() {
+    double signalIntervalInS, maxLatencyInS;
     snd_pcm_t *handle;
+    unsigned char *buffer;
 
     // TODO: Get handle for HDMI and PCIe
     if (measurementMode == ALSA_USB_MODE) {
@@ -262,19 +291,8 @@ void sendSignalViaALSA(double signalIntervalInS) {
             snd_pcm_close(handle);
             return;
         }
+        buffer = prepareAudioBuffer();
     }
-    
-    signalStatus = SIGNAL_ON_THE_WAY;
-    // Send signal through alsa pcm device
-    snd_pcm_writei(handle, buffer, sizeof(buffer));
-    // Start measurement
-    startTimestamp = gpioTick();
-    time_sleep(signalIntervalInS);
-    snd_pcm_close(handle);
-}
-
-void startMeasurement() {
-    double signalIntervalInS, maxLatencyInS;
 
     // The interval from the first to the second signal is SIGNAL_START_INTERVAL_IN_S
     signalIntervalInS = SIGNAL_START_INTERVAL_IN_S;
@@ -298,10 +316,7 @@ void startMeasurement() {
         }
         // TODO: || HDMI_MODE || PCIE_MODE ... or else {}
         else if (measurementMode == ALSA_USB_MODE) {
-            sendSignalViaALSA(signalIntervalInS);
-        }
-        else if (measurementMode == ALSA_HDMI_MODE) {
-            sendSignalViaALSA(signalIntervalInS);
+            sendSignalViaALSA(signalIntervalInS, handle, buffer);
         }
         // TODO: else if (measurementMode == USB, PCIe...
         else {}
@@ -368,11 +383,6 @@ void initGpioLibrary() {
     gpioSetAlertFunc(LINE_IN, onLineIn);
 }
 
-void initALSA() {
-    for (int i = 0; i < sizeof(buffer); i++) {
-        buffer[i] = i % 2 * 255;
-    }
-}
 
 /*void waitForUserInput() {
     while (1) {
