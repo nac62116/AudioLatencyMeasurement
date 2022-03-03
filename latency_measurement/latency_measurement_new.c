@@ -338,7 +338,6 @@ void initGpioLibrary() {
     gpioTerminate();
 
     // Initialize library
-    gpioCfgSetInternals(1<<10);
     gpioStatus = gpioInitialise();
     printf("Status after gpioInitialise: %d\n", gpioStatus);
 
