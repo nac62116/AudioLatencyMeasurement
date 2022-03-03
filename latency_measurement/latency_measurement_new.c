@@ -99,7 +99,7 @@ void allocateHardwareParameterStructure(snd_pcm_hw_params_t **hardwareParameters
 
 void configurePCMDevice(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwareParameters) {
     printf("configurePCMDevice\n");
-    snd_pcm_hw_params_any(pcmHandle, hardwareParameters)
+    snd_pcm_hw_params_any(pcmHandle, hardwareParameters);
 }
 
 void getHardwareParameters(snd_pcm_hw_params_t *hardwareParameters) {
