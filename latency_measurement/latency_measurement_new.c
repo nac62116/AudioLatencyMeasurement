@@ -185,6 +185,13 @@ int setHardwareParameters(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwarePar
         fprintf(stderr, "Error setting buffer size.\n");
         return(-1);
     }
+
+    /* Apply HW parameter settings to */
+    /* PCM device and prepare it  */
+    if (snd_pcm_hw_params(pcmHandle, hardwareParameterStructure) < 0) {
+      fprintf(stderr, "Error setting HW params.\n");
+      return(-1);
+    }
     return(0);
 }
 
