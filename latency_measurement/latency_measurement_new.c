@@ -108,6 +108,7 @@ int configurePCMDevice() {
     printf("configurePCMDevice\n");
     if (snd_pcm_hw_params_any(pcmHandle, hwParams) < 0) {
       fprintf(stderr, "Error configuring PCM device %s\n", pcmName);
+      snd_pcm_close(pcmHandle);
       return(-1);
     }
     return(0);
@@ -342,6 +343,9 @@ void onUserInput(int gpio, int level, uint32_t tick) {
 }
 
 void initGpioLibrary() {
+
+    // If library is still initialised, terminate library
+    gpioTerminate();
 
     // Initialize library
     gpioStatus = gpioInitialise();
