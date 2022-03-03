@@ -190,10 +190,10 @@ int setHardwareParameters(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwarePar
 
 void prepareAudioBuffer() {
     interleavedAudioBuffer = (unsigned char *) malloc(minBufferSize);
-    for (int i = 0; i < sizeof(audioBuffer); i++) {
+    for (int i = 0; i < sizeof(interleavedAudioBuffer); i++) {
         interleavedAudioBuffer[i] = random() & 0xff;
     }
-    nonInterleavedAudioBuffer = (unsigned char *) malloc(channels);
+    nonInterleavedAudioBuffer = (unsigned char **) malloc(channels);
     for (int i = 0; i < sizeof(nonInterleavedAudioBuffer); i++) {
         nonInterleavedAudioBuffer[i] = (unsigned char *) malloc(minBufferSize);
         for (int j = 0; j < sizeof(nonInterleavedAudioBuffer[i]); i++) {
@@ -239,7 +239,7 @@ void sendSignalViaPCMDevice(double signalIntervalInS, snd_pcm_t *pcmHandle) {
         framesWritten = snd_pcm_writen(pcmHandle, nonInterleavedAudioBuffer, sizeof(nonInterleavedAudioBuffer[0]));
     }
     if (framesWritten < 0) {
-        printf("snd_pcm_write failed: %s\n", snd_strerror(err));
+        printf("snd_pcm_write failed\n");
         snd_pcm_recover(pcmHandle, framesWritten, 0);
     }
     // Start measurement
