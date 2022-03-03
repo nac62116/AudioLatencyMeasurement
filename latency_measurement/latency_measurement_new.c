@@ -86,7 +86,7 @@ snd_pcm_t* openPCMDevice(snd_pcm_t *pcmHandle) {
     const char *identifier = (const char *) pcmName;
 
     printf("openPCMDevice\n");
-    if (snd_pcm_open(&pcmHandle, identifier, SND_PCM_STREAM_PLAYBACK, 0) < 0) {
+    if (snd_pcm_open(pcmHandle, identifier, SND_PCM_STREAM_PLAYBACK, 0) < 0) {
         fprintf(stderr, "Error opening PCM device %s\n", pcmName);
         return(NULL);
     }
@@ -95,7 +95,7 @@ snd_pcm_t* openPCMDevice(snd_pcm_t *pcmHandle) {
 
 snd_pcm_hw_params_t* allocateHardwareParameterStructure(snd_pcm_hw_params_t *hardwareParameters) {
 
-    snd_pcm_hw_params_alloca(&hardwareParameters);
+    snd_pcm_hw_params_alloca(hardwareParameters);
 
     return (hardwareParameters);
 }
@@ -156,8 +156,8 @@ int initPCMDevice(const char *identifier) {
     snd_pcm_hw_params_t *hardwareParameters;
 
     setPCMName(identifier);
-    pcmHandle = openPCMDevice(pcmHandle);
-    hardwareParameters = allocateHardwareParameterStructure(hardwareParameters);
+    pcmHandle = openPCMDevice(&pcmHandle);
+    hardwareParameters = allocateHardwareParameterStructure(&hardwareParameters);
     if (pcmHandle == NULL) {
         status = -1;
     }
