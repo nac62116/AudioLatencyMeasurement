@@ -154,8 +154,8 @@ int initPCMDevice(const char *identifier) {
 
     setPCMName(identifier);
     status = openPCMDevice(&pcmHandle);
-    allocateHardwareParameterStructure(&hardwareParameters);
     if (status != -1) {
+        allocateHardwareParameterStructure(&hardwareParameters);
         status = configurePCMDevice(pcmHandle, hardwareParameters);
         if (status != -1) {
             getHardwareParameters(hardwareParameters);
