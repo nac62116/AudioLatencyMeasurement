@@ -66,12 +66,6 @@ const char *ALSA_HDMI0_OUT = "hw:0,0";
 /* With that pcm devices can be identified like above      */
 /* (hw:CARD=usb_audio_top, ...)                            */
 char *pcmName;
-/* Playback stream */
-snd_pcm_stream_t stream = SND_PCM_STREAM_PLAYBACK;
-/* This structure contains information about    */
-/* the hardware and can be used to specify the  */      
-/* configuration to be used for the PCM stream. */ 
-snd_pcm_hw_params_t *hwParams;
 /* Specific hardware parameters */
 snd_pcm_access_t accessType;
 snd_pcm_format_t formatType;
@@ -83,18 +77,28 @@ unsigned int sampleRate = ALSA_PCM_PREFERRED_SAMPLE_RATE;
 // ####
 // #### PCM DEVICES (USB, HDMI, PCIE) VIA ALSA ####
 
-void setPCMName(const char *identifier) {
+void setPCMName(const char * identifier) {
     pcmName = (char *) identifier;
 }
 
-void allocateHardwareParameterStructure() {
-    snd_pcm_hw_params_alloca(&hwParams);
+snd_pcm_hw_params_t* allocateHardwareParameterStructure() {
+    /* This structure contains information about    */
+    /* the hardware and can be used to specify the  */      
+    /* configuration to be used for the PCM stream. */ 
+    snd_pcm_hw_params_t *hardwareParameters;
+
+    snd_pcm_hw_params_alloca(&hardwareParameters);
+
+    return (hardwareParameters);
 }
 
 snd_pcm_t* openPCMDevice() {
-    const char *identifier = (const char *) pcmName;
     /* Handle for the PCM device */
     snd_pcm_t *pcmHandle;
+    /* Device identifier (hw:usb_audio_top, ...) */
+    const char *identifier = (const char *) pcmName;
+    /* Playback stream */
+    snd_pcm_stream_t stream = SND_PCM_STREAM_PLAYBACK;
 
     printf("openPCMDevice\n");
     if (snd_pcm_open(&pcmHandle, identifier, stream, 0) < 0) {
@@ -104,9 +108,9 @@ snd_pcm_t* openPCMDevice() {
     return(pcmHandle);
 }
 
-int configurePCMDevice(snd_pcm_t *pcmHandle) {
+int configurePCMDevice(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwareParameters) {
     printf("configurePCMDevice\n");
-    if (snd_pcm_hw_params_any(pcmHandle, hwParams) < 0) {
+    if (snd_pcm_hw_params_any(pcmHandle, hardwareParameters) < 0) {
       fprintf(stderr, "Error configuring PCM device %s\n", pcmName);
       snd_pcm_close(pcmHandle);
       return(-1);
@@ -115,28 +119,28 @@ int configurePCMDevice(snd_pcm_t *pcmHandle) {
     return(0);
 }
 
-void getHardwareParameters() {
+void getHardwareParameters(snd_pcm_hw_params_t *hardwareParameters) {
     unsigned int returnedValue;
     int direction;
 
     printf("getHardwareParameters");
 
-    snd_pcm_hw_params_get_access(hwParams, (snd_pcm_access_t *) &returnedValue);
+    snd_pcm_hw_params_get_access(hardwareParameters, (snd_pcm_access_t *) &returnedValue);
     accessType = (snd_pcm_access_t) returnedValue;
 
-    snd_pcm_hw_params_get_format(hwParams, (snd_pcm_format_t *) &returnedValue);
+    snd_pcm_hw_params_get_format(hardwareParameters, (snd_pcm_format_t *) &returnedValue);
     formatType = (snd_pcm_format_t) returnedValue;
 
-    snd_pcm_hw_params_get_channels(hwParams, &returnedValue);
+    snd_pcm_hw_params_get_channels(hardwareParameters, &returnedValue);
     channels = returnedValue;
 
-    snd_pcm_hw_params_get_rate(hwParams, &returnedValue, &direction);
+    snd_pcm_hw_params_get_rate(hardwareParameters, &returnedValue, &direction);
     sampleRate = returnedValue;
 
-    snd_pcm_hw_params_get_period_size_min(hwParams, (snd_pcm_uframes_t *) &returnedValue, &direction);
+    snd_pcm_hw_params_get_period_size_min(hardwareParameters, (snd_pcm_uframes_t *) &returnedValue, &direction);
     minPeriodSize = (snd_pcm_uframes_t) returnedValue;
 
-    snd_pcm_hw_params_get_buffer_size_min(hwParams, (snd_pcm_uframes_t *) &returnedValue);
+    snd_pcm_hw_params_get_buffer_size_min(hardwareParameters, (snd_pcm_uframes_t *) &returnedValue);
     minBufferSize = (snd_pcm_uframes_t) returnedValue;
 
     printf("\naccess type: %d\n\n", accessType);
@@ -154,18 +158,19 @@ void setHardwareParameters() {
 int initPCMDevice(const char *identifier) {
     int status = 0;
     snd_pcm_t *pcmHandle;
+    snd_pcm_hw_params_t *hardwareParameters;
 
     setPCMName(identifier);
-    allocateHardwareParameterStructure();
+    hardwareParameters = allocateHardwareParameterStructure();
     pcmHandle = openPCMDevice();
     if (pcmHandle == NULL) {
         status = -1;
         
     }
     else {
-        status = configurePCMDevice(pcmHandle);
+        status = configurePCMDevice(pcmHandle, hardwareParameters);
         if (status != -1) {
-            getHardwareParameters();
+            getHardwareParameters(hardwareParameters);
             setHardwareParameters();
         }
     }
