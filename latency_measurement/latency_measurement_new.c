@@ -196,11 +196,10 @@ int setHardwareParameters(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwarePar
 }
 
 void prepareAudioBuffer() {
-    const int bufferSize = minPeriodSize * 4 /* bytes/sample -> S32_LE*/ * channels;
-    unsigned char interleavedBuffer[bufferSize];
+    unsigned char interleavedBuffer[minBufferSize];
     //unsigned char nonInterleavedBuffer[channels][minBufferSize];
 
-    for (int byte = 0; byte < bufferSize; byte++) {
+    for (int byte = 0; byte < minBufferSize; byte++) {
         interleavedBuffer[byte] = random() & 0xff;
     }
     /*
@@ -242,7 +241,7 @@ int initPCMDevice(const char *identifier) {
 int sendSignalViaPCMDevice(double signalIntervalInS) {
     /* Handle for the PCM device */
     snd_pcm_t *pcmHandle;
-    snd_pcm_sframes_t framesWritten;
+    snd_pcm_sframes_t frames;
     int error = 0;
 
     if (openPCMDevice(&pcmHandle) < 0) {
@@ -264,15 +263,17 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
     printf("SND_PCM_ACCESS_MMAP_COMPLEX: %d\n", SND_PCM_ACCESS_MMAP_COMPLEX);
     printf("SND_PCM_ACCESS_RW_INTERLEAVED: %d\n", SND_PCM_ACCESS_RW_INTERLEAVED);
     printf("SND_PCM_ACCESS_RW_NONINTERLEAVED: %d\n", SND_PCM_ACCESS_RW_NONINTERLEAVED);
+
+    frames = read(0, interleavedAudioBuffer, minBufferSize);
     if (accessType == SND_PCM_ACCESS_RW_INTERLEAVED || accessType == SND_PCM_ACCESS_MMAP_INTERLEAVED) {
-        framesWritten = snd_pcm_writei(pcmHandle, interleavedAudioBuffer, minBufferSize);
+        frames = snd_pcm_writei(pcmHandle, interleavedAudioBuffer, minBufferSize);
     }
     else {
-        framesWritten = snd_pcm_writen(pcmHandle, (void **) &interleavedAudioBuffer, minPeriodSize);
+        frames = snd_pcm_writen(pcmHandle, (void **) &interleavedAudioBuffer, minBufferSize);
     }
-    if (framesWritten < 0) {
-        printf("snd_pcm_write failed: %s\n", snd_strerror(framesWritten));
-        snd_pcm_recover(pcmHandle, framesWritten, 0);
+    if (frames < 0) {
+        printf("snd_pcm_write failed: %s\n", snd_strerror(frames));
+        snd_pcm_recover(pcmHandle, frames, 0);
     }
     // Start measurement
     startTimestamp = gpioTick();
