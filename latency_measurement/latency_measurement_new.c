@@ -227,10 +227,10 @@ int initPCMDevice(const char *identifier) {
     return(0);
 }
 
-int sendSignalViaPCMDevice(double signalIntervalInS, snd_pcm_t *pcmHandle) {
-    snd_pcm_sframes_t framesWritten;
+int sendSignalViaPCMDevice(double signalIntervalInS) {
     /* Handle for the PCM device */
     snd_pcm_t *pcmHandle;
+    snd_pcm_sframes_t framesWritten;
 
     if (openPCMDevice(&pcmHandle) < 0) {
         return(-1);
