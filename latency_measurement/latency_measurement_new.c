@@ -86,7 +86,7 @@ unsigned int sampleRate = ALSA_PCM_PREFERRED_SAMPLE_RATE;
 // #### PCM DEVICES (USB, HDMI, PCIE) VIA ALSA ####
 
 void setPCMName(const char *identifier) {
-    pcmName = strdup(identifier);
+    pcmName = (char *) identifier;
 }
 
 void allocateHardwareParameterStructure() {
@@ -94,8 +94,10 @@ void allocateHardwareParameterStructure() {
 }
 
 int openPCMDevice() {
-    printf("openPCMDevice");
-    if (snd_pcm_open(&pcmHandle, ALSA_USB_BOTTOM_OUT, stream, 0) < 0) {
+    const char *identifier = (const char *) pcmName;
+
+    printf("openPCMDevice\n");
+    if (snd_pcm_open(&pcmHandle, identifier, stream, 0) < 0) {
         fprintf(stderr, "Error opening PCM device %s\n", pcmName);
         return(-1);
     }
@@ -103,7 +105,7 @@ int openPCMDevice() {
 }
 
 int configurePCMDevice() {
-    printf("configurePCMDevice");
+    printf("configurePCMDevice\n");
     if (snd_pcm_hw_params_any(pcmHandle, hwParams) < 0) {
       fprintf(stderr, "Error configuring PCM device %s\n", pcmName);
       return(-1);
