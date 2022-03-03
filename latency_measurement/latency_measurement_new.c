@@ -75,7 +75,7 @@ int numberOfPeriods;
 unsigned int channels;
 unsigned int sampleRate;
 unsigned char* interleavedAudioBuffer;
-unsigned char** nonInterleavedAudioBuffer;
+//unsigned char** nonInterleavedAudioBuffer;
 
 // ####
 // #### PCM DEVICES (USB, HDMI, PCIE) VIA ALSA ####
@@ -196,15 +196,16 @@ void prepareAudioBuffer() {
     for (int byte = 0; byte < minBufferSize; byte++) {
         interleavedBuffer[byte] = random() & 0xff;
     }
+    /*
     printf("debug audio buffer before filling non interleaved");
     for (int byte = 0; byte < channels; byte++) {
         for (int channel = 0; channel < minBufferSize; channel++) {
             nonInterleavedBuffer[byte][j] = random() & 0xff;
         }
-    }
+    }*/
     printf("debug audio buffer after filling");
     interleavedAudioBuffer = interleavedBuffer;
-    nonInterleavedAudioBuffer = nonInterleavedBuffer;
+    //nonInterleavedAudioBuffer = nonInterleavedBuffer;
 }
 
 int initPCMDevice(const char *identifier) {
@@ -255,7 +256,7 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
     }
     else {
         printf("debug sendSignal before writen\n");
-        framesWritten = snd_pcm_writen(pcmHandle, (void **) nonInterleavedAudioBuffer, sizeof(nonInterleavedAudioBuffer[0]));
+        framesWritten = snd_pcm_writen(pcmHandle, &interleavedAudioBuffer, sizeof(interleavedAudioBuffer));
     }
     if (framesWritten < 0) {
         printf("snd_pcm_write failed\n");
