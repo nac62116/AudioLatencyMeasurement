@@ -129,61 +129,61 @@ void getHardwareParameters(snd_pcm_hw_params_t *hardwareParameterStructure) {
     printf("\naccess type: %d\n\n", accessType);
     printf("\format type: %d\n\n", formatType);
     printf("\nchannels: %d\n\n", channels);
-    printf("\nsample rate: %d\n\n", ALSA_PCM_PREFERRED_SAMPLE_RATE);
+    printf("\nsample rate: %d\n\n", PREFERRED_SAMPLE_RATE);
     printf("\nmin period size: %ld\n\n", minPeriodSize);
     printf("\nmin buffer size: %ld\n\n", minBufferSize);
-    printf("\nnumber of periods: %ld\n\n", numberOfPeriods);
+    printf("\nnumber of periods: %d\n\n", numberOfPeriods);
 }
 
-void setHardwareParameters(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwareParameterStructure) {
+int setHardwareParameters(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwareParameterStructure) {
 
     /* Set access type. */
     if (snd_pcm_hw_params_set_access(pcmHandle, hardwareParameterStructure, accessType) < 0) {
-      fprintf(stderr, "Error setting access.\n");
-      return(-1);
+        fprintf(stderr, "Error setting access.\n");
+        return(-1);
     }
   
     /* Set sample format */
     if (snd_pcm_hw_params_set_format(pcmHandle, hardwareParameterStructure, formatType) < 0) {
-      fprintf(stderr, "Error setting format.\n");
-      return(-1);
+        fprintf(stderr, "Error setting format.\n");
+        return(-1);
     }
 
     /* Set sample rate. If the exact rate is not supported */
     /* by the hardware, use nearest possible rate.         */ 
     sampleRate = PREFERRED_SAMPLE_RATE;
     if (snd_pcm_hw_params_set_rate_near(pcmHandle, hardwareParameterStructure, &sampleRate, 0) < 0) {
-      fprintf(stderr, "Error setting rate.\n");
-      return(-1);
+        fprintf(stderr, "Error setting rate.\n");
+        return(-1);
     }
     if (sampleRate != PREFERRED_SAMPLE_RATE) {
-      fprintf(stderr, "The rate %d Hz is not supported by your hardware.\n 
-                       ==> Using %d Hz instead.\n", PREFERRED_SAMPLE_RATE, sampleRate);
+        fprintf(stderr, "The rate %d Hz is not supported by your hardware.\n ==> Using %d Hz instead.\n", PREFERRED_SAMPLE_RATE, sampleRate);
     }
 
     /* Set number of channels */
     if (snd_pcm_hw_params_set_channels(pcmHandle, hardwareParameterStructure, channels) < 0) {
-      fprintf(stderr, "Error setting channels.\n");
-      return(-1);
+        fprintf(stderr, "Error setting channels.\n");
+        return(-1);
     }
 
     /* Set number of periods. Periods used to be called fragments. */ 
     if (snd_pcm_hw_params_set_periods(pcmHandle, hardwareParameterStructure, numberOfPeriods, 0) < 0) {
-      fprintf(stderr, "Error setting periods.\n");
-      return(-1);
+        fprintf(stderr, "Error setting periods.\n");
+        return(-1);
     }
 
     /* Set period size. */ 
     if (snd_pcm_hw_params_set_period_size(pcmHandle, hardwareParameterStructure, minPeriodSize, 0) < 0) {
-      fprintf(stderr, "Error setting period size.\n");
-      return(-1);
+        fprintf(stderr, "Error setting period size.\n");
+        return(-1);
     }
 
     /* Set buffer size. */ 
     if (snd_pcm_hw_params_set_period_size(pcmHandle, hardwareParameterStructure, minBufferSize) < 0) {
-      fprintf(stderr, "Error setting buffer size.\n");
-      return(-1);
+        fprintf(stderr, "Error setting buffer size.\n");
+        return(-1);
     }
+    return(0);
 }
 
 int initPCMDevice(const char *identifier) {
@@ -203,8 +203,9 @@ int initPCMDevice(const char *identifier) {
     // Configure PCM device
     snd_pcm_hw_params_any(pcmHandle, hardwareParameterStructure);
     getHardwareParameters(hardwareParameterStructure);
-    setHardwareParameters(pcmHandle, hardwareParameterStructure);
-
+    if (setHardwareParameters(pcmHandle, hardwareParameterStructure) < 0) {
+        return(-1);
+    }
     return(0);
 }
 
