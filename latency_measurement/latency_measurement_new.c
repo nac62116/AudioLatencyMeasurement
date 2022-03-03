@@ -264,13 +264,13 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
     printf("SND_PCM_ACCESS_RW_INTERLEAVED: %d\n", SND_PCM_ACCESS_RW_INTERLEAVED);
     printf("SND_PCM_ACCESS_RW_NONINTERLEAVED: %d\n", SND_PCM_ACCESS_RW_NONINTERLEAVED);
     if (accessType == SND_PCM_ACCESS_RW_INTERLEAVED || accessType == SND_PCM_ACCESS_MMAP_INTERLEAVED) {
-        framesWritten = snd_pcm_writei(pcmHandle, interleavedAudioBuffer, sizeof(interleavedAudioBuffer));
+        framesWritten = snd_pcm_writei(pcmHandle, interleavedAudioBuffer, numberOfPeriods);
     }
     else {
-        framesWritten = snd_pcm_writen(pcmHandle, (void **) &interleavedAudioBuffer, sizeof(interleavedAudioBuffer));
+        framesWritten = snd_pcm_writen(pcmHandle, (void **) &interleavedAudioBuffer, numberOfPeriods);
     }
     if (framesWritten < 0) {
-        fprintf(stderr, "Error writing buffer.\n");
+        printf("snd_pcm_write failed: %s\n", snd_strerror(framesWritten));
         snd_pcm_recover(pcmHandle, framesWritten, 0);
     }
     // Start measurement
