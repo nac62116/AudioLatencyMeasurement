@@ -94,6 +94,7 @@ void allocateHardwareParameterStructure() {
 }
 
 int openPCMDevice() {
+    printf("openPCMDevice");
     if (snd_pcm_open(&pcmHandle, ALSA_USB_BOTTOM_OUT, stream, 0) < 0) {
         fprintf(stderr, "Error opening PCM device %s\n", pcmName);
         return(-1);
@@ -102,6 +103,7 @@ int openPCMDevice() {
 }
 
 int configurePCMDevice() {
+    printf("configurePCMDevice");
     if (snd_pcm_hw_params_any(pcmHandle, hwParams) < 0) {
       fprintf(stderr, "Error configuring PCM device %s\n", pcmName);
       return(-1);
@@ -112,6 +114,8 @@ int configurePCMDevice() {
 void getHardwareParameters() {
     unsigned int returnedValue;
     int direction;
+
+    printf("getHardwareParameters");
 
     snd_pcm_hw_params_get_access(hwParams, (snd_pcm_access_t *) &returnedValue);
     accessType = (snd_pcm_access_t) returnedValue;
