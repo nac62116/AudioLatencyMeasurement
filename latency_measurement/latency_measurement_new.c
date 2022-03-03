@@ -264,13 +264,6 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
     printf("SND_PCM_ACCESS_RW_INTERLEAVED: %d\n", SND_PCM_ACCESS_RW_INTERLEAVED);
     printf("SND_PCM_ACCESS_RW_NONINTERLEAVED: %d\n", SND_PCM_ACCESS_RW_NONINTERLEAVED);
 
-    frames = read(0, interleavedAudioBuffer, minBufferSize);
-    if (frames == 0) {
-        fprintf(stderr, "End of file on input\n");
-    }
-    if (frames != minBufferSize) {
-        fprintf(stderr, "Short read: read %ld bytes\n", frames);
-    }
     if (accessType == SND_PCM_ACCESS_RW_INTERLEAVED || accessType == SND_PCM_ACCESS_MMAP_INTERLEAVED) {
         frames = snd_pcm_writei(pcmHandle, interleavedAudioBuffer, minBufferSize);
     }
