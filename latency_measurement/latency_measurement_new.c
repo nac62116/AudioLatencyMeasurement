@@ -66,8 +66,6 @@ const char *ALSA_HDMI0_OUT = "hw:0,0";
 /* With that pcm devices can be identified like above      */
 /* (hw:CARD=usb_audio_top, ...)                            */
 char *pcmName;
-/* Handle for the PCM device */
-snd_pcm_t *pcmHandle;
 /* Playback stream */
 snd_pcm_stream_t stream = SND_PCM_STREAM_PLAYBACK;
 /* This structure contains information about    */
@@ -93,20 +91,22 @@ void allocateHardwareParameterStructure() {
     snd_pcm_hw_params_alloca(&hwParams);
 }
 
-int openPCMDevice() {
+snd_pcm_t* openPCMDevice() {
     const char *identifier = (const char *) pcmName;
+    /* Handle for the PCM device */
+    snd_pcm_t *pcmHandle;
 
     printf("openPCMDevice\n");
     if (snd_pcm_open(&pcmHandle, identifier, stream, 0) < 0) {
         fprintf(stderr, "Error opening PCM device %s\n", pcmName);
-        return(-1);
+        return(NULL);
     }
-    return(0);
+    return(pcmHandle);
 }
 
-int configurePCMDevice() {
+int configurePCMDevice(snd_pcm_t *pcmHandle) {
     printf("configurePCMDevice\n");
-    if (snd_pcm_hw_params_any(&pcmHandle, hwParams) < 0) {
+    if (snd_pcm_hw_params_any(pcmHandle, hwParams) < 0) {
       fprintf(stderr, "Error configuring PCM device %s\n", pcmName);
       snd_pcm_close(pcmHandle);
       return(-1);
@@ -153,12 +153,17 @@ void setHardwareParameters() {
 
 int initPCMDevice(const char *identifier) {
     int status = 0;
+    snd_pcm_t *pcmHandle;
 
     setPCMName(identifier);
     allocateHardwareParameterStructure();
-    status = openPCMDevice();
-    if (status != -1) {
-        status = configurePCMDevice();
+    pcmHandle = openPCMDevice();
+    if (pcmHandle == NULL) {
+        status = -1;
+        
+    }
+    else {
+        status = configurePCMDevice(pcmHandle);
         if (status != -1) {
             getHardwareParameters();
             setHardwareParameters();
