@@ -139,7 +139,6 @@ void setHardwareParameters() {
 }
 
 int initPCMDevice(const char *identifier) {
-    int status = 0;
     /* Handle for the PCM device */
     snd_pcm_t *pcmHandle;
     /* This structure contains information about    */
@@ -147,16 +146,29 @@ int initPCMDevice(const char *identifier) {
     /* configuration to be used for the PCM stream. */ 
     snd_pcm_hw_params_t *hardwareParameters;
 
-    setPCMName(identifier);
-    status = openPCMDevice(&pcmHandle);
-    if (status != -1) {
-        allocateHardwareParameterStructure(&hardwareParameters);
-        configurePCMDevice(pcmHandle, hardwareParameters);
-        getHardwareParameters(hardwareParameters);
-        setHardwareParameters();
-    }
+    //setPCMName(identifier);
+    pcmName = (char *) identifier;
 
-    return(status);
+    //status = openPCMDevice(&pcmHandle);
+    printf("openPCMDevice\n");
+    if (snd_pcm_open(&pcmHandle, identifier, SND_PCM_STREAM_PLAYBACK, 0) < 0) {
+        fprintf(stderr, "Error opening PCM device %s\n", pcmName);
+        return(-1);
+    }
+    
+    //allocateHardwareParameterStructure(&hardwareParameters);
+    printf("allocateHardwareStructure\n");
+    snd_pcm_hw_params_alloca(&hardwareParameters);
+
+    //configurePCMDevice(pcmHandle, hardwareParameters);
+    printf("configurePCMDevice\n");
+    snd_pcm_hw_params_any(pcmHandle, hardwareParameters);
+
+    printf("getHardwareParameters\n");
+    getHardwareParameters(hardwareParameters);
+    setHardwareParameters();
+
+    return(0);
 }
 
 void sendSignalViaPCMDevice(double signalIntervalInS) {
