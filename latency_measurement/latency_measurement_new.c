@@ -240,7 +240,7 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
     /* Handle for the PCM device */
     snd_pcm_t *pcmHandle;
     snd_pcm_sframes_t framesWritten;
-    int error;
+    int error = 0;
 
     printf("\ndebug sendSignal before open\n");
     if (openPCMDevice(&pcmHandle) < 0) {
