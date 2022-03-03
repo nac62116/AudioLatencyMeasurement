@@ -149,13 +149,15 @@ int initPCMDevice(const char *identifier) {
     //setPCMName(identifier);
     pcmName = (char *) identifier;
 
-    //status = openPCMDevice(&pcmHandle);
+    status = openPCMDevice(&pcmHandle);
     printf("openPCMDevice\n");
+    /*
     if (snd_pcm_open(&pcmHandle, identifier, SND_PCM_STREAM_PLAYBACK, 0) < 0) {
         fprintf(stderr, "Error opening PCM device %s\n", pcmName);
         return(-1);
     }
-    
+    */
+
     //allocateHardwareParameterStructure(&hardwareParameters);
     printf("allocateHardwareStructure\n");
     snd_pcm_hw_params_alloca(&hardwareParameters);
