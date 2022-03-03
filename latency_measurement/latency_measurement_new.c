@@ -102,28 +102,25 @@ void configurePCMDevice(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwareParam
     snd_pcm_hw_params_any(pcmHandle, hardwareParameters);
 }
 
-void getHardwareParameters(snd_pcm_hw_params_t *hardwareParameters) {
+void getHardwareParameters(snd_pcm_hw_params_t *hardwareParameterStructure) {
     unsigned int returnedValue;
     int direction;
 
-    printf("getHardwareParameters");
+    printf("hardwareParameterStructure");
 
-    snd_pcm_hw_params_get_access(hardwareParameters, (snd_pcm_access_t *) &returnedValue);
+    snd_pcm_hw_params_get_access(hardwareParameterStructure, (snd_pcm_access_t *) &returnedValue);
     accessType = (snd_pcm_access_t) returnedValue;
 
-    snd_pcm_hw_params_get_format(hardwareParameters, (snd_pcm_format_t *) &returnedValue);
+    snd_pcm_hw_params_get_format(hardwareParameterStructure, (snd_pcm_format_t *) &returnedValue);
     formatType = (snd_pcm_format_t) returnedValue;
 
-    snd_pcm_hw_params_get_channels(hardwareParameters, &returnedValue);
+    snd_pcm_hw_params_get_channels(hardwareParameterStructure, &returnedValue);
     channels = returnedValue;
 
-    snd_pcm_hw_params_get_rate(hardwareParameters, &returnedValue, &direction);
-    sampleRate = returnedValue;
-
-    snd_pcm_hw_params_get_period_size_min(hardwareParameters, (snd_pcm_uframes_t *) &returnedValue, &direction);
+    snd_pcm_hw_params_get_period_size_min(hardwareParameterStructure, (snd_pcm_uframes_t *) &returnedValue, &direction);
     minPeriodSize = (snd_pcm_uframes_t) returnedValue;
 
-    snd_pcm_hw_params_get_buffer_size_min(hardwareParameters, (snd_pcm_uframes_t *) &returnedValue);
+    snd_pcm_hw_params_get_buffer_size_min(hardwareParameterStructure, (snd_pcm_uframes_t *) &returnedValue);
     minBufferSize = (snd_pcm_uframes_t) returnedValue;
 
     printf("\naccess type: %d\n\n", accessType);
@@ -144,32 +141,17 @@ int initPCMDevice(const char *identifier) {
     /* This structure contains information about    */
     /* the hardware and can be used to specify the  */      
     /* configuration to be used for the PCM stream. */ 
-    snd_pcm_hw_params_t *hardwareParameters;
+    snd_pcm_hw_params_t *hardwareParameterStructure;
 
-    //setPCMName(identifier);
-    pcmName = (char *) identifier;
-
+    setPCMName(identifier);
     if (openPCMDevice(&pcmHandle) < 0) {
         return(-1);
     }
-    printf("openPCMDevice\n");
-    /*
-    if (snd_pcm_open(&pcmHandle, identifier, SND_PCM_STREAM_PLAYBACK, 0) < 0) {
-        fprintf(stderr, "Error opening PCM device %s\n", pcmName);
-        return(-1);
-    }
-    */
-
-    //allocateHardwareParameterStructure(&hardwareParameters);
-    printf("allocateHardwareStructure\n");
-    snd_pcm_hw_params_alloca(&hardwareParameters);
-
-    //configurePCMDevice(pcmHandle, hardwareParameters);
-    printf("configurePCMDevice\n");
-    snd_pcm_hw_params_any(pcmHandle, hardwareParameters);
-
-    printf("getHardwareParameters\n");
-    getHardwareParameters(hardwareParameters);
+    // Allocate hardware parameter structure
+    snd_pcm_hw_params_alloca(&hardwareParameterStructure);
+    // Configure PCM device
+    snd_pcm_hw_params_any(pcmHandle, hardwareParameterStructure);
+    getHardwareParameters(hardwareParameterStructure);
     setHardwareParameters();
 
     return(0);
