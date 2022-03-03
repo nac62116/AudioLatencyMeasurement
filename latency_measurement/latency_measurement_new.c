@@ -244,7 +244,7 @@ void sendSignalViaPCMDevice(double signalIntervalInS, snd_pcm_t *pcmHandle) {
     }
     // Start measurement
     startTimestamp = gpioTick();
-    time_sleep(SIGNAL_LENGTH_IN_S);
+    //time_sleep(SIGNAL_LENGTH_IN_S);
     //snd_pcm_drain(pcmHandle);
     time_sleep(signalIntervalInS);
 }
@@ -342,6 +342,7 @@ int startMeasurement() {
     signalIntervalInS = SIGNAL_START_INTERVAL_IN_S;
     for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
 
+        // TODO: Function
         // After the first signal that arrived, the signal interval converges to the maximum measured latency
         // If its smaller than SIGNAL_MINIMUM_INTERVAL_IN_S it converges to that value
         if (maxLatencyInMicros != -1 && i > 0) {
@@ -455,6 +456,7 @@ int main(void) {
             // TODO: Display error message: usb audio device not found
         }
     }
+    startMeasurement();
 
     // TODO: Function
     // Fill measurement array with -1 values to mark invalid measurements
