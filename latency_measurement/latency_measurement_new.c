@@ -179,7 +179,7 @@ int setHardwareParameters(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwarePar
     }
 
     /* Set buffer size. */ 
-    if (snd_pcm_hw_params_set_period_size(pcmHandle, hardwareParameterStructure, minBufferSize) < 0) {
+    if (snd_pcm_hw_params_set_buffer_size(pcmHandle, hardwareParameterStructure, minBufferSize) < 0) {
         fprintf(stderr, "Error setting buffer size.\n");
         return(-1);
     }
