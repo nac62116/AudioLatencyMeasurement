@@ -81,23 +81,20 @@ void setPCMName(const char * identifier) {
     pcmName = (char *) identifier;
 }
 
-snd_pcm_t* openPCMDevice(snd_pcm_t **pcmHandle) {
+int openPCMDevice(snd_pcm_t **pcmHandle) {
     /* Device identifier (hw:usb_audio_top, ...) */
     const char *identifier = (const char *) pcmName;
 
     printf("openPCMDevice\n");
     if (snd_pcm_open(pcmHandle, identifier, SND_PCM_STREAM_PLAYBACK, 0) < 0) {
         fprintf(stderr, "Error opening PCM device %s\n", pcmName);
-        return(NULL);
+        return(-1);
     }
-    return(pcmHandle);
+    return(0);
 }
 
-snd_pcm_hw_params_t* allocateHardwareParameterStructure(snd_pcm_hw_params_t **hardwareParameters) {
-
+void allocateHardwareParameterStructure(snd_pcm_hw_params_t **hardwareParameters) {
     snd_pcm_hw_params_alloca(hardwareParameters);
-
-    return (hardwareParameters);
 }
 
 int configurePCMDevice(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwareParameters) {
@@ -156,12 +153,9 @@ int initPCMDevice(const char *identifier) {
     snd_pcm_hw_params_t *hardwareParameters;
 
     setPCMName(identifier);
-    pcmHandle = openPCMDevice(&pcmHandle);
-    hardwareParameters = allocateHardwareParameterStructure(&hardwareParameters);
-    if (pcmHandle == NULL) {
-        status = -1;
-    }
-    else {
+    status = openPCMDevice(&pcmHandle);
+    allocateHardwareParameterStructure(&hardwareParameters);
+    if (status != -1) {
         status = configurePCMDevice(pcmHandle, hardwareParameters);
         if (status != -1) {
             getHardwareParameters(hardwareParameters);
