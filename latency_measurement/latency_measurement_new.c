@@ -190,7 +190,7 @@ int setHardwareParameters(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwarePar
 
 void prepareAudioBuffer() {
     unsigned char interleavedBuffer[minBufferSize];
-    unsigned char nonInterleavedBuffer[channels][minBufferSize];
+    //unsigned char nonInterleavedBuffer[channels][minBufferSize];
 
     printf("debug audio buffer before filling interleaved");
     for (int byte = 0; byte < minBufferSize; byte++) {
@@ -256,7 +256,7 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
     }
     else {
         printf("debug sendSignal before writen\n");
-        framesWritten = snd_pcm_writen(pcmHandle, &interleavedAudioBuffer, sizeof(interleavedAudioBuffer));
+        framesWritten = snd_pcm_writen(pcmHandle, (void **) &interleavedAudioBuffer, sizeof(interleavedAudioBuffer));
     }
     if (framesWritten < 0) {
         printf("snd_pcm_write failed\n");
