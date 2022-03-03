@@ -247,7 +247,7 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
     if (openPCMDevice(&pcmHandle) < 0) {
         return(-1);
     }
-    if ((error = snd_pcm_set_params(pcmHandle, formatType, accessType, channels, sampleRate, ALSA_PCM_SOFT_RESAMPLE, ALSA_PCM_LATENCY)) < 0) {
+    if ((error = snd_pcm_set_params(pcmHandle, formatType, accessType, channels, sampleRate, SOFT_RESAMPLE, PCM_LATENCY)) < 0) {
         printf("Playback open error: %s\n", snd_strerror(error));
         return(-1);
     }
