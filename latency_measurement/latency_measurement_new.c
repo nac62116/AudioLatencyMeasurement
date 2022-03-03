@@ -97,14 +97,9 @@ void allocateHardwareParameterStructure(snd_pcm_hw_params_t **hardwareParameters
     snd_pcm_hw_params_alloca(hardwareParameters);
 }
 
-int configurePCMDevice(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwareParameters) {
+void configurePCMDevice(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwareParameters) {
     printf("configurePCMDevice\n");
-    if (snd_pcm_hw_params_any(pcmHandle, hardwareParameters) < 0) {
-        fprintf(stderr, "Error configuring PCM device %s\n", pcmName);
-        snd_pcm_close(pcmHandle);
-        return(-1);
-    }
-    return(0);
+    snd_pcm_hw_params_any(pcmHandle, hardwareParameters)
 }
 
 void getHardwareParameters(snd_pcm_hw_params_t *hardwareParameters) {
@@ -156,11 +151,9 @@ int initPCMDevice(const char *identifier) {
     status = openPCMDevice(&pcmHandle);
     if (status != -1) {
         allocateHardwareParameterStructure(&hardwareParameters);
-        status = configurePCMDevice(pcmHandle, hardwareParameters);
-        if (status != -1) {
-            getHardwareParameters(hardwareParameters);
-            setHardwareParameters();
-        }
+        configurePCMDevice(pcmHandle, hardwareParameters);
+        getHardwareParameters(hardwareParameters);
+        setHardwareParameters();
     }
 
     return(status);
