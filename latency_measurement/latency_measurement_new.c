@@ -192,7 +192,6 @@ void prepareAudioBuffer() {
     unsigned char interleavedBuffer[minBufferSize];
     //unsigned char nonInterleavedBuffer[channels][minBufferSize];
 
-    printf("debug audio buffer before filling interleaved");
     for (int byte = 0; byte < minBufferSize; byte++) {
         interleavedBuffer[byte] = random() & 0xff;
     }
@@ -203,7 +202,6 @@ void prepareAudioBuffer() {
             nonInterleavedBuffer[byte][j] = random() & 0xff;
         }
     }*/
-    printf("debug audio buffer after filling");
     interleavedAudioBuffer = interleavedBuffer;
     //nonInterleavedAudioBuffer = nonInterleavedBuffer;
 }
@@ -228,11 +226,8 @@ int initPCMDevice(const char *identifier) {
     if (setHardwareParameters(pcmHandle, hardwareParameterStructure) < 0) {
         return(-1);
     }
-    printf("debug initPCMDevice before audio buffer\n");
     prepareAudioBuffer();
-    printf("debug initPCMDevice before pcm close\n");
     snd_pcm_close(pcmHandle);
-    printf("debug initPCMDevice after pcm close\n");
     return(0);
 }
 
@@ -252,7 +247,10 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
     // TODO
     printf("\nerror before: %s\n", snd_strerror(error));
     printf("accessType: %d\n", accessType);
-    printf("SND_PCM_ACCESS_RW_INTERLEAVED: %d\n", SND_PCM_ACCESS_RW_INTERLEAVED);
+    printf("SND_PCM_ACCESS_MMAP_COMPLEX: %d\n", SND_PCM_ACCESS_MMAP_COMPLEX);
+    printf("SND_PCM_ACCESS_MMAP_INTERLEAVED: %d\n", SND_PCM_ACCESS_MMAP_INTERLEAVED);
+    printf("SND_PCM_ACCESS_MMAP_NONINTERLEAVED: %d\n", SND_PCM_ACCESS_MMAP_NONINTERLEAVED);
+    printf("SND_PCM_ACCESS_RW_NONINTERLEAVED: %d\n", SND_PCM_ACCESS_RW_NONINTERLEAVED);
     printf("SND_PCM_ACCESS_RW_NONINTERLEAVED: %d\n", SND_PCM_ACCESS_RW_NONINTERLEAVED);
     if (accessType == SND_PCM_ACCESS_RW_INTERLEAVED) {
         framesWritten = snd_pcm_writei(pcmHandle, interleavedAudioBuffer, sizeof(interleavedAudioBuffer));
@@ -264,7 +262,6 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
         printf("snd_pcm_write failed: %s\n", snd_strerror(error));
         snd_pcm_recover(pcmHandle, framesWritten, 0);
     }
-    printf("debug sendSignal after write\n");
     // Start measurement
     startTimestamp = gpioTick();
     time_sleep(SIGNAL_LENGTH_IN_S);
