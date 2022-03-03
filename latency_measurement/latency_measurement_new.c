@@ -110,6 +110,7 @@ snd_pcm_t* openPCMDevice() {
 
 int configurePCMDevice(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwareParameters) {
     printf("configurePCMDevice\n");
+    printf("\nGPIO STATUS: %d\n", gpioStatus);
     if (snd_pcm_hw_params_any(pcmHandle, hardwareParameters) < 0) {
         printf("configurePCMDevice_inner\n");
         fprintf(stderr, "Error configuring PCM device %s\n", pcmName);
@@ -165,7 +166,6 @@ int initPCMDevice(const char *identifier) {
     pcmHandle = openPCMDevice();
     if (pcmHandle == NULL) {
         status = -1;
-        
     }
     else {
         status = configurePCMDevice(pcmHandle, hardwareParameters);
