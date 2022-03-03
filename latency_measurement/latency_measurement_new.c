@@ -270,7 +270,7 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
         framesWritten = snd_pcm_writen(pcmHandle, (void **) &interleavedAudioBuffer, sizeof(interleavedAudioBuffer));
     }
     if (framesWritten < 0) {
-        printf("snd_pcm_write failed: %s\n", snd_strerror(framesWritten));
+        fprintf(stderr, "Error writing buffer.\n");
         snd_pcm_recover(pcmHandle, framesWritten, 0);
     }
     // Start measurement
