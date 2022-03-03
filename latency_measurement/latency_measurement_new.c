@@ -149,9 +149,13 @@ int initPCMDevice(const char *identifier) {
     setPCMName(identifier);
     allocateHardwareParameterStructure();
     status = openPCMDevice();
-    status = configurePCMDevice();
-    getHardwareParameters();
-    setHardwareParameters();
+    if (status != -1) {
+        status = configurePCMDevice();
+        if (status != -1) {
+            getHardwareParameters();
+            setHardwareParameters();
+        }
+    }
 
     return(status);
 }
