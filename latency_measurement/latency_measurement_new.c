@@ -240,6 +240,7 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
     /* Handle for the PCM device */
     snd_pcm_t *pcmHandle;
     snd_pcm_sframes_t framesWritten;
+    int error;
 
     printf("\ndebug sendSignal before open\n");
     if (openPCMDevice(&pcmHandle) < 0) {
@@ -259,7 +260,7 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
         framesWritten = snd_pcm_writen(pcmHandle, (void **) &interleavedAudioBuffer, sizeof(interleavedAudioBuffer));
     }
     if (framesWritten < 0) {
-        printf("snd_pcm_write failed\n");
+        printf("snd_pcm_write failed: %s\n", snd_strerror(err));
         snd_pcm_recover(pcmHandle, framesWritten, 0);
     }
     printf("debug sendSignal after write\n");
