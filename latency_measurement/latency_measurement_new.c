@@ -170,7 +170,7 @@ int initPCMDevice(const char *identifier) {
     }
     else {
         status = configurePCMDevice(pcmHandle, hardwareParameters);
-        printf("\ndebug\n")
+        printf("\ndebug\n");
         if (status != -1) {
             getHardwareParameters(hardwareParameters);
             setHardwareParameters();
