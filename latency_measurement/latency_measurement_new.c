@@ -242,7 +242,6 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
     snd_pcm_sframes_t framesWritten;
     int error = 0;
 
-    printf("\ndebug sendSignal before open\n");
     if (openPCMDevice(&pcmHandle) < 0) {
         return(-1);
     }
@@ -251,12 +250,14 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
     signalStatus = SIGNAL_ON_THE_WAY;
     // Send signal through alsa pcm device
     // TODO
+    printf("\nerror before: %s\n", snd_strerror(error));
+    printf("accessType: %d\n", accessType);
+    printf("SND_PCM_ACCESS_RW_INTERLEAVED: %d\n", SND_PCM_ACCESS_RW_INTERLEAVED);
+    printf("SND_PCM_ACCESS_RW_NONINTERLEAVED: %d\n", SND_PCM_ACCESS_RW_NONINTERLEAVED);
     if (accessType == SND_PCM_ACCESS_RW_INTERLEAVED) {
-        printf("debug sendSignal before writei\n");
         framesWritten = snd_pcm_writei(pcmHandle, interleavedAudioBuffer, sizeof(interleavedAudioBuffer));
     }
     else {
-        printf("debug sendSignal before writen\n");
         framesWritten = snd_pcm_writen(pcmHandle, (void **) &interleavedAudioBuffer, sizeof(interleavedAudioBuffer));
     }
     if (framesWritten < 0) {
