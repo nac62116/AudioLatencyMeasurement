@@ -117,6 +117,7 @@ int configurePCMDevice(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwareParame
         snd_pcm_close(pcmHandle);
         return(-1);
     }
+    printf("configurePCMDevice_after\n");
     return(0);
 }
 
