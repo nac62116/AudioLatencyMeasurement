@@ -1,6 +1,9 @@
 /*
 ALSA playback code base retrieved from https://www.alsa-project.org/alsa-doc/alsa-lib/_2test_2pcm__min_8c-example.html on 28th February 2022
 ALSA hardware parameter code base retrieved from https://www.linuxjournal.com/article/6735 on 28th February 2022
+
+Makefile:
+gcc -Wall -pthread latency_measurement.c -lasound -o latency_measurement -lpigpio -lrt
 */
 
 #include <pigpio.h>

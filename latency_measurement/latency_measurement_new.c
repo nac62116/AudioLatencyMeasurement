@@ -134,7 +134,7 @@ void sendSignalViaALSA(double signalIntervalInS) {
     // Start measurement
     startTimestamp = gpioTick();
     time_sleep(SIGNAL_LENGTH_IN_S);
-    snd_pcm_drain(handle);
+    snd_pcm_drain(pcmHandle);
     time_sleep(signalIntervalInS);
 }
 
@@ -252,15 +252,15 @@ void getHardwareParameters() {
     snd_pcm_hw_params_get_period_size_min(hwParams, (snd_pcm_uframes_t *) &returnedValue, &direction);
     minPeriodSize = (snd_pcm_uframes_t) returnedValue;
 
-    snd_pcm_hw_params_get_buffer_size_min(params, (snd_pcm_uframes_t *) &returnedValue);
+    snd_pcm_hw_params_get_buffer_size_min(hwParams, (snd_pcm_uframes_t *) &returnedValue);
     minBufferSize = (snd_pcm_uframes_t) returnedValue;
 
     printf("\naccess type: %d\n\n", accessType);
     printf("\format type: %d\n\n", formatType);
     printf("\nchannels: %d\n\n", channels);
     printf("\nsample rate: %d\n\n", sampleRate);
-    printf("\nmin period size: %d\n\n", minPeriodSize);
-    printf("\nmin buffer size: %d\n\n", minBufferSize);
+    printf("\nmin period size: %ld\n\n", minPeriodSize);
+    printf("\nmin buffer size: %ld\n\n", minBufferSize);
 }
 
 void setHardwareParameters() {
