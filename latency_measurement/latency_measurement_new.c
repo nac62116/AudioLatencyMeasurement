@@ -12,9 +12,6 @@ ALSA code base retrieved from https://users.suse.com/~mana/alsa090_howto.html on
 
 const int LINE_IN = 27; // GPIO 27
 const int LINE_OUT = 17; // GPIO 17
-const int ALSA_PCM_SOFT_RESAMPLE = 0;
-const unsigned int ALSA_PCM_LATENCY = 0;
-const unsigned int ALSA_PCM_PREFERRED_SAMPLE_RATE = 48000;
 const double SIGNAL_LENGTH_IN_S = 0.001;
 const double SIGNAL_START_INTERVAL_IN_S = 1.0;
 const double SIGNAL_MINIMUM_INTERVAL_IN_S = 0.02; // Minimum interval to ensure correct amplification
@@ -67,12 +64,16 @@ const char *ALSA_HDMI0_OUT = "hw:0,0";
 /* (hw:CARD=usb_audio_top, ...)                            */
 char *pcmName;
 /* Specific hardware parameters */
+const int SOFT_RESAMPLE = 0;
+const unsigned int PCM_LATENCY = 0;
+const unsigned int PREFERRED_SAMPLE_RATE = 48000;
 snd_pcm_access_t accessType;
 snd_pcm_format_t formatType;
 snd_pcm_uframes_t minPeriodSize;
 snd_pcm_uframes_t minBufferSize;
+int numberOfPeriods;
 unsigned int channels;
-unsigned int sampleRate = ALSA_PCM_PREFERRED_SAMPLE_RATE;
+unsigned int sampleRate;
 
 // ####
 // #### PCM DEVICES (USB, HDMI, PCIE) VIA ALSA ####
@@ -123,16 +124,66 @@ void getHardwareParameters(snd_pcm_hw_params_t *hardwareParameterStructure) {
     snd_pcm_hw_params_get_buffer_size_min(hardwareParameterStructure, (snd_pcm_uframes_t *) &returnedValue);
     minBufferSize = (snd_pcm_uframes_t) returnedValue;
 
+    numberOfPeriods = minBufferSize / minPeriodSize;
+
     printf("\naccess type: %d\n\n", accessType);
     printf("\format type: %d\n\n", formatType);
     printf("\nchannels: %d\n\n", channels);
-    printf("\nsample rate: %d\n\n", sampleRate);
+    printf("\nsample rate: %d\n\n", ALSA_PCM_PREFERRED_SAMPLE_RATE);
     printf("\nmin period size: %ld\n\n", minPeriodSize);
     printf("\nmin buffer size: %ld\n\n", minBufferSize);
+    printf("\nnumber of periods: %ld\n\n", numberOfPeriods);
 }
 
-void setHardwareParameters() {
-    //
+void setHardwareParameters(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwareParameterStructure) {
+
+    /* Set access type. */
+    if (snd_pcm_hw_params_set_access(pcmHandle, hardwareParameterStructure, accessType) < 0) {
+      fprintf(stderr, "Error setting access.\n");
+      return(-1);
+    }
+  
+    /* Set sample format */
+    if (snd_pcm_hw_params_set_format(pcmHandle, hardwareParameterStructure, formatType) < 0) {
+      fprintf(stderr, "Error setting format.\n");
+      return(-1);
+    }
+
+    /* Set sample rate. If the exact rate is not supported */
+    /* by the hardware, use nearest possible rate.         */ 
+    sampleRate = PREFERRED_SAMPLE_RATE;
+    if (snd_pcm_hw_params_set_rate_near(pcmHandle, hardwareParameterStructure, &sampleRate, 0) < 0) {
+      fprintf(stderr, "Error setting rate.\n");
+      return(-1);
+    }
+    if (sampleRate != PREFERRED_SAMPLE_RATE) {
+      fprintf(stderr, "The rate %d Hz is not supported by your hardware.\n 
+                       ==> Using %d Hz instead.\n", PREFERRED_SAMPLE_RATE, sampleRate);
+    }
+
+    /* Set number of channels */
+    if (snd_pcm_hw_params_set_channels(pcmHandle, hardwareParameterStructure, channels) < 0) {
+      fprintf(stderr, "Error setting channels.\n");
+      return(-1);
+    }
+
+    /* Set number of periods. Periods used to be called fragments. */ 
+    if (snd_pcm_hw_params_set_periods(pcmHandle, hardwareParameterStructure, numberOfPeriods, 0) < 0) {
+      fprintf(stderr, "Error setting periods.\n");
+      return(-1);
+    }
+
+    /* Set period size. */ 
+    if (snd_pcm_hw_params_set_period_size(pcmHandle, hardwareParameterStructure, minPeriodSize, 0) < 0) {
+      fprintf(stderr, "Error setting period size.\n");
+      return(-1);
+    }
+
+    /* Set buffer size. */ 
+    if (snd_pcm_hw_params_set_period_size(pcmHandle, hardwareParameterStructure, minBufferSize) < 0) {
+      fprintf(stderr, "Error setting buffer size.\n");
+      return(-1);
+    }
 }
 
 int initPCMDevice(const char *identifier) {
@@ -152,7 +203,7 @@ int initPCMDevice(const char *identifier) {
     // Configure PCM device
     snd_pcm_hw_params_any(pcmHandle, hardwareParameterStructure);
     getHardwareParameters(hardwareParameterStructure);
-    setHardwareParameters();
+    setHardwareParameters(pcmHandle, hardwareParameterStructure);
 
     return(0);
 }
@@ -339,7 +390,7 @@ void initGpioLibrary() {
 
     // Initialize library
     gpioStatus = gpioInitialise();
-    printf("Status after gpioInitialise: %d\n", gpioStatus);
+    //printf("Status after gpioInitialise: %d\n", gpioStatus);
 
     // Set GPIO Modes
     gpioSetMode(LINE_OUT, PI_OUTPUT);
