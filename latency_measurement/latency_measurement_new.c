@@ -81,17 +81,6 @@ void setPCMName(const char * identifier) {
     pcmName = (char *) identifier;
 }
 
-snd_pcm_hw_params_t* allocateHardwareParameterStructure() {
-    /* This structure contains information about    */
-    /* the hardware and can be used to specify the  */      
-    /* configuration to be used for the PCM stream. */ 
-    snd_pcm_hw_params_t *hardwareParameters;
-
-    snd_pcm_hw_params_alloca(&hardwareParameters);
-
-    return (hardwareParameters);
-}
-
 snd_pcm_t* openPCMDevice() {
     /* Handle for the PCM device */
     snd_pcm_t *pcmHandle;
@@ -106,6 +95,17 @@ snd_pcm_t* openPCMDevice() {
         return(NULL);
     }
     return(pcmHandle);
+}
+
+snd_pcm_hw_params_t* allocateHardwareParameterStructure() {
+    /* This structure contains information about    */
+    /* the hardware and can be used to specify the  */      
+    /* configuration to be used for the PCM stream. */ 
+    snd_pcm_hw_params_t *hardwareParameters;
+
+    snd_pcm_hw_params_alloca(&hardwareParameters);
+
+    return (hardwareParameters);
 }
 
 int configurePCMDevice(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwareParameters) {
@@ -163,8 +163,8 @@ int initPCMDevice(const char *identifier) {
     snd_pcm_hw_params_t *hardwareParameters;
 
     setPCMName(identifier);
-    hardwareParameters = allocateHardwareParameterStructure();
     pcmHandle = openPCMDevice();
+    hardwareParameters = allocateHardwareParameterStructure();
     if (pcmHandle == NULL) {
         status = -1;
     }
