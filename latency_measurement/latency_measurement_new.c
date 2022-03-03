@@ -222,8 +222,11 @@ int initPCMDevice(const char *identifier) {
     if (setHardwareParameters(pcmHandle, hardwareParameterStructure) < 0) {
         return(-1);
     }
+    printf("debug initPCMDevice before audio buffer\n");
     prepareAudioBuffer();
+    printf("debug initPCMDevice before pcm close\n");
     snd_pcm_close(pcmHandle);
+    printf("debug initPCMDevice after pcm close\n");
     return(0);
 }
 
@@ -232,8 +235,7 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
     snd_pcm_t *pcmHandle;
     snd_pcm_sframes_t framesWritten;
 
-    printf("\ndebug sendSignal begin\n");
-
+    printf("\ndebug sendSignal before open\n");
     if (openPCMDevice(&pcmHandle) < 0) {
         return(-1);
     }
