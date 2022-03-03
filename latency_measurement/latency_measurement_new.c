@@ -360,7 +360,7 @@ void initGpioLibrary() {
 
     // Initialize library
     gpioStatus = gpioInitialise();
-    //printf("Status after gpioInitialise: %d\n", gpioStatus);
+    printf("Status after gpioInitialise: %d\n", gpioStatus);
 
     // Set GPIO Modes
     gpioSetMode(LINE_OUT, PI_OUTPUT);
@@ -381,7 +381,7 @@ int main(void) {
 
     // TODO: init gpio callbacks for the user inputs
     initGpioLibrary();
-
+    
     // TODO: Remove this and set LINE_LEVEL_MODE as default mode
     alsaStatus = initPCMDevice(ALSA_USB_TOP_OUT);
     if (alsaStatus == -1) {
@@ -401,7 +401,7 @@ int main(void) {
     // startMeasurement();
 
     // TODO: Remove status variable or handle errors
-    printf("\n%d\n", gpioStatus);
+    printf("\nGPIO STATUS: %d\n", gpioStatus);
     
     // Print measurements
     for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
