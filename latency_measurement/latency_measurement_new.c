@@ -191,6 +191,7 @@ int setHardwareParameters(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwarePar
 void prepareAudioBuffer() {
 
     interleavedAudioBuffer = (unsigned char *) malloc(minBufferSize);
+    printf("debug audio buffer after malloc");
     for (int i = 0; i < minBufferSize; i++) {
         interleavedAudioBuffer[i] = random() & 0xff;
     }
