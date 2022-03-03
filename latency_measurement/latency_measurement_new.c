@@ -81,27 +81,19 @@ void setPCMName(const char * identifier) {
     pcmName = (char *) identifier;
 }
 
-snd_pcm_t* openPCMDevice() {
-    /* Handle for the PCM device */
-    snd_pcm_t *pcmHandle;
+snd_pcm_t* openPCMDevice(snd_pcm_t *pcmHandle) {
     /* Device identifier (hw:usb_audio_top, ...) */
     const char *identifier = (const char *) pcmName;
-    /* Playback stream */
-    snd_pcm_stream_t stream = SND_PCM_STREAM_PLAYBACK;
 
     printf("openPCMDevice\n");
-    if (snd_pcm_open(&pcmHandle, identifier, stream, 0) < 0) {
+    if (snd_pcm_open(&pcmHandle, identifier, SND_PCM_STREAM_PLAYBACK, 0) < 0) {
         fprintf(stderr, "Error opening PCM device %s\n", pcmName);
         return(NULL);
     }
     return(pcmHandle);
 }
 
-snd_pcm_hw_params_t* allocateHardwareParameterStructure() {
-    /* This structure contains information about    */
-    /* the hardware and can be used to specify the  */      
-    /* configuration to be used for the PCM stream. */ 
-    snd_pcm_hw_params_t *hardwareParameters;
+snd_pcm_hw_params_t* allocateHardwareParameterStructure(snd_pcm_hw_params_t *hardwareParameters) {
 
     snd_pcm_hw_params_alloca(&hardwareParameters);
 
@@ -110,14 +102,11 @@ snd_pcm_hw_params_t* allocateHardwareParameterStructure() {
 
 int configurePCMDevice(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwareParameters) {
     printf("configurePCMDevice\n");
-    printf("\nGPIO STATUS: %d\n", gpioStatus);
     if (snd_pcm_hw_params_any(pcmHandle, hardwareParameters) < 0) {
-        printf("configurePCMDevice_inner\n");
         fprintf(stderr, "Error configuring PCM device %s\n", pcmName);
         snd_pcm_close(pcmHandle);
         return(-1);
     }
-    printf("configurePCMDevice_after\n");
     return(0);
 }
 
@@ -159,18 +148,21 @@ void setHardwareParameters() {
 
 int initPCMDevice(const char *identifier) {
     int status = 0;
+    /* Handle for the PCM device */
     snd_pcm_t *pcmHandle;
+    /* This structure contains information about    */
+    /* the hardware and can be used to specify the  */      
+    /* configuration to be used for the PCM stream. */ 
     snd_pcm_hw_params_t *hardwareParameters;
 
     setPCMName(identifier);
-    pcmHandle = openPCMDevice();
-    hardwareParameters = allocateHardwareParameterStructure();
+    pcmHandle = openPCMDevice(pcmHandle);
+    hardwareParameters = allocateHardwareParameterStructure(hardwareParameters);
     if (pcmHandle == NULL) {
         status = -1;
     }
     else {
         status = configurePCMDevice(pcmHandle, hardwareParameters);
-        printf("\ndebug\n");
         if (status != -1) {
             getHardwareParameters(hardwareParameters);
             setHardwareParameters();
