@@ -74,6 +74,8 @@ snd_pcm_uframes_t minBufferSize;
 int numberOfPeriods;
 unsigned int channels;
 unsigned int sampleRate;
+unsigned char* interleavedAudioBuffer;
+unsigned char** nonInterleavedAudioBuffer;
 
 // ####
 // #### PCM DEVICES (USB, HDMI, PCIE) VIA ALSA ####
@@ -186,6 +188,20 @@ int setHardwareParameters(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwarePar
     return(0);
 }
 
+void prepareAudioBuffer() {
+    interleavedAudioBuffer = (unsigned char *) malloc(minBufferSize);
+    for (int i = 0; i < sizeof(audioBuffer); i++) {
+        interleavedAudioBuffer[i] = random() & 0xff;
+    }
+    nonInterleavedAudioBuffer = (unsigned char *) malloc(channels);
+    for (int i = 0; i < sizeof(nonInterleavedAudioBuffer); i++) {
+        nonInterleavedAudioBuffer[i] = (unsigned char *) malloc(minBufferSize);
+        for (int j = 0; j < sizeof(nonInterleavedAudioBuffer[i]); i++) {
+            nonInterleavedAudioBuffer[i][j] = random() & 0xff;
+        }
+    }
+}
+
 int initPCMDevice(const char *identifier) {
     /* Handle for the PCM device */
     snd_pcm_t *pcmHandle;
@@ -206,15 +222,26 @@ int initPCMDevice(const char *identifier) {
     if (setHardwareParameters(pcmHandle, hardwareParameterStructure) < 0) {
         return(-1);
     }
+    prepareAudioBuffer();
     return(0);
 }
 
-void sendSignalViaPCMDevice(double signalIntervalInS) {
-    
+void sendSignalViaPCMDevice(double signalIntervalInS, snd_pcm_t *pcmHandle) {
+    snd_pcm_sframes_t framesWritten;
+
     signalStatus = SIGNAL_ON_THE_WAY;
     // Send signal through alsa pcm device
     // TODO
-
+    if (accessType == SND_PCM_ACCESS_RW_INTERLEAVED) {
+        framesWritten = snd_pcm_writei(pcmHandle, interleavedAudioBuffer, sizeof(interleavedAudioBuffer));
+    }
+    else {
+        framesWritten = snd_pcm_writen(pcmHandle, nonInterleavedAudioBuffer, sizeof(nonInterleavedAudioBuffer[0]));
+    }
+    if (framesWritten < 0) {
+        printf("snd_pcm_write failed: %s\n", snd_strerror(err));
+        snd_pcm_recover(pcmHandle, framesWritten, 0);
+    }
     // Start measurement
     startTimestamp = gpioTick();
     time_sleep(SIGNAL_LENGTH_IN_S);
@@ -302,8 +329,14 @@ void sendSignalViaLineOut(double signalIntervalInS) {
 // ####
 // #### LOGIC ####
 
-void startMeasurement() {
+int startMeasurement() {
     double signalIntervalInS, maxLatencyInS;
+    /* Handle for the PCM device */
+    snd_pcm_t *pcmHandle;
+
+    if (openPCMDevice(&pcmHandle) < 0) {
+        return(-1);
+    }
 
     // The interval from the first to the second signal is SIGNAL_START_INTERVAL_IN_S
     signalIntervalInS = SIGNAL_START_INTERVAL_IN_S;
@@ -327,12 +360,13 @@ void startMeasurement() {
         }
         // TODO: || HDMI_MODE || PCIE_MODE ... or else {}
         else if (measurementMode == ALSA_USB_MODE) {
-            sendSignalViaPCMDevice(signalIntervalInS);
+            sendSignalViaPCMDevice(signalIntervalInS, pcmHandle);
         }
         // TODO: else if (measurementMode == USB, PCIe...
         else {}
     }
     // TODO: Saving measurements to .csv format
+    return(0);
 }
 
 // TODO
