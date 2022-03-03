@@ -182,7 +182,7 @@ void sendSignalViaPCMDevice(double signalIntervalInS) {
     // Start measurement
     startTimestamp = gpioTick();
     time_sleep(SIGNAL_LENGTH_IN_S);
-    snd_pcm_drain(pcmHandle);
+    //snd_pcm_drain(pcmHandle);
     time_sleep(signalIntervalInS);
 }
 
