@@ -6,7 +6,7 @@ ALSA code base retrieved from https://users.suse.com/~mana/alsa090_howto.html on
 #include <alsa/asoundlib.h>
 #include <stdio.h>
 
-#define TOTAL_MEASUREMENTS 10
+#define TOTAL_MEASUREMENTS 1
 // BUFFER_SIZE = ALSA_PCM_PREFERRED_SAMPLE_RATE (48000 kHz) * SIGNAL_LENGTH_IN_S (0.001 s)
 #define BUFFER_SIZE 1024
 
@@ -128,8 +128,8 @@ void getHardwareParameters(snd_pcm_hw_params_t *hardwareParameterStructure) {
 
     numberOfPeriods = minBufferSize / minPeriodSize;
 
-    printf("\naccess type: %d\n\n", accessType);
-    printf("\format type: %d\n\n", formatType);
+    printf("\naccess type: %s\n\n", snd_pcm_access_name((snd_pcm_access_t) accessType));
+    printf("\format type: %s\n\n", snd_pcm_format_name((snd_pcm_format_t) formatType));
     printf("\nchannels: %d\n\n", channels);
     printf("\nsample rate: %d\n\n", PREFERRED_SAMPLE_RATE);
     printf("\nmin period size: %ld\n\n", minPeriodSize);
