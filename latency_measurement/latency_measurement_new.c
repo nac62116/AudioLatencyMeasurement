@@ -196,11 +196,11 @@ int setHardwareParameters(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwarePar
 }
 
 void prepareAudioBuffer() {
-    unsigned char interleavedBuffer[minBufferSize];
+    unsigned char interleavedBuffer[4 * minBufferSize];
     //unsigned char nonInterleavedBuffer[channels][minBufferSize];
 
-    for (int byte = 0; byte < minBufferSize; byte++) {
-        interleavedBuffer[byte] = random() & 0xff;
+    for (int sample = 0; sample < 4 * minBufferSize; sample++) {
+        interleavedBuffer[sample] = random() & 0xff;
     }
     /*
     printf("debug audio buffer before filling non interleaved");
