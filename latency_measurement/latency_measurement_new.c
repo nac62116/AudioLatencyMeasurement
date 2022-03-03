@@ -189,19 +189,20 @@ int setHardwareParameters(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwarePar
 }
 
 void prepareAudioBuffer() {
+    unsigned char interleavedBuffer[minBufferSize];
+    unsigned char interleavedBuffer[channels][minBufferSize];
 
-    interleavedAudioBuffer = (unsigned char *) malloc(minBufferSize);
-    printf("debug audio buffer after malloc");
-    for (int i = 0; i < minBufferSize; i++) {
-        interleavedAudioBuffer[i] = random() & 0xff;
+    printf("debug audio buffer before filling interleaved");
+    for (int byte = 0; byte < minBufferSize; byte++) {
+        interleavedAudioBuffer[byte] = random() & 0xff;
     }
-    nonInterleavedAudioBuffer = (unsigned char **) malloc(channels);
-    for (int i = 0; i < channels; i++) {
-        nonInterleavedAudioBuffer[i] = (unsigned char *) malloc(minBufferSize);
-        for (int j = 0; j < minBufferSize; i++) {
-            nonInterleavedAudioBuffer[i][j] = random() & 0xff;
+    printf("debug audio buffer before filling non interleaved");
+    for (int byte = 0; byte < channels; byte++) {
+        for (int channel = 0; channel < minBufferSize; channel++) {
+            nonInterleavedAudioBuffer[byte][j] = random() & 0xff;
         }
     }
+    printf("debug audio buffer after filling");
 }
 
 int initPCMDevice(const char *identifier) {
