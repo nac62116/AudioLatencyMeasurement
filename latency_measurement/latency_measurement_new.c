@@ -111,11 +111,11 @@ snd_pcm_t* openPCMDevice() {
 int configurePCMDevice(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwareParameters) {
     printf("configurePCMDevice\n");
     if (snd_pcm_hw_params_any(pcmHandle, hardwareParameters) < 0) {
-      fprintf(stderr, "Error configuring PCM device %s\n", pcmName);
-      snd_pcm_close(pcmHandle);
-      return(-1);
+        printf("configurePCMDevice_inner\n");
+        fprintf(stderr, "Error configuring PCM device %s\n", pcmName);
+        snd_pcm_close(pcmHandle);
+        return(-1);
     }
-    printf("configurePCMDevice_after\n");
     return(0);
 }
 
