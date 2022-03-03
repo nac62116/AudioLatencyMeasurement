@@ -81,7 +81,7 @@ void setPCMName(const char * identifier) {
     pcmName = (char *) identifier;
 }
 
-snd_pcm_t* openPCMDevice(snd_pcm_t *pcmHandle) {
+snd_pcm_t* openPCMDevice(snd_pcm_t **pcmHandle) {
     /* Device identifier (hw:usb_audio_top, ...) */
     const char *identifier = (const char *) pcmName;
 
@@ -93,7 +93,7 @@ snd_pcm_t* openPCMDevice(snd_pcm_t *pcmHandle) {
     return(pcmHandle);
 }
 
-snd_pcm_hw_params_t* allocateHardwareParameterStructure(snd_pcm_hw_params_t *hardwareParameters) {
+snd_pcm_hw_params_t* allocateHardwareParameterStructure(snd_pcm_hw_params_t **hardwareParameters) {
 
     snd_pcm_hw_params_alloca(hardwareParameters);
 
