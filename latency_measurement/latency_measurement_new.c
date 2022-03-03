@@ -94,7 +94,7 @@ void allocateHardwareParameterStructure() {
 }
 
 int openPCMDevice() {
-    if (snd_pcm_open(&pcmHandle, pcmName, stream, 0) < 0) {
+    if (snd_pcm_open(&pcmHandle, ALSA_USB_BOTTOM_OUT, stream, 0) < 0) {
         fprintf(stderr, "Error opening PCM device %s\n", pcmName);
         return(-1);
     }
