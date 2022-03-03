@@ -265,6 +265,12 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
     printf("SND_PCM_ACCESS_RW_NONINTERLEAVED: %d\n", SND_PCM_ACCESS_RW_NONINTERLEAVED);
 
     frames = read(0, interleavedAudioBuffer, minBufferSize);
+    if (frames == 0) {
+        fprintf(stderr, "End of file on input\n");
+    }
+    if (frames != minBufferSize) {
+        fprintf(stderr, "Short read: read %d bytes\n", frames);
+    }
     if (accessType == SND_PCM_ACCESS_RW_INTERLEAVED || accessType == SND_PCM_ACCESS_MMAP_INTERLEAVED) {
         frames = snd_pcm_writei(pcmHandle, interleavedAudioBuffer, minBufferSize);
     }
@@ -278,7 +284,7 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
     // Start measurement
     startTimestamp = gpioTick();
     time_sleep(SIGNAL_LENGTH_IN_S);
-    snd_pcm_drop(pcmHandle);
+    snd_pcm_drain(pcmHandle);
     snd_pcm_close(pcmHandle);
     time_sleep(signalIntervalInS);
     return(0);
