@@ -247,12 +247,12 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
     // TODO
     printf("\nerror before: %s\n", snd_strerror(error));
     printf("accessType: %d\n", accessType);
-    printf("SND_PCM_ACCESS_MMAP_COMPLEX: %d\n", SND_PCM_ACCESS_MMAP_COMPLEX);
     printf("SND_PCM_ACCESS_MMAP_INTERLEAVED: %d\n", SND_PCM_ACCESS_MMAP_INTERLEAVED);
     printf("SND_PCM_ACCESS_MMAP_NONINTERLEAVED: %d\n", SND_PCM_ACCESS_MMAP_NONINTERLEAVED);
+    printf("SND_PCM_ACCESS_MMAP_COMPLEX: %d\n", SND_PCM_ACCESS_MMAP_COMPLEX);
+    printf("SND_PCM_ACCESS_RW_INTERLEAVED: %d\n", SND_PCM_ACCESS_RW_INTERLEAVED);
     printf("SND_PCM_ACCESS_RW_NONINTERLEAVED: %d\n", SND_PCM_ACCESS_RW_NONINTERLEAVED);
-    printf("SND_PCM_ACCESS_RW_NONINTERLEAVED: %d\n", SND_PCM_ACCESS_RW_NONINTERLEAVED);
-    if (accessType == SND_PCM_ACCESS_RW_INTERLEAVED) {
+    if (accessType == SND_PCM_ACCESS_RW_INTERLEAVED || accessType == SND_PCM_ACCESS_MMAP_INTERLEAVED) {
         framesWritten = snd_pcm_writei(pcmHandle, interleavedAudioBuffer, sizeof(interleavedAudioBuffer));
     }
     else {
