@@ -236,7 +236,7 @@ void sendSignalViaPCMDevice(double signalIntervalInS, snd_pcm_t *pcmHandle) {
         framesWritten = snd_pcm_writei(pcmHandle, interleavedAudioBuffer, sizeof(interleavedAudioBuffer));
     }
     else {
-        framesWritten = snd_pcm_writen(pcmHandle, nonInterleavedAudioBuffer, sizeof(nonInterleavedAudioBuffer[0]));
+        framesWritten = snd_pcm_writen(pcmHandle, (void **) nonInterleavedAudioBuffer, sizeof(nonInterleavedAudioBuffer[0]));
     }
     if (framesWritten < 0) {
         printf("snd_pcm_write failed\n");
