@@ -189,14 +189,15 @@ int setHardwareParameters(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwarePar
 }
 
 void prepareAudioBuffer() {
+
     interleavedAudioBuffer = (unsigned char *) malloc(minBufferSize);
-    for (int i = 0; i < sizeof(interleavedAudioBuffer); i++) {
+    for (int i = 0; i < sizeof(interleavedAudioBuffer) / sizeof(interleavedAudioBuffer[0]); i++) {
         interleavedAudioBuffer[i] = random() & 0xff;
     }
     nonInterleavedAudioBuffer = (unsigned char **) malloc(channels);
-    for (int i = 0; i < sizeof(nonInterleavedAudioBuffer); i++) {
+    for (int i = 0; i < sizeof(nonInterleavedAudioBuffer) / sizeof(nonInterleavedAudioBuffer[0]); i++) {
         nonInterleavedAudioBuffer[i] = (unsigned char *) malloc(minBufferSize);
-        for (int j = 0; j < sizeof(nonInterleavedAudioBuffer[i]); i++) {
+        for (int j = 0; j < sizeof(nonInterleavedAudioBuffer[i]) / sizeof(nonInterleavedAudioBuffer[i][0]); i++) {
             nonInterleavedAudioBuffer[i][j] = random() & 0xff;
         }
     }
