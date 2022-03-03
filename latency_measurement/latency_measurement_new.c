@@ -232,23 +232,29 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
     snd_pcm_t *pcmHandle;
     snd_pcm_sframes_t framesWritten;
 
+    printf("\ndebug sendSignal begin\n");
+
     if (openPCMDevice(&pcmHandle) < 0) {
         return(-1);
     }
+
 
     signalStatus = SIGNAL_ON_THE_WAY;
     // Send signal through alsa pcm device
     // TODO
     if (accessType == SND_PCM_ACCESS_RW_INTERLEAVED) {
+        printf("debug sendSignal before writei\n");
         framesWritten = snd_pcm_writei(pcmHandle, interleavedAudioBuffer, sizeof(interleavedAudioBuffer));
     }
     else {
+        printf("debug sendSignal before writen\n");
         framesWritten = snd_pcm_writen(pcmHandle, (void **) nonInterleavedAudioBuffer, sizeof(nonInterleavedAudioBuffer[0]));
     }
     if (framesWritten < 0) {
         printf("snd_pcm_write failed\n");
         snd_pcm_recover(pcmHandle, framesWritten, 0);
     }
+    printf("debug sendSignal after write\n");
     // Start measurement
     startTimestamp = gpioTick();
     time_sleep(SIGNAL_LENGTH_IN_S);
