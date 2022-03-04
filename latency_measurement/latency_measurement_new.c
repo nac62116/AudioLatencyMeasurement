@@ -256,7 +256,7 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
 
     loops = /* SIGNAL_LENGTH_IN_S */ 1 * 1000000 / periodTimeInMicros;
     while (loops > 0) {
-        printf("Loops left: %d\n", loops);
+        printf("Loops left: %ld\n", loops);
         loops--;
         returnedValue = read(0, audioBuffer, sizeof(audioBuffer));
         if (returnedValue == 0) {
