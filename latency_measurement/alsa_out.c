@@ -12,7 +12,7 @@ const int ALSA_PCM_SOFT_RESAMPLE = 0;
 const unsigned int ALSA_PCM_LATENCY = 0;
 const unsigned int ALSA_PCM_PREFERRED_SAMPLE_RATE = 48000;
 
-char *alsaPcmDevice = "hw:1,0";          /* USB playback device */
+char *alsaPcmDevice = "hw:CARD=usb_audio_top";          /* USB playback device */
 //const char *device = "hw:2,0";        /* HDMI 1 playback device */
 //const char *device = "hw:0,0";        /* HDMI 0 playback device */
 snd_pcm_format_t formatType;
