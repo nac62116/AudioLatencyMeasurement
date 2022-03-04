@@ -23,7 +23,7 @@ int main() {
     char *buffer;
 
     /* Open PCM device for playback. */
-    rc = snd_pcm_open(&handle, "hw:2",
+    rc = snd_pcm_open(&handle, "hw:CARD=usb_audio_top",
             SND_PCM_STREAM_PLAYBACK, 0);
     if (rc < 0) {
         fprintf(stderr,
