@@ -469,9 +469,6 @@ void onUserInput(int gpio, int level, uint32_t tick) {
 
 void initGpioLibrary() {
 
-    // If library is still initialised, terminate library
-    gpioTerminate();
-
     // Initialize library
     gpioStatus = gpioInitialise();
     //printf("Status after gpioInitialise: %d\n", gpioStatus);
