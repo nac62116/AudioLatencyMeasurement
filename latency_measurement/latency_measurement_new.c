@@ -215,7 +215,6 @@ int setHardwareParameters(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwarePar
 
 void prepareAudioBuffer() {
     bufferSize = frames * 4 /* 4 bytes/sample */ * channels;
-    free(audioBuffer);
     int32_t buffer[bufferSize];
 
     for (int byte = 0; byte < bufferSize; byte++) {
