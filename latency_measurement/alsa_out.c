@@ -98,9 +98,10 @@ void sendSignalViaALSA() {
         unsigned int i;
         snd_pcm_t *handle;
         snd_pcm_sframes_t frames;
+        int bufferSize = sizeof(buffer) / sizeof(buffer[0]);
 
-        for (i = 0; i < sizeof(buffer); i++) {
-            buffer[i] = 0xff;
+        for (i = 0; i < bufferSize; i++) {
+            buffer[i] = random() & 0xff;
         }
 
         if ((err = snd_pcm_open(&handle, alsaPcmDevice, SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
@@ -121,15 +122,15 @@ void sendSignalViaALSA() {
         }
 
         for (i = 0; i < 10; i++) {
-                frames = snd_pcm_writei(handle, buffer, sizeof(buffer));
+                frames = snd_pcm_writei(handle, buffer, bufferSize);
                 if (frames < 0)
                         frames = snd_pcm_recover(handle, frames, 0);
                 if (frames < 0) {
                         printf("snd_pcm_writei failed: %s\n", snd_strerror(err));
                         break;
                 }
-                if (frames > 0 && frames < (long)sizeof(buffer)) {
-                        printf("Short write (expected %li, wrote %li)\n", (long)sizeof(buffer), frames);
+                if (frames > 0 && frames < (long) bufferSize) {
+                        printf("Short write (expected %li, wrote %li)\n", (long) bufferSize, frames);
                 }
                 sleep(1);
         }
