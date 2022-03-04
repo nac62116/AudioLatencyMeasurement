@@ -254,7 +254,7 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
     startTimestamp = gpioTick();
     signalStatus = SIGNAL_ON_THE_WAY;
 
-    loops = SIGNAL_LENGTH_IN_S * 1000000 / periodTimeInMicros;
+    loops = /* SIGNAL_LENGTH_IN_S */ 1 * 1000000 / periodTimeInMicros;
     while (loops > 0) {
         loops--;
         returnedValue = read(0, audioBuffer, sizeof(audioBuffer));
