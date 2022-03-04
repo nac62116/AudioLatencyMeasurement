@@ -251,7 +251,7 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
     /* Handle for the PCM device */
     snd_pcm_t *pcmHandle;
     int returnedValue = 0;
-    long loops;
+    //long loops;
 
     if (openPCMDevice(&pcmHandle) < 0) {
         return(-1);
