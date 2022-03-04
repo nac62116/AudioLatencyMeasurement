@@ -127,7 +127,7 @@ void getHardwareParameters(snd_pcm_hw_params_t *hardwareParameterStructure) {
     minBufferSize = (snd_pcm_uframes_t) returnedValue;
 
     snd_pcm_hw_params_get_period_time(hardwareParameterStructure, &returnedValue, &direction);
-    periodTimeInMicros = returnedValue
+    periodTimeInMicros = returnedValue;
 
     numberOfPeriods = minBufferSize / minPeriodSize;
 
