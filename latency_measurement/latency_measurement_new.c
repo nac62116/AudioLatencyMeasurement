@@ -133,12 +133,14 @@ void getHardwareParameters(snd_pcm_hw_params_t *hardwareParameterStructure) {
     printf("\format type: %s\n\n", snd_pcm_format_name((snd_pcm_format_t) formatType));
     printf("\nchannels: %d\n\n", channels);
     printf("\nsample rate: %d\n\n", PREFERRED_SAMPLE_RATE);
-    printf("\nframes: %ld\n\n", PREFERRED_FRAMES);
+    //printf("\nframes: %ld\n\n", PREFERRED_FRAMES);
     //printf("\nmin buffer size: %ld\n\n", minBufferSize);
     //printf("\nnumber of periods: %d\n\n", numberOfPeriods);
 }
 
 int setHardwareParameters(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwareParameterStructure) {
+    unsigned int returnedValue;
+    int direction;
 
     /* Set access type. */
     if (snd_pcm_hw_params_set_access(pcmHandle, hardwareParameterStructure, accessType) < 0) {
@@ -170,7 +172,7 @@ int setHardwareParameters(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwarePar
     }
 
     /* Set period size to 32 frames. */
-    snd_pcm_hw_params_set_period_size_near(handle, params, &frames, &dir);
+    snd_pcm_hw_params_set_period_size_near(pcmHandle, hardwareParameterStructure, &frames, &direction);
 
     /* Set number of periods. Periods used to be called fragments.  
     if (snd_pcm_hw_params_set_periods(pcmHandle, hardwareParameterStructure, numberOfPeriods, 0) < 0) {
@@ -201,15 +203,19 @@ int setHardwareParameters(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwarePar
     snd_pcm_hw_params_get_period_time(hardwareParameterStructure, &returnedValue, &direction);
     periodTimeInMicros = returnedValue;
 
+    printf("\nperiod time in micros: %d\n\n", periodTimeInMicros);
+
     /* Get period time after applying settings */
-    snd_pcm_hw_params_get_period_size(params, &returnedValue, &dir);
+    snd_pcm_hw_params_get_period_size(hardwareParameterStructure, &returnedValue, &direction);
     frames = (snd_pcm_uframes_t) returnedValue;
+
+    printf("\nframes: %ld\n\n", frames);
 
     return(0);
 }
 
 void prepareAudioBuffer() {
-    bufferSize = frames * 4 /* 4 bytes/sample */ * channels
+    bufferSize = frames * 4 /* 4 bytes/sample */ * channels;
     audioBuffer = (char *) malloc(bufferSize);
 
     /*for (int byte = 0; byte < size; byte++) {
