@@ -217,9 +217,9 @@ void prepareAudioBuffer() {
     bufferSize = frames * 4 /* 4 bytes/sample */ * channels;
     audioBuffer = (char *) malloc(bufferSize);
 
-    /*for (int byte = 0; byte < size; byte++) {
-        buffer[byte] = random() & 0xff;
-    }*/
+    for (int byte = 0; byte < bufferSize; byte++) {
+        audioBuffer[byte] = random() & 0xff;
+    }
 }
 
 int initPCMDevice(const char *identifier) {
@@ -257,17 +257,16 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
         return(-1);
     }
 
-    /*
     if ((returnedValue = snd_pcm_set_params(pcmHandle, formatType, accessType, channels, sampleRate, SOFT_RESAMPLE, PCM_LATENCY)) < 0) {
         printf("Playback open error: %s\n", snd_strerror(returnedValue));
         return(-1);
-    }*/
+    }
 
     // Start measurement
-    loops = /* SIGNAL_LENGTH_IN_S */ 5000000 / periodTimeInMicros;
+    //loops = /* SIGNAL_LENGTH_IN_S */ 5000000 / periodTimeInMicros;
     signalStatus = SIGNAL_ON_THE_WAY;
     startTimestamp = gpioTick();
-    while (loops > 0) {
+    /*while (loops > 0) {
         printf("Loops left: %ld\n", loops);
         loops--;
         returnedValue = read(0, audioBuffer, bufferSize);
@@ -277,7 +276,7 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
             break;
         } else if (returnedValue != bufferSize) {
             fprintf(stderr, "short read: read %d bytes\n", returnedValue);
-        }
+        }*/
         if (accessType == SND_PCM_ACCESS_RW_INTERLEAVED || accessType == SND_PCM_ACCESS_MMAP_INTERLEAVED) {
             returnedValue = snd_pcm_writei(pcmHandle, audioBuffer, frames);
         }
@@ -293,7 +292,7 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
         }  else if (returnedValue != (int) frames) {
             fprintf(stderr, "short write, write %d frames\n", returnedValue);
         }
-    }
+    //}
 
     snd_pcm_drain(pcmHandle);
     snd_pcm_close(pcmHandle);
