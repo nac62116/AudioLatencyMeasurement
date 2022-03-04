@@ -75,7 +75,7 @@ snd_pcm_uframes_t frames = 32;
 unsigned int channels;
 unsigned int sampleRate;
 unsigned int periodTimeInMicros;
-unsigned char* audioBuffer;
+char* audioBuffer;
 int bufferSize;
 
 // ####
@@ -108,7 +108,6 @@ void configurePCMDevice(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwareParam
 
 void getHardwareParameters(snd_pcm_hw_params_t *hardwareParameterStructure) {
     unsigned int returnedValue;
-    int direction;
 
     printf("hardwareParameterStructure");
 
@@ -206,7 +205,7 @@ int setHardwareParameters(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwarePar
     printf("\nperiod time in micros: %d\n\n", periodTimeInMicros);
 
     /* Get period time after applying settings */
-    snd_pcm_hw_params_get_period_size(hardwareParameterStructure, &returnedValue, &direction);
+    snd_pcm_hw_params_get_period_size(hardwareParameterStructure, (snd_pcm_uframes_t *) &returnedValue, &direction);
     frames = (snd_pcm_uframes_t) returnedValue;
 
     printf("\nframes: %ld\n\n", frames);
