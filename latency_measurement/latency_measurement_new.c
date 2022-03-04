@@ -75,7 +75,7 @@ snd_pcm_uframes_t frames = 32;
 unsigned int channels;
 unsigned int sampleRate;
 unsigned int periodTimeInMicros;
-char* audioBuffer;
+int32_t* audioBuffer;
 int bufferSize;
 
 // ####
@@ -215,7 +215,7 @@ int setHardwareParameters(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwarePar
 
 void prepareAudioBuffer() {
     bufferSize = frames * 4 /* 4 bytes/sample */ * channels;
-    audioBuffer = (char *) malloc(bufferSize);
+    audioBuffer = (int32_t *) malloc(bufferSize);
 
     for (int byte = 0; byte < bufferSize; byte++) {
         audioBuffer[byte] = random() & 0xff;
@@ -257,11 +257,10 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
         return(-1);
     }
 
-    /*
     if ((returnedValue = snd_pcm_set_params(pcmHandle, formatType, accessType, channels, sampleRate, SOFT_RESAMPLE, PCM_LATENCY)) < 0) {
         printf("Playback open error: %s\n", snd_strerror(returnedValue));
         return(-1);
-    }*/
+    }
 
     // Start measurement
     //loops = /* SIGNAL_LENGTH_IN_S */ 5000000 / periodTimeInMicros;
