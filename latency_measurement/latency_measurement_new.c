@@ -471,7 +471,7 @@ void initGpioLibrary() {
 
     // Initialize library
     gpioStatus = gpioInitialise();
-    //printf("Status after gpioInitialise: %d\n", gpioStatus);
+    printf("Status after gpioInitialise: %d\n", gpioStatus);
 
     // Set GPIO Modes
     gpioSetMode(LINE_OUT, PI_OUTPUT);
