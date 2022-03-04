@@ -71,11 +71,12 @@ snd_pcm_access_t accessType;
 snd_pcm_format_t formatType;
 snd_pcm_uframes_t minPeriodSize;
 snd_pcm_uframes_t minBufferSize;
-int numberOfPeriods;
+//int numberOfPeriods;
 unsigned int channels;
 unsigned int sampleRate;
 unsigned int periodTimeInMicros;
 unsigned char* audioBuffer;
+int bufferSize;
 
 // ####
 // #### PCM DEVICES (USB, HDMI, PCIE) VIA ALSA ####
@@ -120,8 +121,8 @@ void getHardwareParameters(snd_pcm_hw_params_t *hardwareParameterStructure) {
     snd_pcm_hw_params_get_channels(hardwareParameterStructure, &returnedValue);
     channels = returnedValue;
 
-    snd_pcm_hw_params_get_period_size_min(hardwareParameterStructure, (snd_pcm_uframes_t *) &returnedValue, &direction);
-    minPeriodSize = (snd_pcm_uframes_t) returnedValue;
+    snd_pcm_hw_params_get_period_size(hardwareParameterStructure, (snd_pcm_uframes_t *) &returnedValue, &direction);
+    periodSize = (snd_pcm_uframes_t) returnedValue;
 
     snd_pcm_hw_params_get_buffer_size_min(hardwareParameterStructure, (snd_pcm_uframes_t *) &returnedValue);
     minBufferSize = (snd_pcm_uframes_t) returnedValue;
@@ -129,16 +130,16 @@ void getHardwareParameters(snd_pcm_hw_params_t *hardwareParameterStructure) {
     snd_pcm_hw_params_get_period_time(hardwareParameterStructure, &returnedValue, &direction);
     periodTimeInMicros = returnedValue;
 
-    numberOfPeriods = minBufferSize / minPeriodSize;
+    //numberOfPeriods = minBufferSize / minPeriodSize;
 
     printf("\naccess type: %s\n\n", snd_pcm_access_name((snd_pcm_access_t) accessType));
     printf("\format type: %s\n\n", snd_pcm_format_name((snd_pcm_format_t) formatType));
     printf("\nchannels: %d\n\n", channels);
     printf("\nsample rate: %d\n\n", PREFERRED_SAMPLE_RATE);
-    printf("\nmin period size: %ld\n\n", minPeriodSize);
+    printf("\nperiod size: %ld\n\n", periodSize);
     printf("\nmin buffer size: %ld\n\n", minBufferSize);
     printf("\nperiod time in micros: %d\n\n", periodTimeInMicros);
-    printf("\nnumber of periods: %d\n\n", numberOfPeriods);
+    //printf("\nnumber of periods: %d\n\n", numberOfPeriods);
 }
 
 int setHardwareParameters(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwareParameterStructure) {
@@ -178,11 +179,11 @@ int setHardwareParameters(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwarePar
         return(-1);
     }*/
 
-    /* Set period size.  
-    if (snd_pcm_hw_params_set_period_size(pcmHandle, hardwareParameterStructure, minPeriodSize, 0) < 0) {
+    /* Set period size. */ 
+    if (snd_pcm_hw_params_set_period_size(pcmHandle, hardwareParameterStructure, periodSize, 0) < 0) {
         fprintf(stderr, "Error setting period size.\n");
         return(-1);
-    }*/
+    }
 
     /* Set buffer size. */ 
     if (snd_pcm_hw_params_set_buffer_size(pcmHandle, hardwareParameterStructure, minBufferSize) < 0) {
@@ -201,13 +202,14 @@ int setHardwareParameters(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwarePar
 
 void prepareAudioBuffer() {
     //const int bufferSize = minPeriodSize * 4 /* bytes/sample */ * channels;
-    const int bufferSize = minBufferSize * channels;
-    unsigned char buffer[bufferSize];
+    const int size = minBufferSize * channels;
+    unsigned char buffer[size];
     //unsigned char nonInterleavedBuffer[channels][minBufferSize];
 
-    for (int byte = 0; byte < bufferSize; byte++) {
+    for (int byte = 0; byte < size; byte++) {
         buffer[byte] = random() & 0xff;
     }
+    bufferSize = size;
     audioBuffer = buffer;
 }
 
@@ -258,19 +260,19 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
     while (loops > 0) {
         printf("Loops left: %ld\n", loops);
         loops--;
-        returnedValue = read(0, audioBuffer, sizeof(audioBuffer));
+        returnedValue = read(0, audioBuffer, bufferSize);
         printf("Loops left: %ld\n", loops);
         if (returnedValue == 0) {
             fprintf(stderr, "end of file on input\n");
             break;
-        } else if (returnedValue != sizeof(audioBuffer)) {
+        } else if (returnedValue != bufferSize) {
             fprintf(stderr, "short read: read %d bytes\n", returnedValue);
         }
         if (accessType == SND_PCM_ACCESS_RW_INTERLEAVED || accessType == SND_PCM_ACCESS_MMAP_INTERLEAVED) {
-            returnedValue = snd_pcm_writei(pcmHandle, audioBuffer, minPeriodSize);
+            returnedValue = snd_pcm_writei(pcmHandle, audioBuffer, periodSize);
         }
         else {
-            returnedValue = snd_pcm_writen(pcmHandle, (void **) &audioBuffer, minPeriodSize);
+            returnedValue = snd_pcm_writen(pcmHandle, (void **) &audioBuffer, periodSize);
         }
         if (returnedValue == -EPIPE) {
             /* EPIPE means underrun */
@@ -278,7 +280,7 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
             snd_pcm_prepare(pcmHandle);
         } else if (returnedValue < 0) {
             fprintf(stderr, "error from writei: %s\n", snd_strerror(returnedValue));
-        }  else if (returnedValue != (int) minPeriodSize) {
+        }  else if (returnedValue != (int) periodSize) {
             fprintf(stderr, "short write, write %d frames\n", returnedValue);
         }
     }
