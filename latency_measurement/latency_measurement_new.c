@@ -137,7 +137,7 @@ void getHardwareParameters(snd_pcm_hw_params_t *hardwareParameterStructure) {
     printf("\nsample rate: %d\n\n", PREFERRED_SAMPLE_RATE);
     printf("\nmin period size: %ld\n\n", minPeriodSize);
     printf("\nmin buffer size: %ld\n\n", minBufferSize);
-    printf("\nperiod time in micros: %ld\n\n", periodTimeInMicros);
+    printf("\nperiod time in micros: %d\n\n", periodTimeInMicros);
     printf("\nnumber of periods: %d\n\n", numberOfPeriods);
 }
 
@@ -261,7 +261,7 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
         if (returnedValue == 0) {
             fprintf(stderr, "end of file on input\n");
             break;
-        } else if (returnedValue != size) {
+        } else if (returnedValue != sizeof(audioBuffer)) {
             fprintf(stderr, "short read: read %d bytes\n", returnedValue);
         }
         if (accessType == SND_PCM_ACCESS_RW_INTERLEAVED || accessType == SND_PCM_ACCESS_MMAP_INTERLEAVED) {
@@ -281,9 +281,9 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
         }
     }
 
-    snd_pcm_drain(handle);
-    snd_pcm_close(handle);
-    free(buffer);
+    snd_pcm_drain(pcmHandle);
+    snd_pcm_close(pcmHandle);
+    free(audioBuffer);
     time_sleep(signalIntervalInS);
     return(0);
 }
