@@ -259,6 +259,7 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
         printf("Loops left: %ld\n", loops);
         loops--;
         returnedValue = read(0, audioBuffer, sizeof(audioBuffer));
+        printf("Loops left: %ld\n", loops);
         if (returnedValue == 0) {
             fprintf(stderr, "end of file on input\n");
             break;
