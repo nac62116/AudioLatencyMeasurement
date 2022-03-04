@@ -69,7 +69,7 @@ const unsigned int PCM_LATENCY = 0;
 const unsigned int PREFERRED_SAMPLE_RATE = 48000;
 snd_pcm_access_t accessType;
 snd_pcm_format_t formatType;
-snd_pcm_uframes_t minPeriodSize;
+snd_pcm_uframes_t periodSize;
 snd_pcm_uframes_t minBufferSize;
 //int numberOfPeriods;
 unsigned int channels;
@@ -247,16 +247,17 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
     if (openPCMDevice(&pcmHandle) < 0) {
         return(-1);
     }
+
+    /*
     if ((returnedValue = snd_pcm_set_params(pcmHandle, formatType, accessType, channels, sampleRate, SOFT_RESAMPLE, PCM_LATENCY)) < 0) {
         printf("Playback open error: %s\n", snd_strerror(returnedValue));
         return(-1);
-    }
+    }*/
 
     // Start measurement
-    startTimestamp = gpioTick();
+    loops = /* SIGNAL_LENGTH_IN_S */ 1000000 / periodTimeInMicros;
     signalStatus = SIGNAL_ON_THE_WAY;
-
-    loops = /* SIGNAL_LENGTH_IN_S */ 1 * 1000000 / periodTimeInMicros;
+    startTimestamp = gpioTick();
     while (loops > 0) {
         printf("Loops left: %ld\n", loops);
         loops--;
