@@ -215,6 +215,7 @@ int setHardwareParameters(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwarePar
 
 void prepareAudioBuffer() {
     bufferSize = frames * 4 /* 4 bytes/sample */ * channels;
+    free(audioBuffer);
     audioBuffer = (int32_t *) malloc(bufferSize);
 
     for (int byte = 0; byte < bufferSize; byte++) {
@@ -296,7 +297,6 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
 
     snd_pcm_drain(pcmHandle);
     snd_pcm_close(pcmHandle);
-    free(audioBuffer);
     time_sleep(signalIntervalInS);
     return(0);
 }
