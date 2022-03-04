@@ -172,17 +172,17 @@ int setHardwareParameters(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwarePar
         return(-1);
     }
 
-    /* Set number of periods. Periods used to be called fragments. */ 
+    /* Set number of periods. Periods used to be called fragments.  
     if (snd_pcm_hw_params_set_periods(pcmHandle, hardwareParameterStructure, numberOfPeriods, 0) < 0) {
         fprintf(stderr, "Error setting periods.\n");
         return(-1);
-    }
+    }*/
 
-    /* Set period size. */ 
+    /* Set period size.  
     if (snd_pcm_hw_params_set_period_size(pcmHandle, hardwareParameterStructure, minPeriodSize, 0) < 0) {
         fprintf(stderr, "Error setting period size.\n");
         return(-1);
-    }
+    }*/
 
     /* Set buffer size. */ 
     if (snd_pcm_hw_params_set_buffer_size(pcmHandle, hardwareParameterStructure, minBufferSize) < 0) {
@@ -200,7 +200,8 @@ int setHardwareParameters(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwarePar
 }
 
 void prepareAudioBuffer() {
-    const int bufferSize = minPeriodSize * 4 /* bytes/sample */ * channels;
+    //const int bufferSize = minPeriodSize * 4 /* bytes/sample */ * channels;
+    const int bufferSize = minBufferSize * channels;
     unsigned char audioBuffer[bufferSize];
     //unsigned char nonInterleavedBuffer[channels][minBufferSize];
 
