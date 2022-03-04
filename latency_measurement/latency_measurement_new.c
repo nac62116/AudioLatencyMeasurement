@@ -202,12 +202,13 @@ int setHardwareParameters(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwarePar
 void prepareAudioBuffer() {
     //const int bufferSize = minPeriodSize * 4 /* bytes/sample */ * channels;
     const int bufferSize = minBufferSize * channels;
-    unsigned char audioBuffer[bufferSize];
+    unsigned char buffer[bufferSize];
     //unsigned char nonInterleavedBuffer[channels][minBufferSize];
 
     for (int byte = 0; byte < bufferSize; byte++) {
-        audioBuffer[byte] = random() & 0xff;
+        buffer[byte] = random() & 0xff;
     }
+    audioBuffer = buffer;
 }
 
 int initPCMDevice(const char *identifier) {
@@ -238,7 +239,6 @@ int initPCMDevice(const char *identifier) {
 int sendSignalViaPCMDevice(double signalIntervalInS) {
     /* Handle for the PCM device */
     snd_pcm_t *pcmHandle;
-    snd_pcm_sframes_t frames;
     int returnedValue = 0;
     long loops;
 
