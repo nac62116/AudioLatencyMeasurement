@@ -257,10 +257,11 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
         return(-1);
     }
 
+    /*
     if ((returnedValue = snd_pcm_set_params(pcmHandle, formatType, accessType, channels, sampleRate, SOFT_RESAMPLE, PCM_LATENCY)) < 0) {
         printf("Playback open error: %s\n", snd_strerror(returnedValue));
         return(-1);
-    }
+    }*/
 
     // Start measurement
     //loops = /* SIGNAL_LENGTH_IN_S */ 5000000 / periodTimeInMicros;
@@ -288,7 +289,7 @@ int sendSignalViaPCMDevice(double signalIntervalInS) {
             fprintf(stderr, "underrun occurred\n");
             snd_pcm_prepare(pcmHandle);
         } else if (returnedValue < 0) {
-            fprintf(stderr, "error from writei: %s\n", snd_strerror(returnedValue));
+            fprintf(stderr, "error from write: %s\n", snd_strerror(returnedValue));
         }  else if (returnedValue != (int) frames) {
             fprintf(stderr, "short write, write %d frames\n", returnedValue);
         }
