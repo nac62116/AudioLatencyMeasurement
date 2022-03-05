@@ -7,7 +7,7 @@ Hardware parameter code base retrieved from https://www.linuxjournal.com/article
 #include <stdio.h>
 
 // BUFFER_SIZE = ALSA_PCM_PREFERRED_SAMPLE_RATE (48000 kHz) * SIGNAL_LENGTH_IN_S (0.001 s)
-#define BUFFER_SIZE 4800
+#define BUFFER_SIZE 16
 
 const int ALSA_PCM_SOFT_RESAMPLE = 0;
 const unsigned int ALSA_PCM_LATENCY = 0;
@@ -122,15 +122,17 @@ void sendSignalViaALSA() {
         }
 
         for (i = 0; i < 10; i++) {
-                frames = snd_pcm_writei(handle, buffer, bufferSize);
-                if (frames < 0)
-                        frames = snd_pcm_recover(handle, frames, 0);
-                if (frames < 0) {
-                        printf("snd_pcm_writei failed: %s\n", snd_strerror(err));
-                        break;
-                }
-                if (frames > 0 && frames < (long) bufferSize) {
-                        printf("Short write (expected %li, wrote %li)\n", (long) bufferSize, frames);
+                for (int j = 0; j < 300; j++) {
+                        frames = snd_pcm_writei(handle, buffer, bufferSize);
+                        if (frames < 0)
+                                frames = snd_pcm_recover(handle, frames, 0);
+                        if (frames < 0) {
+                                printf("snd_pcm_writei failed: %s\n", snd_strerror(err));
+                                break;
+                        }
+                        if (frames > 0 && frames < (long) bufferSize) {
+                                printf("Short write (expected %li, wrote %li)\n", (long) bufferSize, frames);
+                        }
                 }
                 sleep(1);
         }
