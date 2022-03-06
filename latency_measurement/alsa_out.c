@@ -78,18 +78,20 @@ void getHardwareParameters() {
     /* Set the desired hardware parameters. */
 
     /* Interleaved mode */
-    snd_pcm_hw_params_set_access(handle, params,
-            SND_PCM_ACCESS_RW_INTERLEAVED);
+    snd_pcm_hw_params_set_access(handle, params, accessType);
 
     /* Signed 16-bit little-endian format */
-    snd_pcm_hw_params_set_format(handle, params,
-            SND_PCM_FORMAT_S16_LE);
+    snd_pcm_hw_params_set_format(handle, params, formatType);
 
     /* Two channels (stereo) */
     snd_pcm_hw_params_set_channels(handle, params, channels);
 
     /* 48000 bits/second sampling rate */
     snd_pcm_hw_params_set_rate_near(handle, params, &sampleRate, &dir);
+
+    snd_pcm_hw_params_set_period_size(handle, params, periodSize, dir);
+
+    snd_pcm_hw_params_set_buffer_size(handle, params, bufferSize);
 
     /* Write the parameters to the driver */
     rc = snd_pcm_hw_params(handle, params);
