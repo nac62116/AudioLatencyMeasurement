@@ -11,7 +11,7 @@ Hardware parameter code base retrieved from https://www.linuxjournal.com/article
 
 const double SIGNAL_LENGTH_IN_S = 0.001;
 const int ALSA_PCM_SOFT_RESAMPLE = 0;
-const unsigned int ALSA_PCM_LATENCY = SIGNAL_LENGTH_IN_S / 300;
+const unsigned int ALSA_PCM_LATENCY = 0;
 const unsigned int ALSA_PCM_PREFERRED_SAMPLE_RATE = 48000;
 
 char *alsaPcmDevice = "hw:CARD=usb_audio_top";          /* USB playback device */
@@ -52,18 +52,23 @@ void getHardwareParameters() {
     /* Set the desired hardware parameters. */
 
     /* Interleaved mode */
-    snd_pcm_hw_params_set_access(handle, params,
-            SND_PCM_ACCESS_RW_INTERLEAVED);
+    snd_pcm_hw_params_get_access(params, (snd_pcm_access_t *) &val);
+    snd_pcm_hw_params_set_access(handle, params, val);
 
     /* Signed 16-bit little-endian format */
-    snd_pcm_hw_params_set_format(handle, params,
-            SND_PCM_FORMAT_S16_LE);
+    snd_pcm_hw_params_get_format(params, (snd_pcm_format_t *) &val);
+    snd_pcm_hw_params_set_format(handle, params, val);
 
     /* Two channels (stereo) */
-    snd_pcm_hw_params_set_channels(handle, params, channels);
+    snd_pcm_hw_params_get_channels(params, &val);
+    snd_pcm_hw_params_set_channels(handle, params, val);
 
     /* 48000 bits/second sampling rate */
     snd_pcm_hw_params_set_rate_near(handle, params, &sampleRate, &dir);
+
+    /* Minimum buffer size */
+    snd_pcm_hw_params_get_buffer_size_min(params, (snd_pcm_uframes_t *) &val);
+    snd_pcm_hw_params_set_buffer_size(handle, params, val);
 
     /* Write the parameters to the driver */
     rc = snd_pcm_hw_params(handle, params);
@@ -135,6 +140,7 @@ void sendSignalViaALSA() {
         for (i = 0; i < 10; i++) {
                 for (int j = 0; j < 300; j++) {
                         frames = snd_pcm_writei(handle, buffer, bufferSize);
+
                         if (frames < 0)
                                 frames = snd_pcm_recover(handle, frames, 0);
                         if (frames < 0) {
@@ -153,5 +159,5 @@ void sendSignalViaALSA() {
 
 int main(void) {
     getHardwareParameters();
-    sendSignalViaALSA();
+    //sendSignalViaALSA();
 }
