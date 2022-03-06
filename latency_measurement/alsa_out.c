@@ -7,7 +7,7 @@ Hardware parameter code base retrieved from https://www.linuxjournal.com/article
 #include <stdio.h>
 
 // BUFFER_SIZE = ALSA_PCM_PREFERRED_SAMPLE_RATE (48000 kHz) * SIGNAL_LENGTH_IN_S (0.001 s)
-#define BUFFER_SIZE 16
+#define BUFFER_SIZE 2
 
 const double SIGNAL_LENGTH_IN_S = 0.001;
 const int ALSA_PCM_SOFT_RESAMPLE = 0;
@@ -133,7 +133,7 @@ void sendSignalViaALSA() {
         }
 
         for (i = 0; i < 10; i++) {
-                for (int j = 0; j < 300; j++) {
+                for (int j = 0; j < 2400; j++) {
                         frames = snd_pcm_writei(handle, buffer, sizeof(buffer));
                         if (frames < 0)
                                 frames = snd_pcm_recover(handle, frames, 0);
