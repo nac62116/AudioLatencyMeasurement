@@ -11,7 +11,7 @@ Hardware parameter code base retrieved from https://www.linuxjournal.com/article
 
 const double SIGNAL_LENGTH_IN_S = 0.001;
 const int ALSA_PCM_SOFT_RESAMPLE = 0;
-const unsigned int ALSA_PCM_LATENCY = 0;
+const unsigned int ALSA_PCM_LATENCY = SIGNAL_LENGTH_IN_S / 300;
 const unsigned int ALSA_PCM_PREFERRED_SAMPLE_RATE = 48000;
 
 char *alsaPcmDevice = "hw:CARD=usb_audio_top";          /* USB playback device */
@@ -135,7 +135,6 @@ void sendSignalViaALSA() {
         for (i = 0; i < 10; i++) {
                 for (int j = 0; j < 300; j++) {
                         frames = snd_pcm_writei(handle, buffer, bufferSize);
-                        sleep(SIGNAL_LENGTH_IN_S / 300);
                         if (frames < 0)
                                 frames = snd_pcm_recover(handle, frames, 0);
                         if (frames < 0) {
@@ -154,5 +153,5 @@ void sendSignalViaALSA() {
 
 int main(void) {
     getHardwareParameters();
-    //sendSignalViaALSA();
+    sendSignalViaALSA();
 }
