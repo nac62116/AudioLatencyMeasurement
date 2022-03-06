@@ -51,7 +51,7 @@ void getHardwareParameters() {
     /* Get information about the PCM interface */
 
     snd_pcm_hw_params_get_access(params, (snd_pcm_access_t *) &val);
-    accessType = (snd_pcm_access_t) val;
+    accessType = SND_PCM_ACCESS_RW_INTERLEAVED;
 
     snd_pcm_hw_params_get_format(params, (snd_pcm_format_t *) &val);
     formatType = (snd_pcm_format_t) val;
