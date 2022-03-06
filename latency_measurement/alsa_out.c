@@ -85,8 +85,8 @@ void getHardwareParameters() {
     snd_pcm_hw_params_get_rate(params, &val, &dir);
     sampleRate = val;
 
-    printf("\n\n format type:%d\n", formatType);
-    printf("\n\n access type:%d\n", accessType);
+    printf("\n\n format type:%d\n", snd_pcm_format_name((snd_pcm_format_t) formatType));
+    printf("\n\n access type:%d\n", snd_pcm_access_name((snd_pcm_access_t) accessType));
     printf("\n\n channels:%d\n", channels);
     printf("\n\n sample rate:%d\n\n", sampleRate);
 
@@ -142,5 +142,5 @@ void sendSignalViaALSA() {
 
 int main(void) {
     getHardwareParameters();
-    sendSignalViaALSA();
+    //sendSignalViaALSA();
 }
