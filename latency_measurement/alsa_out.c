@@ -18,7 +18,7 @@ char *alsaPcmDevice = "hw:CARD=usb_audio_top";          /* USB playback device *
 //const char *device = "hw:0,0";        /* HDMI 0 playback device */
 snd_pcm_format_t formatType;
 snd_pcm_access_t accessType;
-snd_pcm_uframes_t frames;
+snd_pcm_uframes_t periodSize;
 snd_pcm_uframes_t bufferSize;
 unsigned int channels;
 unsigned int sampleRate = ALSA_PCM_PREFERRED_SAMPLE_RATE;
@@ -88,7 +88,7 @@ void getHardwareParameters() {
     sampleRate = val;
 
     snd_pcm_hw_params_get_period_size_min(params, (snd_pcm_uframes_t *) &val, &dir);
-    frames = (snd_pcm_uframes_t) val;
+    periodSize = (snd_pcm_uframes_t) val;
 
     snd_pcm_hw_params_get_buffer_size_min(params, (snd_pcm_uframes_t *) &val);
     bufferSize = (snd_pcm_uframes_t) val;
@@ -97,7 +97,7 @@ void getHardwareParameters() {
     printf("\n\n access type:%s\n", snd_pcm_access_name((snd_pcm_access_t) accessType));
     printf("\n\n channels:%d\n", channels);
     printf("\n\n sample rate:%d\n\n", sampleRate);
-    printf("\n\n frames/period size:%d\n\n", frames);
+    printf("\n\n frames/period size:%d\n\n", periodSize);
     printf("\n\n buffer size:%d\n\n", bufferSize);
 
     snd_pcm_close(handle);
