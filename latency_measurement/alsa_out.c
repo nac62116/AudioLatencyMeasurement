@@ -48,31 +48,6 @@ void getHardwareParameters() {
     /* Fill it in with default values. */
     snd_pcm_hw_params_any(handle, params);
 
-    /* Set the desired hardware parameters. */
-
-    /* Interleaved mode */
-    snd_pcm_hw_params_set_access(handle, params,
-            SND_PCM_ACCESS_RW_INTERLEAVED);
-
-    /* Signed 16-bit little-endian format */
-    snd_pcm_hw_params_set_format(handle, params,
-            SND_PCM_FORMAT_S16_LE);
-
-    /* Two channels (stereo) */
-    snd_pcm_hw_params_set_channels(handle, params, channels);
-
-    /* 48000 bits/second sampling rate */
-    snd_pcm_hw_params_set_rate_near(handle, params, &sampleRate, &dir);
-
-    /* Write the parameters to the driver */
-    rc = snd_pcm_hw_params(handle, params);
-    if (rc < 0) {
-        fprintf(stderr,
-                "unable to set hw parameters: %s\n",
-                snd_strerror(rc));
-        exit(1);
-    }
-
     /* Get information about the PCM interface */
 
     snd_pcm_hw_params_get_access(params, (snd_pcm_access_t *) &val);
@@ -99,6 +74,31 @@ void getHardwareParameters() {
     printf("\n\n sample rate:%d\n\n", sampleRate);
     printf("\n\n frames/period size:%d\n\n", periodSize);
     printf("\n\n buffer size:%d\n\n", bufferSize);
+
+    /* Set the desired hardware parameters. */
+
+    /* Interleaved mode */
+    snd_pcm_hw_params_set_access(handle, params,
+            SND_PCM_ACCESS_RW_INTERLEAVED);
+
+    /* Signed 16-bit little-endian format */
+    snd_pcm_hw_params_set_format(handle, params,
+            SND_PCM_FORMAT_S16_LE);
+
+    /* Two channels (stereo) */
+    snd_pcm_hw_params_set_channels(handle, params, channels);
+
+    /* 48000 bits/second sampling rate */
+    snd_pcm_hw_params_set_rate_near(handle, params, &sampleRate, &dir);
+
+    /* Write the parameters to the driver */
+    rc = snd_pcm_hw_params(handle, params);
+    if (rc < 0) {
+        fprintf(stderr,
+                "unable to set hw parameters: %s\n",
+                snd_strerror(rc));
+        exit(1);
+    }
 
     snd_pcm_close(handle);
 }
