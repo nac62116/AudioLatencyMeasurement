@@ -108,9 +108,9 @@ void sendSignalViaALSA() {
     unsigned int i;
     snd_pcm_t *handle;
     snd_pcm_sframes_t frames;
-    int bufferSize = sizeof(buffer) / sizeof(buffer[0]);
+    //int bufferSize = sizeof(buffer) / sizeof(buffer[0]);
 
-    for (i = 0; i < bufferSize; i++) {
+    for (i = 0; i < BUFFER_SIZE; i++) {
         buffer[i] = random() & 2147483647;
     }
 
