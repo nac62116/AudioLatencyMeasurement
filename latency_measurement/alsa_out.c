@@ -110,31 +110,25 @@ void sendSignalViaALSA() {
     int err;
     snd_pcm_t *handle;
     snd_pcm_sframes_t frames;
+    char u8buffer[bufferSize];
+    short s16buffer[bufferSize];
+    int s32buffer[bufferSize];
+    
+    for (int i = 0; i < bufferSize; i++) {
+        if (formatType == SND_PCM_FORMAT_U8) {
+            u8buffer[i] = random() & 255;
+        }
+        else if (formatType == SND_PCM_FORMAT_S16_LE) {
+            s16buffer[i] = random() & 32767;
+        }
+        else if (formatType == SND_PCM_FORMAT_S32_LE) {
+            s32buffer[i] = random() & 2147483647;
+        }
+        else {
+            u8buffer[i] = random() & 255;
+        }
+    }
 
-    if (formatType == SND_PCM_FORMAT_U8) {
-        char buffer[bufferSize];
-        for (int i = 0; i < sizeof(buffer); i++) {
-            buffer[i] = random() & 255;
-        }
-    }
-    else if (formatType == SND_PCM_FORMAT_S16_LE) {
-        short buffer[bufferSize];
-        for (int i = 0; i < sizeof(buffer); i++) {
-            buffer[i] = random() & 32767;
-        }
-    }
-    else if (formatType == SND_PCM_FORMAT_S32_LE) {
-        int buffer[bufferSize];
-        for (int i = 0; i < sizeof(buffer); i++) {
-            buffer[i] = random() & 2147483647;
-        }
-    }
-    else {
-        char buffer[bufferSize];
-        for (int i = 0; i < sizeof(buffer); i++) {
-            buffer[i] = random() & 255;
-        }
-    }
 
     if ((err = snd_pcm_open(&handle, alsaPcmDevice, SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
             printf("Playback open error: %s\n", snd_strerror(err));
@@ -153,7 +147,18 @@ void sendSignalViaALSA() {
     }
 
     for (int i = 0; i < 10; i++) {
-        frames = snd_pcm_writei(handle, buffer, bufferSize);
+        if (formatType == SND_PCM_FORMAT_U8) {
+            frames = snd_pcm_writei(handle, u8buffer, bufferSize);
+        }
+        else if (formatType == SND_PCM_FORMAT_S16_LE) {
+            frames = snd_pcm_writei(handle, s16buffer, bufferSize);
+        }
+        else if (formatType == SND_PCM_FORMAT_S32_LE) {
+            frames = snd_pcm_writei(handle, s32buffer, bufferSize);
+        }
+        else {
+            frames = snd_pcm_writei(handle, u8buffer, bufferSize);
+        }
         if (frames < 0)
             frames = snd_pcm_recover(handle, frames, 0);
         if (frames < 0) {
