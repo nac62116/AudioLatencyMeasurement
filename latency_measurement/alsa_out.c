@@ -57,7 +57,7 @@ void getHardwareParameters() {
 
     /* Signed 16-bit little-endian format */
     snd_pcm_hw_params_set_format(handle, params,
-            SND_PCM_FORMAT_S16_LE);
+            SND_PCM_FORMAT_U8);
 
     /* Two channels (stereo) */
     snd_pcm_hw_params_set_channels(handle, params, channels);
@@ -141,7 +141,7 @@ void sendSignalViaALSA() {
                                 frames = snd_pcm_recover(handle, frames, 0);
                         if (frames < 0) {
                                 printf("snd_pcm_writei failed: %s\n", snd_strerror(err));
-                                //break;
+                                break;
                         }
                         if (frames > 0 && frames < (long) sizeof(buffer)) {
                                 printf("Short write (expected %li, wrote %li)\n", (long) sizeof(buffer), frames);
