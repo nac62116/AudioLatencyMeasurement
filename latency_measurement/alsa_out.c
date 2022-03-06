@@ -157,5 +157,5 @@ void sendSignalViaALSA() {
 
 int main(void) {
     getHardwareParameters();
-    sendSignalViaALSA();
+    //sendSignalViaALSA();
 }
