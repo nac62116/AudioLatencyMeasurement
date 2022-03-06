@@ -52,23 +52,18 @@ void getHardwareParameters() {
     /* Set the desired hardware parameters. */
 
     /* Interleaved mode */
-    snd_pcm_hw_params_get_access(params, (snd_pcm_access_t *) &val);
-    snd_pcm_hw_params_set_access(handle, params, val);
+    snd_pcm_hw_params_set_access(handle, params,
+            SND_PCM_ACCESS_RW_INTERLEAVED);
 
     /* Signed 16-bit little-endian format */
-    snd_pcm_hw_params_get_format(params, (snd_pcm_format_t *) &val);
-    snd_pcm_hw_params_set_format(handle, params, val);
+    snd_pcm_hw_params_set_format(handle, params,
+            SND_PCM_FORMAT_S16_LE);
 
     /* Two channels (stereo) */
-    snd_pcm_hw_params_get_channels(params, &val);
-    snd_pcm_hw_params_set_channels(handle, params, val);
+    snd_pcm_hw_params_set_channels(handle, params, channels);
 
     /* 48000 bits/second sampling rate */
     snd_pcm_hw_params_set_rate_near(handle, params, &sampleRate, &dir);
-
-    /* Minimum buffer size */
-    snd_pcm_hw_params_get_buffer_size_min(params, (snd_pcm_uframes_t *) &val);
-    snd_pcm_hw_params_set_buffer_size(handle, params, val);
 
     /* Write the parameters to the driver */
     rc = snd_pcm_hw_params(handle, params);
@@ -114,9 +109,9 @@ void sendSignalViaALSA() {
         unsigned int i;
         snd_pcm_t *handle;
         snd_pcm_sframes_t frames;
-        int bufferSize = sizeof(buffer) / sizeof(buffer[0]);
+        //int bufferSize = sizeof(buffer) / sizeof(buffer[0]);
 
-        for (i = 0; i < bufferSize; i++) {
+        for (i = 0; i < sizeof(buffer); i++) {
             buffer[i] = random() & 0xff;
         }
 
@@ -139,16 +134,15 @@ void sendSignalViaALSA() {
 
         for (i = 0; i < 10; i++) {
                 for (int j = 0; j < 300; j++) {
-                        frames = snd_pcm_writei(handle, buffer, bufferSize);
-
+                        frames = snd_pcm_writei(handle, buffer, sizeof(buffer));
                         if (frames < 0)
                                 frames = snd_pcm_recover(handle, frames, 0);
                         if (frames < 0) {
                                 printf("snd_pcm_writei failed: %s\n", snd_strerror(err));
                                 break;
                         }
-                        if (frames > 0 && frames < (long) bufferSize) {
-                                printf("Short write (expected %li, wrote %li)\n", (long) bufferSize, frames);
+                        if (frames > 0 && frames < (long) sizeof(buffer)) {
+                                printf("Short write (expected %li, wrote %li)\n", (long) sizeof(buffer), frames);
                         }
                 }
                 sleep(1);
