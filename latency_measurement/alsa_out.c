@@ -110,30 +110,37 @@ void sendSignalViaALSA() {
     int err;
     snd_pcm_t *handle;
     snd_pcm_sframes_t frames;
+    char *audioBuffer;
 
     if (formatType == SND_PCM_FORMAT_U8) {
         char buffer[bufferSize];
         for (int i = 0; i < sizeof(buffer); i++) {
             buffer[i] = random() & 255;
         }
+        audioBuffer = buffer;
     }
     else if (formatType == SND_PCM_FORMAT_S16_LE) {
         short buffer[bufferSize];
         for (int i = 0; i < sizeof(buffer); i++) {
             buffer[i] = random() & 32767;
         }
+        audioBuffer = (short) audioBuffer;
+        audioBuffer = buffer;
     }
     else if (formatType == SND_PCM_FORMAT_S32_LE) {
         int buffer[bufferSize];
         for (int i = 0; i < sizeof(buffer); i++) {
             buffer[i] = random() & 2147483647;
         }
+        audioBuffer = (int) audioBuffer;
+        audioBuffer = buffer;
     }
     else {
         char buffer[bufferSize];
         for (int i = 0; i < sizeof(buffer); i++) {
             buffer[i] = random() & 255;
         }
+        audioBuffer = buffer;
     }
 
     if ((err = snd_pcm_open(&handle, alsaPcmDevice, SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
@@ -152,7 +159,7 @@ void sendSignalViaALSA() {
             exit(EXIT_FAILURE);
     }
 
-    for (i = 0; i < 10; i++) {
+    for (int i = 0; i < 10; i++) {
         frames = snd_pcm_writei(handle, buffer, bufferSize);
         if (frames < 0)
             frames = snd_pcm_recover(handle, frames, 0);
