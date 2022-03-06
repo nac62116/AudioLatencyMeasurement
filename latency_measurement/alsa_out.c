@@ -108,6 +108,7 @@ void getHardwareParameters() {
 
 void sendSignalViaALSA() {
     int err;
+    int loops;
     snd_pcm_t *handle;
     snd_pcm_sframes_t frames;
     char u8buffer[bufferSize];
@@ -146,7 +147,9 @@ void sendSignalViaALSA() {
             exit(EXIT_FAILURE);
     }
 
-    for (int i = 0; i < 10; i++) {
+    loops = sampleRate / bufferSize;
+
+    for (int i = 0; i < loops; i++) {
         if (formatType == SND_PCM_FORMAT_U8) {
             frames = snd_pcm_writei(handle, u8buffer, bufferSize);
         }
@@ -169,13 +172,11 @@ void sendSignalViaALSA() {
             printf("Short write (expected %li, wrote %li)\n", (long) bufferSize, frames);
         }
         snd_pcm_drain(handle);
-        sleep(1);
     }
-
     snd_pcm_close(handle);
 }
 
 int main(void) {
     getHardwareParameters();
-    //sendSignalViaALSA();
+    sendSignalViaALSA();
 }
