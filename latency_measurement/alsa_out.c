@@ -123,7 +123,6 @@ void sendSignalViaALSA() {
                 exit(EXIT_FAILURE);
         }
 
-        /*
         if ((err = snd_pcm_set_params(handle,
                                       formatType,
                                       accessType,
@@ -133,17 +132,16 @@ void sendSignalViaALSA() {
                                       ALSA_PCM_LATENCY)) < 0) {
                 printf("Playback open error: %s\n", snd_strerror(err));
                 exit(EXIT_FAILURE);
-        }*/
+        }
 
         for (i = 0; i < 10; i++) {
                 for (int j = 0; j < 150; j++) {
                         frames = snd_pcm_writei(handle, buffer, sizeof(buffer));
-                        sleep(0.001);
                         if (frames < 0)
                                 frames = snd_pcm_recover(handle, frames, 0);
                         if (frames < 0) {
                                 printf("snd_pcm_writei failed: %s\n", snd_strerror(err));
-                                break;
+                                //break;
                         }
                         if (frames > 0 && frames < (long) sizeof(buffer)) {
                                 printf("Short write (expected %li, wrote %li)\n", (long) sizeof(buffer), frames);
@@ -156,6 +154,6 @@ void sendSignalViaALSA() {
 }
 
 int main(void) {
-    //getHardwareParameters();
+    getHardwareParameters();
     sendSignalViaALSA();
 }
