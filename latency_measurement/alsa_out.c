@@ -124,6 +124,7 @@ void sendSignalViaALSA() {
         for (i = 0; i < 10; i++) {
                 for (int j = 0; j < 300; j++) {
                         frames = snd_pcm_writei(handle, buffer, bufferSize);
+                        sleep(SIGNAL_LENGTH_IN_S / 300);
                         if (frames < 0)
                                 frames = snd_pcm_recover(handle, frames, 0);
                         if (frames < 0) {
