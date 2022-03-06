@@ -20,7 +20,7 @@ snd_pcm_format_t formatType;
 snd_pcm_access_t accessType;
 unsigned int channels;
 unsigned int sampleRate = ALSA_PCM_PREFERRED_SAMPLE_RATE;
-unsigned char buffer[BUFFER_SIZE];
+int buffer[BUFFER_SIZE];
 
 /* Get information about the PCM interface */
 void getHardwareParameters() {
@@ -101,7 +101,7 @@ void sendSignalViaALSA() {
         int bufferSize = sizeof(buffer) / sizeof(buffer[0]);
 
         for (i = 0; i < bufferSize; i++) {
-            buffer[i] = random() & 0xff;
+            buffer[i] = random() & 2147483647;
         }
 
         if ((err = snd_pcm_open(&handle, alsaPcmDevice, SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
