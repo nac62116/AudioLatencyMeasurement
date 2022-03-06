@@ -23,7 +23,6 @@ snd_pcm_uframes_t periodSize;
 snd_pcm_uframes_t bufferSize;
 unsigned int channels;
 unsigned int sampleRate = ALSA_PCM_PREFERRED_SAMPLE_RATE;
-unsigned char buffer[BUFFER_SIZE];
 
 /* Get information about the PCM interface */
 void getHardwareParameters() {
@@ -91,7 +90,7 @@ void getHardwareParameters() {
     snd_pcm_hw_params_get_period_size_min(params, (snd_pcm_uframes_t *) &val, &dir);
     periodSize = (snd_pcm_uframes_t) val;
 
-    snd_pcm_hw_params_get_buffer_size(params, (snd_pcm_uframes_t *) &val);
+    snd_pcm_hw_params_get_buffer_size_min(params, (snd_pcm_uframes_t *) &val);
     bufferSize = (snd_pcm_uframes_t) val;
 
     snd_pcm_hw_params_get_period_time(params, &val, &dir);
@@ -109,48 +108,66 @@ void getHardwareParameters() {
 
 void sendSignalViaALSA() {
     int err;
-        unsigned int i;
-        snd_pcm_t *handle;
-        snd_pcm_sframes_t frames;
-        //int bufferSize = sizeof(buffer) / sizeof(buffer[0]);
+    snd_pcm_t *handle;
+    snd_pcm_sframes_t frames;
 
-        for (i = 0; i < sizeof(buffer); i++) {
-            buffer[i] = random() & 0xff;
+    if (formatType == SND_PCM_FORMAT_U8) {
+        char buffer[bufferSize];
+        for (int i = 0; i < sizeof(buffer); i++) {
+            buffer[i] = random() & 255;
         }
-
-        if ((err = snd_pcm_open(&handle, alsaPcmDevice, SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
-                printf("Playback open error: %s\n", snd_strerror(err));
-                exit(EXIT_FAILURE);
+    }
+    else if (formatType == SND_PCM_FORMAT_S16_LE) {
+        short buffer[bufferSize];
+        for (int i = 0; i < sizeof(buffer); i++) {
+            buffer[i] = random() & 32767;
         }
-
-        if ((err = snd_pcm_set_params(handle,
-                                      formatType,
-                                      accessType,
-                                      channels,
-                                      sampleRate,
-                                      ALSA_PCM_SOFT_RESAMPLE,
-                                      ALSA_PCM_LATENCY)) < 0) {
-                printf("Playback open error: %s\n", snd_strerror(err));
-                exit(EXIT_FAILURE);
+    }
+    else if (formatType == SND_PCM_FORMAT_S32_LE) {
+        int buffer[bufferSize];
+        for (int i = 0; i < sizeof(buffer); i++) {
+            buffer[i] = random() & 2147483647;
         }
-
-        for (i = 0; i < 10; i++) {
-                for (int j = 0; j < 150; j++) {
-                        frames = snd_pcm_writei(handle, buffer, sizeof(buffer));
-                        if (frames < 0)
-                                frames = snd_pcm_recover(handle, frames, 0);
-                        if (frames < 0) {
-                                printf("snd_pcm_writei failed: %s\n", snd_strerror(err));
-                                break;
-                        }
-                        if (frames > 0 && frames < (long) sizeof(buffer)) {
-                                printf("Short write (expected %li, wrote %li)\n", (long) sizeof(buffer), frames);
-                        }
-                }
-                sleep(1);
+    }
+    else {
+        char buffer[bufferSize];
+        for (int i = 0; i < sizeof(buffer); i++) {
+            buffer[i] = random() & 255;
         }
+    }
 
-        snd_pcm_close(handle);
+    if ((err = snd_pcm_open(&handle, alsaPcmDevice, SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
+            printf("Playback open error: %s\n", snd_strerror(err));
+            exit(EXIT_FAILURE);
+    }
+
+    if ((err = snd_pcm_set_params(handle,
+                                    formatType,
+                                    accessType,
+                                    channels,
+                                    sampleRate,
+                                    ALSA_PCM_SOFT_RESAMPLE,
+                                    ALSA_PCM_LATENCY)) < 0) {
+            printf("Playback open error: %s\n", snd_strerror(err));
+            exit(EXIT_FAILURE);
+    }
+
+    for (i = 0; i < 10; i++) {
+        frames = snd_pcm_writei(handle, buffer, bufferSize);
+        if (frames < 0)
+            frames = snd_pcm_recover(handle, frames, 0);
+        if (frames < 0) {
+            printf("snd_pcm_writei failed: %s\n", snd_strerror(err));
+            break;
+        }
+        if (frames > 0 && frames < (long) bufferSize) {
+            printf("Short write (expected %li, wrote %li)\n", (long) bufferSize, frames);
+        }
+        snd_pcm_drain(handle);
+        sleep(1);
+    }
+
+    snd_pcm_close(handle);
 }
 
 int main(void) {
