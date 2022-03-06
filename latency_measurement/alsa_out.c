@@ -88,7 +88,7 @@ void getHardwareParameters() {
     snd_pcm_hw_params_get_rate(params, &val, &dir);
     sampleRate = val;
 
-    snd_pcm_hw_params_get_period_size(params, (snd_pcm_uframes_t *) &val, &dir);
+    snd_pcm_hw_params_get_period_size_min(params, (snd_pcm_uframes_t *) &val, &dir);
     periodSize = (snd_pcm_uframes_t) val;
 
     snd_pcm_hw_params_get_buffer_size(params, (snd_pcm_uframes_t *) &val);
