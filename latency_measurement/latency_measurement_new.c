@@ -108,6 +108,7 @@ void configurePCMDevice(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwareParam
 
 void getHardwareParameters(snd_pcm_hw_params_t *hardwareParameterStructure) {
     unsigned int returnedValue;
+    int direction;
 
     printf("hardwareParameterStructure");
 
@@ -173,6 +174,9 @@ int setHardwareParameters(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwarePar
     /* Set period size to supported minimum. */
     snd_pcm_hw_params_set_period_size_near(pcmHandle, hardwareParameterStructure, &frames, &direction);
 
+    /* Set buffer size depending on frames */
+    bufferSize = snd_pcm_frames_to_bytes(pcmHandle, frames);
+
     /* Set number of periods. Periods used to be called fragments.  
     if (snd_pcm_hw_params_set_periods(pcmHandle, hardwareParameterStructure, numberOfPeriods, 0) < 0) {
         fprintf(stderr, "Error setting periods.\n");
@@ -214,8 +218,6 @@ int setHardwareParameters(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwarePar
 }
 
 void prepareAudioBuffer() {
-    bufferSize = snd_pcm_frames_to_bytes();
-    //bufferSize = frames * 4 /* 4 bytes/sample */ * channels;
     char buffer[bufferSize];
 
     for (int byte = 0; byte < bufferSize; byte++) {
