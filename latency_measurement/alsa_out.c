@@ -94,8 +94,8 @@ void getHardwareParameters() {
     snd_pcm_hw_params_get_buffer_size(params, (snd_pcm_uframes_t *) &val);
     bufferSize = (snd_pcm_uframes_t) val;
 
-    printf("\n\n format type:%d\n", snd_pcm_format_name((snd_pcm_format_t) accessType));
-    printf("\n\n access type:%d\n", snd_pcm_access_name((snd_pcm_access_t) accessType));
+    printf("\n\n format type:%s\n", snd_pcm_format_name((snd_pcm_format_t) accessType));
+    printf("\n\n access type:%s\n", snd_pcm_access_name((snd_pcm_access_t) accessType));
     printf("\n\n channels:%d\n", channels);
     printf("\n\n sample rate:%d\n\n", sampleRate);
     printf("\n\n buffer size: %ld\n\n", bufferSize);
