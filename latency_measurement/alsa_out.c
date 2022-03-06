@@ -9,6 +9,7 @@ Hardware parameter code base retrieved from https://www.linuxjournal.com/article
 // BUFFER_SIZE = ALSA_PCM_PREFERRED_SAMPLE_RATE (48000 kHz) * SIGNAL_LENGTH_IN_S (0.001 s)
 #define BUFFER_SIZE 16
 
+const double SIGNAL_LENGTH_IN_S = 0.001;
 const int ALSA_PCM_SOFT_RESAMPLE = 0;
 const unsigned int ALSA_PCM_LATENCY = 0;
 const unsigned int ALSA_PCM_PREFERRED_SAMPLE_RATE = 48000;
