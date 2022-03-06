@@ -11,10 +11,9 @@ void sendSignalViaALSA() {
     snd_pcm_t *pcm;
     snd_pcm_hw_params_t *hw_params;
     short samples[48000];
-    int bufferSize = sizeof(samples) / sizeof(samples[0]);
 
     // Initialize the samples somehow
-    for (int byte = 0; byte < bufferSize; byte++) {
+    for (int byte = 0; byte < 48000; byte++) {
         samples[byte] = random() & 0xff;
     }
 
