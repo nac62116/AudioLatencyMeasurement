@@ -14,7 +14,7 @@ const int ALSA_PCM_SOFT_RESAMPLE = 0;
 const unsigned int ALSA_PCM_LATENCY = 0;
 const unsigned int ALSA_PCM_PREFERRED_SAMPLE_RATE = 48000;
 
-char *alsaPcmDevice = "hw:CARD=usb_audio_top";          /* USB playback device */
+char *alsaPcmDevice = "plughw:CARD=usb_audio_top";          /* USB playback device */
 //const char *device = "hw:2,0";        /* HDMI 1 playback device */
 //const char *device = "hw:0,0";        /* HDMI 0 playback device */
 snd_pcm_format_t formatType;
@@ -123,7 +123,7 @@ void sendSignalViaALSA() {
                 exit(EXIT_FAILURE);
         }
 
-
+        /*
         if ((err = snd_pcm_set_params(handle,
                                       formatType,
                                       accessType,
@@ -133,7 +133,7 @@ void sendSignalViaALSA() {
                                       ALSA_PCM_LATENCY)) < 0) {
                 printf("Playback open error: %s\n", snd_strerror(err));
                 exit(EXIT_FAILURE);
-        }
+        }*/
 
         for (i = 0; i < 10; i++) {
                 for (int j = 0; j < 150; j++) {
@@ -156,6 +156,6 @@ void sendSignalViaALSA() {
 }
 
 int main(void) {
-    getHardwareParameters();
-    //sendSignalViaALSA();
+    //getHardwareParameters();
+    sendSignalViaALSA();
 }
