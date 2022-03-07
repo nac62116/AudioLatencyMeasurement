@@ -91,7 +91,7 @@ int main() {
      * period time */
 
     for (int i = 0; i < 10; i++) {
-        loops = 500000 / val;
+        loops = 50000 / val;
         while (loops > 0) {
             loops--;
             /*
