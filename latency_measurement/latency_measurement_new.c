@@ -221,6 +221,7 @@ int startMeasurementDigitalOut() {
 // Line-out callback
 void onLineOut(int gpio, int level, uint32_t tick) {
     printf("GPIO %d state changed to level %d at %d\n", gpio, level, tick);
+    printf("GPIO %d state changed to level %d at %d\n", gpio, level, tick);
     
     // Rising Edge
     if (level == 1) {
