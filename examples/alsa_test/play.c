@@ -86,11 +86,16 @@ int main() {
 
     /* We want to loop for 5 seconds */
     //snd_pcm_hw_params_get_period_time(params, &val, &dir);
-    /* 5 seconds in microseconds divided by
-     * period time */
+    
 
     for (int i = 0; i < 10; i++) {
-        loops = 100;
+        /* 5 seconds in microseconds divided by
+        * period time */
+        loops = 0.001 * 1000000 / val;
+        if (loops == 0) {
+            loops = 1;
+        }
+        printf("loops: %d\n", loops);
         while (loops > 0) {
             rc = snd_pcm_writei(handle, buffer, frames);
             if (rc == -EPIPE) {
@@ -107,11 +112,11 @@ int main() {
             }
             loops--;
         }
+        snd_pcm_drain(handle);
         sleep(1);
     }
 
 
-    snd_pcm_drain(handle);
     snd_pcm_close(handle);
     free(buffer);
 
