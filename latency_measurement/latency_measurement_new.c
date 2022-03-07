@@ -177,8 +177,8 @@ int startMeasurementDigitalOut() {
         /* signal length in micros divided by period time */
         // TODO: Eventually greater signal length
         numberOfPeriods = SIGNAL_LENGTH_IN_S * 1000000 / periodTimeInMicros;
-        if (numberOfPeriods == 0) {
-            numberOfPeriods = 1;
+        if (numberOfPeriods == 0 || numberOfPeriods == 1) {
+            numberOfPeriods = 2;
         }
         printf("loops: %ld\n", numberOfPeriods);
         // TODO: Timestamp
