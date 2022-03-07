@@ -91,7 +91,8 @@ int main() {
      * period time */
 
     for (int i = 0; i < 10; i++) {
-        loops = 500000 / val;
+        loops = 1000 / val;
+        printf("loops: %d", loops);
         while (loops > 0) {
             loops--;
             /*
