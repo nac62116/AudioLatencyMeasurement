@@ -91,7 +91,7 @@ int main() {
     for (int i = 0; i < 10; i++) {
         /* 5 seconds in microseconds divided by
         * period time */
-        loops = 0.001 * 1000000 / val;
+        loops = 1000 / val;
         if (loops == 0) {
             loops = 1;
         }
