@@ -84,8 +84,12 @@ double calculateSignalInterval(int measurementCount) {
             signalIntervalInS = SIGNAL_MINIMUM_INTERVAL_IN_S + 1 / measurementCount * maxLatencyInS;
         }
         else {
+            // The interval from the first to the second signal is SIGNAL_START_INTERVAL_IN_S
             signalIntervalInS = maxLatencyInS + 1 / measurementCount * maxLatencyInS;
         }
+    }
+    else {
+        signalIntervalInS = SIGNAL_START_INTERVAL_IN_S;
     }
     return(signalIntervalInS);
 }
@@ -165,8 +169,6 @@ int startMeasurementDigitalOut() {
     /* We want to loop for SIGNAL_LENGTH_IN_S */
     snd_pcm_hw_params_get_period_time(params, &periodTimeInMicros, &dir);
     
-    // The interval from the first to the second signal is SIGNAL_START_INTERVAL_IN_S
-    signalIntervalInS = SIGNAL_START_INTERVAL_IN_S;
     for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
         signalIntervalInS = calculateSignalInterval(i);
 
