@@ -87,6 +87,7 @@ double calculateSignalInterval(int measurementCount) {
             signalIntervalInS = maxLatencyInS + 1 / measurementCount * maxLatencyInS;
         }
     }
+    return(signalIntervalInS);
 }
 
 // ####
@@ -176,7 +177,7 @@ int startMeasurementDigitalOut() {
         if (numberOfPeriods == 0) {
             numberOfPeriods = 1;
         }
-        printf("loops: %d\n", numberOfPeriods);
+        printf("loops: %ld\n", numberOfPeriods);
         // TODO: Timestamp
         while (numberOfPeriods > 0) {
             status = snd_pcm_writei(handle, buffer, frames);
@@ -192,7 +193,7 @@ int startMeasurementDigitalOut() {
                 fprintf(stderr, "short write, write %d frames\n", status);
             }
             else {
-                fprintf(stderr, "full buffer succesfully written\n")
+                fprintf(stderr, "full buffer succesfully written\n");
             }
             numberOfPeriods--;
         }
@@ -347,21 +348,6 @@ void onUserInput(int gpio, int level, uint32_t tick) {
         // Measurement mode got changed
         else {
             measurementMode = gpio;
-            if (gpio == ALSA_USB_MODE) {
-                // TODO: Function
-                alsaStatus = initPCMDevice(ALSA_USB_TOP_OUT);
-                if (alsaStatus == -1) {
-                    alsaStatus = initPCMDevice(ALSA_USB_BOTTOM_OUT);
-                    if (alsaStatus == -1) {
-                        // TODO: Display error message: usb audio device not found
-                    }
-                }
-            }
-            else if (gpio == ALSA_HDMI_MODE) {
-                //
-            }
-            // TODO: measurementMode changes
-            else {}
         }
     }
 }
