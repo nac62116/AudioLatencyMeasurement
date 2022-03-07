@@ -89,7 +89,8 @@ int main() {
     
     for (int i = 0; i < 10; i++) {
         /* signal length in micros divided by period time */
-        loops = 100000 / val;
+        // TODO: Eventually greater signal length
+        loops = 1000 / val;
         if (loops == 0) {
             loops = 1;
         }
