@@ -70,6 +70,7 @@ int main() {
         exit(1);
     }
 
+    printf("before buffer\n\n");
     /* Use a buffer large enough to hold one period */
     snd_pcm_hw_params_get_period_size(params, &frames,
             &dir);
@@ -88,7 +89,7 @@ int main() {
     loops = 5000000 / val;
 
     while (loops > 0) {
-        printf("read\n");
+        printf("read\n\n");
         loops--;
         rc = read(0, buffer, size);
         if (rc == 0) {
