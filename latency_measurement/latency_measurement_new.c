@@ -385,8 +385,8 @@ int main(void) {
     // TODO: init gpio callbacks for the user inputs
     initGpioLibrary();
     
-    //startMeasurementDigitalOut();
-    startMeasurementLineOut();
+    startMeasurementDigitalOut();
+    //startMeasurementLineOut();
 
     // TODO: Function
     // Fill measurement array with -1 values to mark invalid measurements
