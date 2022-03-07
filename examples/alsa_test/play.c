@@ -76,7 +76,6 @@ int main() {
     /* Use a buffer large enough to hold one period */
     snd_pcm_hw_params_get_period_size(params, &frames,
             &dir);
-    printf("frames: %ld", frames);
     size = frames * 4; /* 2 bytes/sample, 2 channels */
     buffer = (char *) malloc(size);
 
