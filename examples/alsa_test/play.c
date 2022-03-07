@@ -59,7 +59,9 @@ int main() {
             &val, &dir);
 
     /* Set period size to 32 frames. */
-    frames = 32;
+    snd_pcm_hw_params_get_period_size_min(params, (snd_pcm_uframes_t *) &frames, &dir);
+    //frames = (snd_pcm_uframes_t) frames;
+    //frames = 32;
     snd_pcm_hw_params_set_period_size_near(handle,
             params, &frames, &dir);
 
