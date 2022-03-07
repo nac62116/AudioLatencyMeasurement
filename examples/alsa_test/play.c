@@ -76,6 +76,10 @@ int main() {
     size = frames * 4; /* 2 bytes/sample, 2 channels */
     buffer = (char *) malloc(size);
 
+    for (int byte = 0; byte < buff_size; byte++) {
+        buff[byte] = (byte % 2) & 0xff;
+    }
+
     /* We want to loop for 5 seconds */
     snd_pcm_hw_params_get_period_time(params,
             &val, &dir);
