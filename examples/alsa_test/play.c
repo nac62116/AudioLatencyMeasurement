@@ -117,7 +117,7 @@ int main() {
                         "short write, write %d frames\n", rc);
             }
         }
-        sleep(1);
+        //sleep(1);
     }
 
 
