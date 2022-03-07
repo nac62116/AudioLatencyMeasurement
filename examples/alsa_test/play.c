@@ -90,7 +90,7 @@ int main() {
      * period time */
 
     for (int i = 0; i < 10; i++) {
-        loops = 10;
+        loops = 100;
         while (loops > 0) {
             rc = snd_pcm_writei(handle, buffer, frames);
             if (rc == -EPIPE) {
