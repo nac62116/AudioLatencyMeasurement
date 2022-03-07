@@ -89,9 +89,9 @@ int main() {
             &val, &dir);
     /* 5 seconds in microseconds divided by
      * period time */
-    loops = 500000 / val;
 
     for (int i = 0; i < 10; i++) {
+        loops = 500000 / val;
         while (loops > 0) {
             loops--;
             /*
@@ -117,7 +117,7 @@ int main() {
                         "short write, write %d frames\n", rc);
             }
         }
-        //sleep(1);
+        sleep(1);
     }
 
 
