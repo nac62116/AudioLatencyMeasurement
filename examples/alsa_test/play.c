@@ -93,6 +93,7 @@ int main() {
     while (loops > 0) {
         printf("read\n\n");
         loops--;
+        /*
         rc = read(0, buffer, size);
         if (rc == 0) {
             fprintf(stderr, "end of file on input\n");
@@ -100,7 +101,7 @@ int main() {
         } else if (rc != size) {
             fprintf(stderr,
                     "short read: read %d bytes\n", rc);
-        }
+        }*/
         rc = snd_pcm_writei(handle, buffer, frames);
         if (rc == -EPIPE) {
             /* EPIPE means underrun */
