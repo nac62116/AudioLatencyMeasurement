@@ -88,6 +88,7 @@ int main() {
     loops = 5000000 / val;
 
     while (loops > 0) {
+        printf("read\n");
         loops--;
         rc = read(0, buffer, size);
         if (rc == 0) {
