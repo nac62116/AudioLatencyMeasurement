@@ -10,6 +10,7 @@
 #define ALSA_PCM_NEW_HW_PARAMS_API
 
 #include <alsa/asoundlib.h>
+#include <stdio.h>
 
 int main() {
     long loops;
@@ -88,33 +89,37 @@ int main() {
             &val, &dir);
     /* 5 seconds in microseconds divided by
      * period time */
-    loops = 5000000 / val;
+    loops = 1000 / val;
 
-    while (loops > 0) {
-        loops--;
-        /*
-        rc = read(0, buffer, size);
-        if (rc == 0) {
-            fprintf(stderr, "end of file on input\n");
-            break;
-        } else if (rc != size) {
-            fprintf(stderr,
-                    "short read: read %d bytes\n", rc);
-        }*/
-        rc = snd_pcm_writei(handle, buffer, frames);
-        if (rc == -EPIPE) {
-            /* EPIPE means underrun */
-            fprintf(stderr, "underrun occurred\n");
-            snd_pcm_prepare(handle);
-        } else if (rc < 0) {
-            fprintf(stderr,
-                    "error from writei: %s\n",
-                    snd_strerror(rc));
-        }  else if (rc != (int)frames) {
-            fprintf(stderr,
-                    "short write, write %d frames\n", rc);
+    for (int i = 0; i < 10; i++) {
+        while (loops > 0) {
+            loops--;
+            /*
+            rc = read(0, buffer, size);
+            if (rc == 0) {
+                fprintf(stderr, "end of file on input\n");
+                break;
+            } else if (rc != size) {
+                fprintf(stderr,
+                        "short read: read %d bytes\n", rc);
+            }*/
+            rc = snd_pcm_writei(handle, buffer, frames);
+            if (rc == -EPIPE) {
+                /* EPIPE means underrun */
+                fprintf(stderr, "underrun occurred\n");
+                snd_pcm_prepare(handle);
+            } else if (rc < 0) {
+                fprintf(stderr,
+                        "error from writei: %s\n",
+                        snd_strerror(rc));
+            }  else if (rc != (int)frames) {
+                fprintf(stderr,
+                        "short write, write %d frames\n", rc);
+            }
         }
+        sleep(1);
     }
+
 
     snd_pcm_drain(handle);
     snd_pcm_close(handle);
