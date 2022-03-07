@@ -85,25 +85,13 @@ int main() {
     }
 
     /* We want to loop for 5 seconds */
-    snd_pcm_hw_params_get_period_time(params,
-            &val, &dir);
+    //snd_pcm_hw_params_get_period_time(params, &val, &dir);
     /* 5 seconds in microseconds divided by
      * period time */
 
     for (int i = 0; i < 10; i++) {
-        loops = 1000 / val;
-        printf("loops: %d", loops);
+        loops = 10;
         while (loops > 0) {
-            loops--;
-            /*
-            rc = read(0, buffer, size);
-            if (rc == 0) {
-                fprintf(stderr, "end of file on input\n");
-                break;
-            } else if (rc != size) {
-                fprintf(stderr,
-                        "short read: read %d bytes\n", rc);
-            }*/
             rc = snd_pcm_writei(handle, buffer, frames);
             if (rc == -EPIPE) {
                 /* EPIPE means underrun */
@@ -117,6 +105,7 @@ int main() {
                 fprintf(stderr,
                         "short write, write %d frames\n", rc);
             }
+            loops--;
         }
         sleep(1);
     }
