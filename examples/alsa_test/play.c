@@ -22,6 +22,8 @@ int main() {
     snd_pcm_uframes_t frames;
     char *buffer;
 
+    printf("top of main\n\n");
+
     /* Open PCM device for playback. */
     rc = snd_pcm_open(&handle, "hw:CARD=usb_audio_top",
             SND_PCM_STREAM_PLAYBACK, 0);
