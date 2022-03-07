@@ -89,7 +89,7 @@ int main() {
             &val, &dir);
     /* 5 seconds in microseconds divided by
      * period time */
-    loops = 1000 / val;
+    loops = 500000 / val;
 
     for (int i = 0; i < 10; i++) {
         while (loops > 0) {
