@@ -112,11 +112,10 @@ int main() {
             }
             loops--;
         }
-        snd_pcm_drain(handle);
         sleep(1);
     }
 
-
+    snd_pcm_drain(handle);
     snd_pcm_close(handle);
     free(buffer);
 
