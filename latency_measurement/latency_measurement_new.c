@@ -66,9 +66,10 @@ const char *ALSA_PCIE_OUT = "hw:CARD=pcie_audio";
 /* Specific hardware parameters */
 const unsigned int PREFERRED_SAMPLE_RATE = 44100;
 const unsigned int NUMBER_OF_CHANNELS = 2;
+const long MINIMUM_NUMBER_OF_PERIODS = 2;
 const snd_pcm_access_t ACCESS_TYPE = SND_PCM_ACCESS_RW_INTERLEAVED;
 const snd_pcm_format_t FORMAT_TYPE = SND_PCM_FORMAT_S16_LE;
-const int BYTES_PER_SAMPLE = 2;
+const int BYTES_PER_SAMPLE = 2; /* Depends on the format type */
 
 // ####
 // #### LOGIC ####
@@ -177,8 +178,8 @@ int startMeasurementDigitalOut() {
         /* signal length in micros divided by period time */
         // TODO: Eventually greater signal length
         numberOfPeriods = SIGNAL_LENGTH_IN_S * 1000000 / periodTimeInMicros;
-        if (numberOfPeriods == 0 || numberOfPeriods == 1) {
-            numberOfPeriods = 2;
+        if (numberOfPeriods < MINIMUM_NUMBER_OF_PERIODS) {
+            numberOfPeriods = MINIMUM_NUMBER_OF_PERIODS;
         }
         printf("loops: %ld\n", numberOfPeriods);
         // TODO: Timestamp
