@@ -1,2 +1,2 @@
 all:
-	gcc alsa_out_new.c -lasound -o alsa_out_new
+	gcc -Wall -pthread latency_measurement_new.c -lasound -o latency_measurement_new -lpigpio -lrt

@@ -1,6 +1,9 @@
 /*
 Playback code base retrieved from https://www.alsa-project.org/alsa-doc/alsa-lib/_2test_2pcm__min_8c-example.html on 28th February 2022
 Hardware parameter code base retrieved from https://www.linuxjournal.com/article/6735 on 28th February 2022
+
+Makefile:
+gcc alsa_out_new.c -lasound -o alsa_out_new
 */
 
 #include <alsa/asoundlib.h>

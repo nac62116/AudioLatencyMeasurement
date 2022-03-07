@@ -1,5 +1,5 @@
 /*
-ALSA code base retrieved from https://users.suse.com/~mana/alsa090_howto.html on 2nd March 2022
+ALSA code base retrieved from https://www.linuxjournal.com/article/6735 on 7th March 2022
 
 Makefile:
 gcc -Wall -pthread latency_measurement_new.c -lasound -o latency_measurement_new -lpigpio -lrt
@@ -9,13 +9,12 @@ gcc -Wall -pthread latency_measurement_new.c -lasound -o latency_measurement_new
 #include <alsa/asoundlib.h>
 #include <stdio.h>
 
-#define TOTAL_MEASUREMENTS 1
-// BUFFER_SIZE = ALSA_PCM_PREFERRED_SAMPLE_RATE (48000 kHz) * SIGNAL_LENGTH_IN_S (0.001 s)
-#define BUFFER_SIZE 1024
+#define TOTAL_MEASUREMENTS 10
 
 const int LINE_IN = 27; // GPIO 27
 const int LINE_OUT = 17; // GPIO 17
-const double SIGNAL_LENGTH_IN_S = 0.001;
+//const double SIGNAL_LENGTH_IN_S = 0.001;
+const double SIGNAL_LENGTH_IN_S = 0.5;
 const double SIGNAL_START_INTERVAL_IN_S = 1.0;
 const double SIGNAL_MINIMUM_INTERVAL_IN_S = 0.02; // Minimum interval to ensure correct amplification
 const int SIGNAL_ARRIVED = 1;
@@ -51,257 +50,159 @@ int displayModeCount = 0;
 // ALSA variables
 
 /* PCM device identifier */
-const char *ALSA_USB_TOP_OUT = "hw:CARD=usb_audio_top";
-const char *ALSA_USB_BOTTOM_OUT = "hw:CARD=usb_audio_bot";
-// TODO: create udev rules for changing card ids of pcie and hdmi sound devices
-const char *ALSA_HDMI1_OUT = "hw:2,0";
-const char *ALSA_HDMI0_OUT = "hw:0,0";
-/* Name of the PCM device, like plughw:0,0                 */
+/* Name of the PCM device, like hw:0,0                     */
 /* The first number is the number of the soundcard,        */
 /* the second number is the number of the device.          */
 /* In this case the lib/udev/rules.b/85-my-audio-usb.rules */
 /* file changes the card id depending on the used port.    */
-/* With that pcm devices can be identified like above      */
+/* With that pcm devices can be identified like below      */
 /* (hw:CARD=usb_audio_top, ...)                            */
-char *pcmName;
+const char *ALSA_USB_TOP_OUT = "hw:CARD=usb_audio_top";
+const char *ALSA_USB_BOTTOM_OUT = "hw:CARD=usb_audio_bot";
+// TODO: create udev rules for changing card ids of pcie and hdmi sound devices
+const char *ALSA_HDMI1_OUT = "hw:CARD=hdmi_audio_0";
+const char *ALSA_HDMI0_OUT = "hw:CARD=hdmi_audio_1";
+const char *ALSA_PCIE_OUT = "hw:CARD=pcie_audio";
 /* Specific hardware parameters */
-const int SOFT_RESAMPLE = 0;
-const unsigned int PCM_LATENCY = 0;
-const unsigned int PREFERRED_SAMPLE_RATE = 48000;
-snd_pcm_access_t accessType;
-snd_pcm_format_t formatType;
-snd_pcm_uframes_t frames;
-//snd_pcm_uframes_t minBufferSize;
-//int numberOfPeriods;
-unsigned int channels;
-unsigned int sampleRate;
-unsigned int periodTimeInMicros;
-char* audioBuffer;
-ssize_t bufferSize;
+const unsigned int PREFERRED_SAMPLE_RATE = 44100;
+const unsigned int NUMBER_OF_CHANNELS = 2;
+const snd_pcm_access_t ACCESS_TYPE = SND_PCM_ACCESS_RW_INTERLEAVED;
+const snd_pcm_format_t FORMAT_TYPE = SND_PCM_FORMAT_S16_LE;
+const int BYTES_PER_SAMPLE = 2;
+
+// ####
+// #### LOGIC ####
+
+double calculateSignalInterval(int measurementCount) {
+    double signalIntervalInS, maxLatencyInS;
+
+    // After the first signal that arrived, the signal interval converges to the maximum measured latency
+    // If its smaller than SIGNAL_MINIMUM_INTERVAL_IN_S it converges to that value
+    if (maxLatencyInMicros != -1 && measurementCount > 0) {
+        maxLatencyInS = (double) maxLatencyInMicros / 1000000.0;
+        if (maxLatencyInS <= SIGNAL_MINIMUM_INTERVAL_IN_S) {
+            signalIntervalInS = SIGNAL_MINIMUM_INTERVAL_IN_S + 1 / measurementCount * maxLatencyInS;
+        }
+        else {
+            signalIntervalInS = maxLatencyInS + 1 / measurementCount * maxLatencyInS;
+        }
+    }
+}
 
 // ####
 // #### PCM DEVICES (USB, HDMI, PCIE) VIA ALSA ####
 
-void setPCMName(const char * identifier) {
-    pcmName = (char *) identifier;
-}
+int startMeasurementDigitalOut() {
+    double signalIntervalInS;
+    int status;
+    int dir;
+    snd_pcm_t *handle;
+    snd_pcm_hw_params_t *params;
+    long numberOfPeriods;
+    unsigned int periodTimeInMicros;
+    unsigned int sampleRate;
+    snd_pcm_uframes_t frames;
+    char *buffer;
+    int size;
 
-int openPCMDevice(snd_pcm_t **pcmHandle) {
-    /* Device identifier (hw:usb_audio_top, ...) */
-    const char *identifier = (const char *) pcmName;
-
-    printf("openPCMDevice\n");
-    if (snd_pcm_open(pcmHandle, identifier, SND_PCM_STREAM_PLAYBACK, 0) < 0) {
-        fprintf(stderr, "Error opening PCM device %s\n", pcmName);
-        return(-1);
-    }
-    return(0);
-}
-
-void allocateHardwareParameterStructure(snd_pcm_hw_params_t **hardwareParameters) {
-    snd_pcm_hw_params_alloca(hardwareParameters);
-}
-
-void configurePCMDevice(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwareParameters) {
-    printf("configurePCMDevice\n");
-    snd_pcm_hw_params_any(pcmHandle, hardwareParameters);
-}
-
-void getHardwareParameters(snd_pcm_hw_params_t *hardwareParameterStructure) {
-    unsigned int returnedValue;
-    int direction;
-
-    printf("hardwareParameterStructure");
-
-    snd_pcm_hw_params_get_access(hardwareParameterStructure, (snd_pcm_access_t *) &returnedValue);
-    accessType = (snd_pcm_access_t) returnedValue;
-
-    snd_pcm_hw_params_get_format(hardwareParameterStructure, (snd_pcm_format_t *) &returnedValue);
-    formatType = (snd_pcm_format_t) returnedValue;
-
-    snd_pcm_hw_params_get_channels(hardwareParameterStructure, &returnedValue);
-    channels = returnedValue;
-
-    snd_pcm_hw_params_get_period_size_min(hardwareParameterStructure, (snd_pcm_uframes_t *) &returnedValue, &direction);
-    frames = (snd_pcm_uframes_t) returnedValue;
-
-    //snd_pcm_hw_params_get_buffer_size_min(hardwareParameterStructure, (snd_pcm_uframes_t *) &returnedValue);
-    //minBufferSize = (snd_pcm_uframes_t) returnedValue;
-
-    //numberOfPeriods = minBufferSize / minPeriodSize;
-
-    printf("\naccess type: %s\n\n", snd_pcm_access_name((snd_pcm_access_t) accessType));
-    printf("\format type: %s\n\n", snd_pcm_format_name((snd_pcm_format_t) formatType));
-    printf("\nchannels: %d\n\n", channels);
-    printf("\nsample rate: %d\n\n", PREFERRED_SAMPLE_RATE);
-    printf("\nframes: %ld\n\n", frames);
-    //printf("\nmin buffer size: %ld\n\n", minBufferSize);
-    //printf("\nnumber of periods: %d\n\n", numberOfPeriods);
-}
-
-int setHardwareParameters(snd_pcm_t *pcmHandle, snd_pcm_hw_params_t *hardwareParameterStructure) {
-    unsigned int returnedValue;
-    int direction;
-
-    /* Set access type. */
-    if (snd_pcm_hw_params_set_access(pcmHandle, hardwareParameterStructure, accessType) < 0) {
-        fprintf(stderr, "Error setting access.\n");
-        return(-1);
-    }
-  
-    /* Set sample format */
-    if (snd_pcm_hw_params_set_format(pcmHandle, hardwareParameterStructure, formatType) < 0) {
-        fprintf(stderr, "Error setting format.\n");
-        return(-1);
+    /* Open PCM device for playback. */
+    status = snd_pcm_open(&handle, ALSA_USB_TOP_OUT, SND_PCM_STREAM_PLAYBACK, 0);
+    if (status < 0) {
+        fprintf(stderr, "unable to open pcm device: %s\n", snd_strerror(status));
+        status = snd_pcm_open(&handle, ALSA_USB_BOTTOM_OUT, SND_PCM_STREAM_PLAYBACK, 0);
+        if (status < 0) {
+            fprintf(stderr, "unable to open pcm device: %s\n", snd_strerror(status));
+            status = snd_pcm_open(&handle, ALSA_HDMI0_OUT, SND_PCM_STREAM_PLAYBACK, 0);
+            if (status < 0) {
+                fprintf(stderr, "unable to open pcm device: %s\n", snd_strerror(status));
+                status = snd_pcm_open(&handle, ALSA_HDMI1_OUT, SND_PCM_STREAM_PLAYBACK, 0);
+                if (status < 0) {
+                    fprintf(stderr, "unable to open pcm device: %s\n", snd_strerror(status));
+                    status = snd_pcm_open(&handle, ALSA_PCIE_OUT, SND_PCM_STREAM_PLAYBACK, 0);
+                    if (status < 0) {
+                        fprintf(stderr, "unable to open pcm device: %s\n", snd_strerror(status));
+                        return(-1);
+                    }
+                }
+            }
+        }
     }
 
-    /* Set number of channels */
-    if (snd_pcm_hw_params_set_channels(pcmHandle, hardwareParameterStructure, channels) < 0) {
-        fprintf(stderr, "Error setting channels.\n");
-        return(-1);
-    }
+    /* Allocate a hardware parameters object. */
+    snd_pcm_hw_params_alloca(&params);
 
-    /* Set sample rate. If the exact rate is not supported */
-    /* by the hardware, use nearest possible rate.         */ 
+    /* Fill it in with default values. */
+    snd_pcm_hw_params_any(handle, params);
+
+    /* Set the desired hardware parameters. */
+    snd_pcm_hw_params_set_access(handle, params, ACCESS_TYPE);
+    snd_pcm_hw_params_set_format(handle, params, FORMAT_TYPE);
+    snd_pcm_hw_params_set_channels(handle, params, NUMBER_OF_CHANNELS);
     sampleRate = PREFERRED_SAMPLE_RATE;
-    if (snd_pcm_hw_params_set_rate_near(pcmHandle, hardwareParameterStructure, &sampleRate, 0) < 0) {
-        fprintf(stderr, "Error setting rate.\n");
-        return(-1);
-    }
-    if (sampleRate != PREFERRED_SAMPLE_RATE) {
-        fprintf(stderr, "The rate %d Hz is not supported by your hardware.\n ==> Using %d Hz instead.\n", PREFERRED_SAMPLE_RATE, sampleRate);
-    }
+    snd_pcm_hw_params_set_rate_near(handle, params, &sampleRate, &dir);
+    /* Set period size to minimum to create smallest possible buffer size. */
+    snd_pcm_hw_params_get_period_size_min(params, (snd_pcm_uframes_t *) &frames, &dir);
+    snd_pcm_hw_params_set_period_size_near(handle, params, &frames, &dir);
 
-    /* Set period size to supported minimum. */
-    snd_pcm_hw_params_set_period_size_near(pcmHandle, hardwareParameterStructure, &frames, &direction);
-
-    /* Set buffer size depending on frames */
-    bufferSize = snd_pcm_frames_to_bytes(pcmHandle, frames);
-
-    /* Set number of periods. Periods used to be called fragments.  
-    if (snd_pcm_hw_params_set_periods(pcmHandle, hardwareParameterStructure, numberOfPeriods, 0) < 0) {
-        fprintf(stderr, "Error setting periods.\n");
-        return(-1);
-    }*/
-
-    /* Set period size.  
-    if (snd_pcm_hw_params_set_period_size(pcmHandle, hardwareParameterStructure, periodSize, 0) < 0) {
-        fprintf(stderr, "Error setting period size.\n");
-        return(-1);
-    }*/
-
-    /* Set buffer size. 
-    if (snd_pcm_hw_params_set_buffer_size(pcmHandle, hardwareParameterStructure, minBufferSize) < 0) {
-        fprintf(stderr, "Error setting buffer size.\n");
-        return(-1);
-    }*/ 
-
-    /* Apply HW parameter settings to */
-    /* PCM device and prepare it  */
-    if (snd_pcm_hw_params(pcmHandle, hardwareParameterStructure) < 0) {
-      fprintf(stderr, "Error setting HW params.\n");
-      return(-1);
-    }
-
-    /* Get period time after applying settings */
-    snd_pcm_hw_params_get_period_time(hardwareParameterStructure, &returnedValue, &direction);
-    periodTimeInMicros = returnedValue;
-
-    printf("\nperiod time in micros: %d\n\n", periodTimeInMicros);
-
-    /* Get period time after applying settings */
-    snd_pcm_hw_params_get_period_size(hardwareParameterStructure, (snd_pcm_uframes_t *) &returnedValue, &direction);
-    frames = (snd_pcm_uframes_t) returnedValue;
-
-    printf("\nframes: %ld\n\n", frames);
-
-    return(0);
-}
-
-void prepareAudioBuffer() {
-    char buffer[bufferSize];
-
-    for (int byte = 0; byte < bufferSize; byte++) {
-        buffer[byte] = random() & 0xff;
-    }
-    audioBuffer = buffer;
-}
-
-int initPCMDevice(const char *identifier) {
-    /* Handle for the PCM device */
-    snd_pcm_t *pcmHandle;
-    /* This structure contains information about    */
-    /* the hardware and can be used to specify the  */      
-    /* configuration to be used for the PCM stream. */ 
-    snd_pcm_hw_params_t *hardwareParameterStructure;
-
-    setPCMName(identifier);
-    if (openPCMDevice(&pcmHandle) < 0) {
-        return(-1);
-    }
-    // Allocate hardware parameter structure
-    snd_pcm_hw_params_alloca(&hardwareParameterStructure);
-    // Configure PCM device
-    snd_pcm_hw_params_any(pcmHandle, hardwareParameterStructure);
-    getHardwareParameters(hardwareParameterStructure);
-    if (setHardwareParameters(pcmHandle, hardwareParameterStructure) < 0) {
-        return(-1);
-    }
-    prepareAudioBuffer();
-    snd_pcm_close(pcmHandle);
-    return(0);
-}
-
-int sendSignalViaPCMDevice(double signalIntervalInS) {
-    /* Handle for the PCM device */
-    snd_pcm_t *pcmHandle;
-    int returnedValue = 0;
-    long loops;
-
-    if (openPCMDevice(&pcmHandle) < 0) {
+    /* Write the parameters to the driver */
+    status = snd_pcm_hw_params(handle, params);
+    if (status < 0) {
+        fprintf(stderr, "unable to set hw parameters: %s\n", snd_strerror(status));
         return(-1);
     }
 
-    if ((returnedValue = snd_pcm_set_params(pcmHandle, formatType, accessType, channels, sampleRate, SOFT_RESAMPLE, PCM_LATENCY)) < 0) {
-        printf("Playback open error: %s\n", snd_strerror(returnedValue));
-        return(-1);
+    /* Use a buffer large enough to hold one period */
+    snd_pcm_hw_params_get_period_size(params, &frames, &dir);
+    size = frames * BYTES_PER_SAMPLE * NUMBER_OF_CHANNELS;
+    buffer = (char *) malloc(size);
+
+    /* TODO: Fill buffer with full gain */
+    for (int byte = 0; byte < size; byte++) {
+        buffer[byte] = (byte % 2) & 0xff;
     }
 
-    // Start measurement
-    loops = SIGNAL_LENGTH_IN_S * sampleRate;
-    signalStatus = SIGNAL_ON_THE_WAY;
-    startTimestamp = gpioTick();
-    while (loops > 0) {
-        /*printf("Loops left: %ld\n", loops);
-        returnedValue = read(0, audioBuffer, bufferSize);
-        printf("Loops left: %ld\n", loops);
-        if (returnedValue == 0) {
-            fprintf(stderr, "end of file on input\n");
-            break;
-        } else if (returnedValue != bufferSize) {
-            fprintf(stderr, "short read: read %d bytes\n", returnedValue);
-        }*/
-        loops--;
-        if (accessType == SND_PCM_ACCESS_RW_INTERLEAVED || accessType == SND_PCM_ACCESS_MMAP_INTERLEAVED) {
-            returnedValue = snd_pcm_writei(pcmHandle, audioBuffer, bufferSize);
+    /* We want to loop for SIGNAL_LENGTH_IN_S */
+    snd_pcm_hw_params_get_period_time(params, &periodTimeInMicros, &dir);
+    
+    // The interval from the first to the second signal is SIGNAL_START_INTERVAL_IN_S
+    signalIntervalInS = SIGNAL_START_INTERVAL_IN_S;
+    for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
+        signalIntervalInS = calculateSignalInterval(i);
+
+        printf("\n\n----- Measurement %d started -----\n", i + 1);
+        /* signal length in micros divided by period time */
+        // TODO: Eventually greater signal length
+        numberOfPeriods = SIGNAL_LENGTH_IN_S * 1000000 / periodTimeInMicros;
+        if (numberOfPeriods == 0) {
+            numberOfPeriods = 1;
         }
-        else {
-            returnedValue = snd_pcm_writen(pcmHandle, (void **) &audioBuffer, bufferSize);
+        printf("loops: %d\n", numberOfPeriods);
+        // TODO: Timestamp
+        while (numberOfPeriods > 0) {
+            status = snd_pcm_writei(handle, buffer, frames);
+            if (status == -EPIPE) {
+                /* EPIPE means underrun */
+                fprintf(stderr, "underrun occurred\n");
+                snd_pcm_prepare(handle);
+            }
+            else if (status < 0) {
+                fprintf(stderr, "error from writei: %s\n", snd_strerror(status));
+            }
+            else if (status != (int)frames) {
+                fprintf(stderr, "short write, write %d frames\n", status);
+            }
+            else {
+                fprintf(stderr, "full buffer succesfully written\n")
+            }
+            numberOfPeriods--;
         }
-        if (returnedValue == -EPIPE) {
-            /* EPIPE means underrun */
-            fprintf(stderr, "underrun occurred\n");
-            snd_pcm_prepare(pcmHandle);
-        } else if (returnedValue < 0) {
-            fprintf(stderr, "error from write: %s\n", snd_strerror(returnedValue));
-        }  else if (returnedValue != (int) bufferSize) {
-            fprintf(stderr, "short write, write %d frames\n", returnedValue);
-        }
+        time_sleep(signalIntervalInS);
     }
 
-    snd_pcm_drain(pcmHandle);
-    snd_pcm_close(pcmHandle);
-    time_sleep(signalIntervalInS);
+    snd_pcm_drain(handle);
+    snd_pcm_close(handle);
+    free(buffer);
+
     return(0);
 }
 
@@ -381,39 +282,6 @@ int sendSignalViaLineOut(double signalIntervalInS) {
     time_sleep(signalIntervalInS);
 
     return(status);
-}
-
-// ####
-// #### LOGIC ####
-
-double calculateSignalInterval(int measurementCount) {
-    double signalIntervalInS, maxLatencyInS;
-
-    // After the first signal that arrived, the signal interval converges to the maximum measured latency
-    // If its smaller than SIGNAL_MINIMUM_INTERVAL_IN_S it converges to that value
-    if (maxLatencyInMicros != -1 && measurementCount > 0) {
-        maxLatencyInS = (double) maxLatencyInMicros / 1000000.0;
-        if (maxLatencyInS <= SIGNAL_MINIMUM_INTERVAL_IN_S) {
-            signalIntervalInS = SIGNAL_MINIMUM_INTERVAL_IN_S + 1 / measurementCount * maxLatencyInS;
-        }
-        else {
-            signalIntervalInS = maxLatencyInS + 1 / measurementCount * maxLatencyInS;
-        }
-    }
-}
-
-int startMeasurementDigitalOut() {
-    double signalIntervalInS;
-
-    // The interval from the first to the second signal is SIGNAL_START_INTERVAL_IN_S
-    signalIntervalInS = SIGNAL_START_INTERVAL_IN_S;
-    for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
-        signalIntervalInS = calculateSignalInterval(i);
-
-        printf("\n\n----- Measurement %d started -----\n", i + 1);
-
-
-    }
 }
 
 int startMeasurementLineOut() {
@@ -524,14 +392,6 @@ int main(void) {
     // TODO: init gpio callbacks for the user inputs
     initGpioLibrary();
     
-    // TODO: Remove this and set LINE_LEVEL_MODE as default mode
-    alsaStatus = initPCMDevice(ALSA_USB_TOP_OUT);
-    if (alsaStatus == -1) {
-        alsaStatus = initPCMDevice(ALSA_USB_BOTTOM_OUT);
-        if (alsaStatus == -1) {
-            // TODO: Display error message: usb audio device not found
-        }
-    }
     startMeasurementDigitalOut();
 
     // TODO: Function
