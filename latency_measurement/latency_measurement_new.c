@@ -1,5 +1,8 @@
 /*
 ALSA code base retrieved from https://users.suse.com/~mana/alsa090_howto.html on 2nd March 2022
+
+Makefile:
+gcc -Wall -pthread latency_measurement_new.c -lasound -o latency_measurement_new -lpigpio -lrt
 */
 
 #include <pigpio.h>
@@ -24,14 +27,12 @@ const int DISPLAY_MODE_MINIMUM = 3;
 // User inputs
 const int START_MEASUREMENT = 1; // TODO: GPIO numbers
 const int START_CALIBRATION = 2;
-const int LINE_LEVEL_MODE = 3;
-const int ALSA_PCIE_MODE = 4;
-const int ALSA_USB_MODE = 5;
-const int ALSA_HDMI_MODE = 6;
-const int CHANGE_DISPLAY_MODE = 7;
+const int LINE_OUT_MODE = 3;
+const int DIGITAL_OUT_MODE = 4;
+const int CHANGE_DISPLAY_MODE = 5;
 
 // Latency measurement
-int measurementMode = ALSA_USB_MODE;
+int measurementMode = DIGITAL_OUT_MODE;
 uint32_t startTimestamp, endTimestamp;
 int latencyInMicros;
 int latencyMeasurementsInMicros[TOTAL_MEASUREMENTS];
@@ -370,54 +371,67 @@ void onLineIn(int gpio, int level, uint32_t tick) {
 }
 
 // Line-out signal creation
-void sendSignalViaLineOut(double signalIntervalInS) {
+int sendSignalViaLineOut(double signalIntervalInS) {
+    int status = 0;
 
     // Send signal through LINE_OUT gpio pin
-    gpioStatus = gpioWrite(LINE_OUT, 1);
-    //printf("status (0 = OK; <0 = ERROR): %d\n", gpioStatus);
+    status = gpioWrite(LINE_OUT, 1);
     time_sleep(SIGNAL_LENGTH_IN_S);
-    gpioStatus = gpioWrite(LINE_OUT, 0);
-    //printf("status (0 = OK; <0 = ERROR): %d\n", gpioStatus);
+    status = gpioWrite(LINE_OUT, 0);
     time_sleep(signalIntervalInS);
+
+    return(status);
 }
 
 // ####
 // #### LOGIC ####
 
-int startMeasurement() {
+double calculateSignalInterval(int measurementCount) {
     double signalIntervalInS, maxLatencyInS;
+
+    // After the first signal that arrived, the signal interval converges to the maximum measured latency
+    // If its smaller than SIGNAL_MINIMUM_INTERVAL_IN_S it converges to that value
+    if (maxLatencyInMicros != -1 && measurementCount > 0) {
+        maxLatencyInS = (double) maxLatencyInMicros / 1000000.0;
+        if (maxLatencyInS <= SIGNAL_MINIMUM_INTERVAL_IN_S) {
+            signalIntervalInS = SIGNAL_MINIMUM_INTERVAL_IN_S + 1 / measurementCount * maxLatencyInS;
+        }
+        else {
+            signalIntervalInS = maxLatencyInS + 1 / measurementCount * maxLatencyInS;
+        }
+    }
+}
+
+int startMeasurementDigitalOut() {
+    double signalIntervalInS;
 
     // The interval from the first to the second signal is SIGNAL_START_INTERVAL_IN_S
     signalIntervalInS = SIGNAL_START_INTERVAL_IN_S;
     for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
-
-        // TODO: Function
-        // After the first signal that arrived, the signal interval converges to the maximum measured latency
-        // If its smaller than SIGNAL_MINIMUM_INTERVAL_IN_S it converges to that value
-        if (maxLatencyInMicros != -1 && i > 0) {
-            maxLatencyInS = (double) maxLatencyInMicros / 1000000.0;
-            if (maxLatencyInS <= SIGNAL_MINIMUM_INTERVAL_IN_S) {
-                signalIntervalInS = SIGNAL_MINIMUM_INTERVAL_IN_S + 1 / i * maxLatencyInS;
-            }
-            else {
-                signalIntervalInS = maxLatencyInS + 1 / i * maxLatencyInS;
-            }
-        }
+        signalIntervalInS = calculateSignalInterval(i);
 
         printf("\n\n----- Measurement %d started -----\n", i + 1);
-        if (measurementMode == LINE_LEVEL_MODE) {
-            sendSignalViaLineOut(signalIntervalInS);
-        }
-        // TODO: || HDMI_MODE || PCIE_MODE ... or else {}
-        else if (measurementMode == ALSA_USB_MODE) {
-            if (sendSignalViaPCMDevice(signalIntervalInS) < 0) {
-                return(-1);
-            }
-        }
-        // TODO: else if (measurementMode == USB, PCIe...
-        else {}
+
+
     }
-    // TODO: Saving measurements to .csv format
+}
+
+int startMeasurementLineOut() {
+    double signalIntervalInS;
+    int status;
+
+    // The interval from the first to the second signal is SIGNAL_START_INTERVAL_IN_S
+    signalIntervalInS = SIGNAL_START_INTERVAL_IN_S;
+    for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
+        signalIntervalInS = calculateSignalInterval(i);
+        
+        printf("\n\n----- Measurement %d started -----\n", i + 1);
+
+        status = sendSignalViaLineOut(signalIntervalInS);
+        if (status < 0) {
+            return(status);
+        }
+    }
     return(0);
 }
 
@@ -430,10 +444,24 @@ void startCalibration() {
 // #### USER INTERFACE VIA GPIOS ####
 
 void onUserInput(int gpio, int level, uint32_t tick) {
+    int status;
 
     if (level == 1) {
         if (gpio == START_MEASUREMENT) {
-            startMeasurement();
+            if (measurementMode == DIGITAL_OUT_MODE) {
+                status = startMeasurementDigitalOut();
+                if (status < 0) {
+                    // TODO: Display ALSA error via status variable
+                }
+            }
+            else {
+                status = startMeasurementLineOut();
+                if (status < 0) {
+                    // TODO: Display GPIO error with number status
+                }
+            }
+            // TODO: Saving measurements to .csv format
+            // TODO: Clear measurement: descriptive values / measurements = -1 
         }
         else if (gpio == START_CALIBRATION) {
             startCalibration();
@@ -504,7 +532,7 @@ int main(void) {
             // TODO: Display error message: usb audio device not found
         }
     }
-    startMeasurement();
+    startMeasurementDigitalOut();
 
     // TODO: Function
     // Fill measurement array with -1 values to mark invalid measurements
@@ -513,7 +541,6 @@ int main(void) {
     }
 
     // waitForUserInput();
-    // startMeasurement();
 
     // TODO: Remove status variable or handle errors
     printf("\nGPIO STATUS: %d\n", gpioStatus);
