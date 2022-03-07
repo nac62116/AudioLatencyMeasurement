@@ -164,7 +164,7 @@ int startMeasurementDigitalOut() {
 
     /* TODO: Fill buffer with full gain */
     for (int byte = 0; byte < size; byte++) {
-        buffer[byte] = (byte % 2) & 0xff;
+        buffer[byte] = 0xff;
     }
 
     /* We want to loop for SIGNAL_LENGTH_IN_S */
@@ -297,8 +297,6 @@ int startMeasurementLineOut() {
     double signalIntervalInS;
     int status;
 
-    // The interval from the first to the second signal is SIGNAL_START_INTERVAL_IN_S
-    signalIntervalInS = SIGNAL_START_INTERVAL_IN_S;
     for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
         signalIntervalInS = calculateSignalInterval(i);
         
