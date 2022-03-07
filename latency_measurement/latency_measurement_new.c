@@ -31,7 +31,7 @@ const int DIGITAL_OUT_MODE = 4;
 const int CHANGE_DISPLAY_MODE = 5;
 
 // Latency measurement
-int measurementMode = DIGITAL_OUT_MODE;
+int measurementMode = LINE_OUT_MODE;
 uint32_t startTimestamp, endTimestamp;
 int latencyInMicros;
 int latencyMeasurementsInMicros[TOTAL_MEASUREMENTS];
@@ -384,7 +384,8 @@ int main(void) {
     // TODO: init gpio callbacks for the user inputs
     initGpioLibrary();
     
-    startMeasurementDigitalOut();
+    //startMeasurementDigitalOut();
+    startMeasurementLineOut();
 
     // TODO: Function
     // Fill measurement array with -1 values to mark invalid measurements
