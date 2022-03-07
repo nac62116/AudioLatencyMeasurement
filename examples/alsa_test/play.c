@@ -84,14 +84,12 @@ int main() {
         buffer[byte] = (byte % 2) & 0xff;
     }
 
-    /* We want to loop for 5 seconds */
-    //snd_pcm_hw_params_get_period_time(params, &val, &dir);
+    /* We want to loop for SIGNAL_LENGTH_IN_S */
+    snd_pcm_hw_params_get_period_time(params, &val, &dir);
     
-
     for (int i = 0; i < 10; i++) {
-        /* 5 seconds in microseconds divided by
-        * period time */
-        loops = 1000 / val;
+        /* signal length in micros divided by period time */
+        loops = 100000 / val;
         if (loops == 0) {
             loops = 1;
         }
