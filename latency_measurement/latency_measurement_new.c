@@ -171,6 +171,7 @@ int startMeasurementDigitalOut() {
     
     for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
         signalIntervalInS = calculateSignalInterval(i);
+        startTimestamp = 0;
 
         printf("\n\n----- Measurement %d started -----\n", i + 1);
         /* signal length in micros divided by period time */
@@ -196,6 +197,11 @@ int startMeasurementDigitalOut() {
             }
             else {
                 fprintf(stderr, "full buffer succesfully written\n");
+                if (startTimestamp == 0) {
+                    fprintf(stderr, "START TIMESTAMP\n");
+                    startTimestamp = gpioTick();
+                    signalStatus = SIGNAL_ON_THE_WAY;
+                }
             }
             numberOfPeriods--;
         }
