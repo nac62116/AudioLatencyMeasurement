@@ -196,7 +196,6 @@ int startMeasurementDigitalOut() {
                 fprintf(stderr, "short write, write %d frames\n", status);
             }
             else {
-                fprintf(stderr, "full buffer succesfully written\n");
                 if (startTimestamp == 0) {
                     fprintf(stderr, "START TIMESTAMP\n");
                     startTimestamp = gpioTick();
