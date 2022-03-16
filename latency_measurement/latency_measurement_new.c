@@ -56,7 +56,7 @@ const char *ALSA_PCIE_OUT = "hw:CARD=pcie_audio";
 /* Specific hardware parameters */
 const unsigned int PREFERRED_SAMPLE_RATE = 44100;
 const unsigned int NUMBER_OF_CHANNELS = 2;
-const long MINIMUM_NUMBER_OF_PERIODS = 2;
+const long MINIMUM_NUMBER_OF_PERIODS = 5;
 const snd_pcm_access_t ACCESS_TYPE = SND_PCM_ACCESS_RW_INTERLEAVED;
 const snd_pcm_format_t FORMAT_TYPE = SND_PCM_FORMAT_S16_LE;
 const int BYTES_PER_SAMPLE = 2; /* Depends on the format type */
