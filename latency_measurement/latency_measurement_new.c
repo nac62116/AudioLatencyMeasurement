@@ -29,7 +29,7 @@ const int HDMI_OUT_MODE = 5;
 const int PCIE_OUT_MODE = 6;
 
 // Latency measurement
-int measurementMode = USB_OUT_MODE;
+int measurementMode = LINE_OUT_MODE;
 uint32_t startTimestamp, endTimestamp;
 int latencyInMicros;
 int latencyMeasurementsInMicros[TOTAL_MEASUREMENTS];
