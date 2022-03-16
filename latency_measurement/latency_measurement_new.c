@@ -14,7 +14,7 @@ gcc -Wall -pthread latency_measurement_new.c -lasound -o latency_measurement_new
 const int LINE_IN = 27; // GPIO 27
 const int LINE_OUT = 17; // GPIO 17
 //const double SIGNAL_LENGTH_IN_S = 0.001;
-const double SIGNAL_LENGTH_IN_S = 0.01;
+const double SIGNAL_LENGTH_IN_S = 0.001;
 const double SIGNAL_START_INTERVAL_IN_S = 1.0;
 const double SIGNAL_MINIMUM_INTERVAL_IN_S = 0.02; // Minimum interval to ensure correct amplification
 const int SIGNAL_ARRIVED = 1;
@@ -56,7 +56,7 @@ const char *ALSA_PCIE_OUT = "hw:CARD=pcie_audio";
 /* Specific hardware parameters */
 const unsigned int PREFERRED_SAMPLE_RATE = 44100;
 const unsigned int NUMBER_OF_CHANNELS = 2;
-const long MINIMUM_NUMBER_OF_PERIODS = 2;
+const long MINIMUM_NUMBER_OF_PERIODS = 50;
 const snd_pcm_access_t ACCESS_TYPE = SND_PCM_ACCESS_RW_INTERLEAVED;
 const snd_pcm_format_t FORMAT_TYPE = SND_PCM_FORMAT_S16_LE;
 const int BYTES_PER_SAMPLE = 2; /* Depends on the format type */
