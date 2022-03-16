@@ -98,7 +98,7 @@ int startMeasurementDigitalOut() {
     unsigned int periodTimeInMicros;
     unsigned int sampleRate;
     snd_pcm_uframes_t frames;
-    char *buffer;
+    int32_t *buffer;
     int size;
 
     /* Open PCM device for playback. */ // TODO: switch HDMI_MODE USB_MODE PCI_MODE
@@ -140,7 +140,8 @@ int startMeasurementDigitalOut() {
     snd_pcm_hw_params_any(handle, params);
 
     /* Set the desired hardware parameters. */
-    snd_pcm_hw_params_set_access(handle, params, ACCESS_TYPE);
+    //snd_pcm_hw_params_set_access(handle, params, ACCESS_TYPE);
+    snd_pcm_hw_params_set_access(handle, params, SND_PCM_FORMAT_S32_LE);
     snd_pcm_hw_params_set_format(handle, params, FORMAT_TYPE);
     snd_pcm_hw_params_set_channels(handle, params, NUMBER_OF_CHANNELS);
     sampleRate = PREFERRED_SAMPLE_RATE;
@@ -159,11 +160,11 @@ int startMeasurementDigitalOut() {
     /* Use a buffer large enough to hold one period */
     snd_pcm_hw_params_get_period_size(params, &frames, &dir);
     size = frames * BYTES_PER_SAMPLE * NUMBER_OF_CHANNELS;
-    buffer = (char *) malloc(size);
+    buffer = (int32_t *) malloc(size);
 
     /* TODO: Fill buffer with full gain */
     for (int byte = 0; byte < size; byte++) {
-        buffer[byte] = 0xff;
+        buffer[byte] = 0x7FFFFFFF;
     }
 
     /* We want to loop for SIGNAL_LENGTH_IN_S */
