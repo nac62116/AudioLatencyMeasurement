@@ -19,33 +19,23 @@ const double SIGNAL_START_INTERVAL_IN_S = 1.0;
 const double SIGNAL_MINIMUM_INTERVAL_IN_S = 0.02; // Minimum interval to ensure correct amplification
 const int SIGNAL_ARRIVED = 1;
 const int SIGNAL_ON_THE_WAY = 0;
-const int DISPLAY_MODE_AVERAGE = 1;
-const int DISPLAY_MODE_MAXIMUM = 2;
-const int DISPLAY_MODE_MINIMUM = 3;
 
 // User inputs
 const int START_MEASUREMENT = 1; // TODO: GPIO numbers
 const int START_CALIBRATION = 2;
 const int LINE_OUT_MODE = 3;
-const int DIGITAL_OUT_MODE = 4;
-const int CHANGE_DISPLAY_MODE = 5;
+const int USB_OUT_MODE = 4;
+const int HDMI_OUT_MODE = 5;
+const int PCIE_OUT_MODE = 6;
 
 // Latency measurement
-int measurementMode = LINE_OUT_MODE;
+int measurementMode = USB_OUT_MODE;
 uint32_t startTimestamp, endTimestamp;
 int latencyInMicros;
 int latencyMeasurementsInMicros[TOTAL_MEASUREMENTS];
 int validMeasurmentsCount = 0;
 int maxLatencyInMicros = -1;
-int minLatencyInMicros = -1;
-int sumOfLatenciesInMicros = 0;
-int avgLatencyInMicros;
 int signalStatus;
-int gpioStatus;
-int alsaStatus;
-int displayModes[] = {DISPLAY_MODE_AVERAGE, DISPLAY_MODE_MAXIMUM, DISPLAY_MODE_MINIMUM};
-int currentDisplayMode = DISPLAY_MODE_AVERAGE;
-int displayModeCount = 0;
 
 // ALSA variables
 
@@ -111,26 +101,35 @@ int startMeasurementDigitalOut() {
     char *buffer;
     int size;
 
-    /* Open PCM device for playback. */
-    status = snd_pcm_open(&handle, ALSA_USB_TOP_OUT, SND_PCM_STREAM_PLAYBACK, 0);
-    if (status < 0) {
-        fprintf(stderr, "unable to open pcm device: %s\n", snd_strerror(status));
-        status = snd_pcm_open(&handle, ALSA_USB_BOTTOM_OUT, SND_PCM_STREAM_PLAYBACK, 0);
+    /* Open PCM device for playback. */ // TODO: switch HDMI_MODE USB_MODE PCI_MODE
+    if (measurementMode == USB_OUT_MODE) {
+        status = snd_pcm_open(&handle, ALSA_USB_TOP_OUT, SND_PCM_STREAM_PLAYBACK, 0);
         if (status < 0) {
             fprintf(stderr, "unable to open pcm device: %s\n", snd_strerror(status));
-            status = snd_pcm_open(&handle, ALSA_HDMI0_OUT, SND_PCM_STREAM_PLAYBACK, 0);
+            status = snd_pcm_open(&handle, ALSA_USB_BOTTOM_OUT, SND_PCM_STREAM_PLAYBACK, 0);
             if (status < 0) {
                 fprintf(stderr, "unable to open pcm device: %s\n", snd_strerror(status));
-                status = snd_pcm_open(&handle, ALSA_HDMI1_OUT, SND_PCM_STREAM_PLAYBACK, 0);
-                if (status < 0) {
-                    fprintf(stderr, "unable to open pcm device: %s\n", snd_strerror(status));
-                    status = snd_pcm_open(&handle, ALSA_PCIE_OUT, SND_PCM_STREAM_PLAYBACK, 0);
-                    if (status < 0) {
-                        fprintf(stderr, "unable to open pcm device: %s\n", snd_strerror(status));
-                        return(-1);
-                    }
-                }
+                return(-1);
             }
+        }
+    }
+    else if (measurementMode == HDMI_OUT_MODE) {
+        status = snd_pcm_open(&handle, ALSA_HDMI0_OUT, SND_PCM_STREAM_PLAYBACK, 0);
+        if (status < 0) {
+            fprintf(stderr, "unable to open pcm device: %s\n", snd_strerror(status));
+            status = snd_pcm_open(&handle, ALSA_HDMI1_OUT, SND_PCM_STREAM_PLAYBACK, 0);
+            if (status < 0) {
+                fprintf(stderr, "unable to open pcm device: %s\n", snd_strerror(status));
+                return(-1);
+            }
+        }
+    }
+    // PCI_MODE
+    else {
+        status = snd_pcm_open(&handle, ALSA_PCIE_OUT, SND_PCM_STREAM_PLAYBACK, 0);
+        if (status < 0) {
+            fprintf(stderr, "unable to open pcm device: %s\n", snd_strerror(status));
+            return(-1);
         }
     }
 
@@ -263,19 +262,6 @@ void onLineIn(int gpio, int level, uint32_t tick) {
                     maxLatencyInMicros = latencyInMicros;
                 }
                 else {}
-                // min
-                if (minLatencyInMicros == -1) {
-                    minLatencyInMicros = latencyInMicros;
-                }
-                else if (latencyInMicros < minLatencyInMicros) {
-                    minLatencyInMicros = latencyInMicros;
-                }
-                else {}
-                // avg
-                sumOfLatenciesInMicros += latencyInMicros;
-                avgLatencyInMicros = sumOfLatenciesInMicros / validMeasurmentsCount;
-
-                // TODO: displayDescriptiveValues(currentDisplayMode, avg, max, min)
             }
         }  
     }
@@ -324,16 +310,17 @@ void onUserInput(int gpio, int level, uint32_t tick) {
 
     if (level == 1) {
         if (gpio == START_MEASUREMENT) {
-            if (measurementMode == DIGITAL_OUT_MODE) {
-                status = startMeasurementDigitalOut();
-                if (status < 0) {
-                    // TODO: Display ALSA error via status variable
-                }
-            }
-            else {
+            if (measurementMode == LINE_OUT_MODE) {
                 status = startMeasurementLineOut();
                 if (status < 0) {
                     // TODO: Display GPIO error with number status
+                }
+            }
+            // USB_, HDMI_, PCIE_OUT
+            else {
+                status = startMeasurementDigitalOut();
+                if (status < 0) {
+                    // TODO: Display ALSA error via status variable
                 }
             }
             // TODO: Saving measurements to .csv format
@@ -342,16 +329,6 @@ void onUserInput(int gpio, int level, uint32_t tick) {
         else if (gpio == START_CALIBRATION) {
             startCalibration();
         }
-        else if (gpio == CHANGE_DISPLAY_MODE) {
-            // TODO: Function
-            if (displayModeCount == sizeof(displayModes) / sizeof(displayModes[0]) - 1) {
-                displayModeCount = 0;
-            }
-            else {
-                displayModeCount += 1;
-            }
-            currentDisplayMode = displayModes[displayModeCount];
-        }
         // Measurement mode got changed
         else {
             measurementMode = gpio;
@@ -359,11 +336,11 @@ void onUserInput(int gpio, int level, uint32_t tick) {
     }
 }
 
-void initGpioLibrary() {
+int initGpioLibrary() {
+    int status;
 
     // Initialize library
-    gpioStatus = gpioInitialise();
-    printf("Status after gpioInitialise: %d\n", gpioStatus);
+    status = gpioInitialise();
 
     // Set GPIO Modes
     gpioSetMode(LINE_OUT, PI_OUTPUT);
@@ -372,6 +349,8 @@ void initGpioLibrary() {
     // Register GPIO state change callback
     gpioSetAlertFunc(LINE_OUT, onLineOut);
     gpioSetAlertFunc(LINE_IN, onLineIn);
+
+    return(status);
 }
 
 /*void waitForUserInput() {
@@ -381,9 +360,11 @@ void initGpioLibrary() {
 }*/
 
 int main(void) {
+    int status;
 
     // TODO: init gpio callbacks for the user inputs
-    initGpioLibrary();
+    status = initGpioLibrary();
+    printf("Status after gpioInitialise: %d\n", status);
     
     startMeasurementDigitalOut();
     //startMeasurementLineOut();
@@ -395,9 +376,6 @@ int main(void) {
     }
 
     // waitForUserInput();
-
-    // TODO: Remove status variable or handle errors
-    printf("\nGPIO STATUS: %d\n", gpioStatus);
     
     // Print measurements
     for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
