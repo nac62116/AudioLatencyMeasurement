@@ -164,8 +164,8 @@ int startMeasurementDigitalOut() {
 
     /* TODO: Fill buffer with full gain */
     for (int byte = 0; byte < size; byte++) {
-        //buffer[byte] = 127;
-        buffer[byte] = 0xff;
+        buffer[byte] = 127;
+        //buffer[byte] = 0xff;
     }
 
     /* We want to loop for SIGNAL_LENGTH_IN_S */
