@@ -366,8 +366,8 @@ int main(void) {
     status = initGpioLibrary();
     printf("Status after gpioInitialise: %d\n", status);
     
-    startMeasurementDigitalOut();
-    //startMeasurementLineOut();
+    //startMeasurementDigitalOut();
+    startMeasurementLineOut();
 
     // TODO: Function
     // Fill measurement array with -1 values to mark invalid measurements
