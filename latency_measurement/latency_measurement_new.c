@@ -14,7 +14,7 @@ gcc -Wall -pthread latency_measurement_new.c -lasound -o latency_measurement_new
 const int LINE_IN = 27; // GPIO 27
 const int LINE_OUT = 17; // GPIO 17
 //const double SIGNAL_LENGTH_IN_S = 0.001;
-const double SIGNAL_LENGTH_IN_S = 0.001;
+const double SIGNAL_LENGTH_IN_S = 0.02;
 const double SIGNAL_START_INTERVAL_IN_S = 1.0;
 const double SIGNAL_MINIMUM_INTERVAL_IN_S = 0.02; // Minimum interval to ensure correct amplification
 const int SIGNAL_ARRIVED = 1;
