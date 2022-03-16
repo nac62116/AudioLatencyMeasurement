@@ -29,7 +29,7 @@ const int HDMI_OUT_MODE = 5;
 const int PCIE_OUT_MODE = 6;
 
 // Latency measurement
-int measurementMode = LINE_OUT_MODE;
+int measurementMode = USB_OUT_MODE;
 uint32_t startTimestamp, endTimestamp;
 int latencyInMicros;
 int latencyMeasurementsInMicros[TOTAL_MEASUREMENTS];
@@ -366,8 +366,8 @@ int main(void) {
     status = initGpioLibrary();
     printf("Status after gpioInitialise: %d\n", status);
     
-    //startMeasurementDigitalOut();
-    startMeasurementLineOut();
+    startMeasurementDigitalOut();
+    //startMeasurementLineOut();
 
     // TODO: Function
     // Fill measurement array with -1 values to mark invalid measurements
