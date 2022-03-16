@@ -367,15 +367,15 @@ int main(void) {
     // TODO: init gpio callbacks for the user inputs
     status = initGpioLibrary();
     printf("Status after gpioInitialise: %d\n", status);
-    
-    startMeasurementDigitalOut();
-    //startMeasurementLineOut();
 
     // TODO: Function
     // Fill measurement array with -1 values to mark invalid measurements
     for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
         latencyMeasurementsInMicros[i] = -1;
     }
+    
+    startMeasurementDigitalOut();
+    //startMeasurementLineOut();
 
     // waitForUserInput();
     
