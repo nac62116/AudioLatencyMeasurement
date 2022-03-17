@@ -344,23 +344,24 @@ void onUserInput(int gpio, int level, uint32_t tick) {
         // Measurement mode got changed
         else {
             measurementMode = gpio;
-            gpioWrite(LINE_OUT_MODE_LED, 0);
-            gpioWrite(USB_OUT_MODE_LED, 0);
-            gpioWrite(HDMI_OUT_MODE_LED, 0);
-            gpioWrite(PCIE_OUT_MODE_LED, 0);
+            status = gpioWrite(LINE_OUT_MODE_LED, 0);
+            status = gpioWrite(USB_OUT_MODE_LED, 0);
+            status = gpioWrite(HDMI_OUT_MODE_LED, 0);
+            status = gpioWrite(PCIE_OUT_MODE_LED, 0);
             if (gpio == LINE_OUT_MODE) {
-                gpioWrite(LINE_OUT_MODE_LED, 1);
+                status = gpioWrite(LINE_OUT_MODE_LED, 1);
             }
             else if (gpio == USB_OUT_MODE) {
-                gpioWrite(USB_OUT_MODE_LED, 1);
+                status = gpioWrite(USB_OUT_MODE_LED, 1);
             }
             else if (gpio == HDMI_OUT_MODE) {
-                gpioWrite(HDMI_OUT_MODE_LED, 1);
+                status = gpioWrite(HDMI_OUT_MODE_LED, 1);
             }
             else {
-                gpioWrite(PCIE_OUT_MODE_LED, 1);
+                status = gpioWrite(PCIE_OUT_MODE_LED, 1);
             }
         }
+        printf("GPIO Status after user input: %d\n", status);
     }
 }
 
@@ -380,7 +381,9 @@ int initGpioLibrary() {
     gpioSetMode(HDMI_OUT_MODE, PI_INPUT);
     gpioSetMode(PCIE_OUT_MODE, PI_INPUT);
     gpioSetMode(START_MEASUREMENT_LED, PI_OUTPUT);
-    gpioSetMode(START_CALIBRATION_LED, PI_OUTPUT);
+    gpioSetMode(START_CALIBRATION_GREEN_LED, PI_OUTPUT);
+    gpioSetMode(START_CALIBRATION_YELLOW_LED, PI_OUTPUT);
+    gpioSetMode(START_CALIBRATION_RED_LED, PI_OUTPUT);
     gpioSetMode(LINE_OUT_MODE_LED, PI_OUTPUT);
     gpioSetMode(USB_OUT_MODE_LED, PI_OUTPUT);
     gpioSetMode(HDMI_OUT_MODE_LED, PI_OUTPUT);
