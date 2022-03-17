@@ -378,8 +378,8 @@ int main(void) {
         latencyMeasurementsInMicros[i] = -1;
     }
     
-    //startMeasurementDigitalOut();
-    startMeasurementLineOut();
+    startMeasurementDigitalOut();
+    //startMeasurementLineOut();
 
     // waitForUserInput();
     
