@@ -338,8 +338,12 @@ void onUserInput(int gpio, int level, uint32_t tick) {
         else if (gpio == START_CALIBRATION) {
             //TODO
             status = gpioWrite(START_CALIBRATION_GREEN_LED, 1);
+            status = gpioWrite(START_CALIBRATION_YELLOW_LED, 1);
+            status = gpioWrite(START_CALIBRATION_RED_LED, 1);
             startCalibration();
-            status = gpioWrite(START_CALIBRATION_GREEN_LED, 1);
+            status = gpioWrite(START_CALIBRATION_GREEN_LED, 0);
+            status = gpioWrite(START_CALIBRATION_YELLOW_LED, 0);
+            status = gpioWrite(START_CALIBRATION_RED_LED, 0);
         }
         // Measurement mode got changed
         else {
