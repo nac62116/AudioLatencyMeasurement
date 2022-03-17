@@ -321,7 +321,7 @@ void startCalibration() {
 void onUserInput(int gpio, int level, uint32_t tick) {
     int status;
 
-    if (level == 1) {
+    if (level == 0) {
         if (gpio == START_MEASUREMENT) {
             status = gpioWrite(START_MEASUREMENT_LED, 1);
             if (measurementMode == LINE_OUT_MODE) {
