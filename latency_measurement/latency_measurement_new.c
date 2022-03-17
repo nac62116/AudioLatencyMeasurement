@@ -32,6 +32,8 @@ const int PCIE_OUT_MODE = 18; // GPIO 18
 const int IS_CALIBRATING = 2;
 const int INPUT_ALLOWED = 1;
 const int NO_INPUT_ALLOWED = 0;
+// Remove this
+const int EXIT = 3;
 
 // User feedback
 const int START_MEASUREMENT_LED = 22; // GPIO 22
@@ -392,6 +394,9 @@ void onUserInput(int gpio, int level, uint32_t tick) {
                 }
                 else {
                     status = gpioWrite(PCIE_OUT_MODE_LED, 1);
+                    // TODO: Remove this
+                    userInputState = EXIT;
+                    return;
                 }
             }
         }
@@ -438,7 +443,8 @@ int initGpioLibrary() {
 }
 
 void waitForUserInput() {
-    while (1) {
+    // Change this
+    while (userInputState != EXIT) {
         // Waiting for input gpio callbacks in onUserInput()
     }
 }
