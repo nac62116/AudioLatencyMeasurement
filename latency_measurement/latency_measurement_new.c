@@ -27,6 +27,8 @@ const int LINE_OUT_MODE = 4;
 const int USB_OUT_MODE = 14;
 const int HDMI_OUT_MODE = 15;
 const int PCIE_OUT_MODE = 18;
+const int INPUT_ALLOWED = 1;
+const int NO_INPUT_ALLOWED = 0;
 
 // User feedback
 const int START_MEASUREMENT_LED = 22;
@@ -40,6 +42,7 @@ const int PCIE_OUT_MODE_LED = 8;
 
 // Latency measurement
 int measurementMode = LINE_OUT_MODE;
+int userInputState = INPUT_ALLOWED;
 uint32_t startTimestamp, endTimestamp;
 int latencyInMicros;
 int latencyMeasurementsInMicros[TOTAL_MEASUREMENTS];
@@ -321,7 +324,8 @@ void startCalibration() {
 void onUserInput(int gpio, int level, uint32_t tick) {
     int status;
 
-    if (level == 0) {
+    if (level == 0 && userInputState == INPUT_ALLOWED) {
+        userInputState = NO_INPUT_ALLOWED;
         if (gpio == START_MEASUREMENT) {
             status = gpioWrite(START_MEASUREMENT_LED, 1);
             if (measurementMode == LINE_OUT_MODE) {
@@ -338,6 +342,7 @@ void onUserInput(int gpio, int level, uint32_t tick) {
             for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
                 printf("\n##### Measurement %d latency: %d\n", i + 1, latencyMeasurementsInMicros[i]);
             }
+            userInputState = INPUT_ALLOWED;
         }
         else if (gpio == START_CALIBRATION) {
             //TODO
@@ -370,6 +375,7 @@ void onUserInput(int gpio, int level, uint32_t tick) {
             }
         }
         printf("GPIO Status after user input: %d\n", status);
+        userInputState = INPUT_ALLOWED;
     }
 }
 
