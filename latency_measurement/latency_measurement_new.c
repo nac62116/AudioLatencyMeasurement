@@ -21,8 +21,8 @@ const int SIGNAL_ARRIVED = 1;
 const int SIGNAL_ON_THE_WAY = 0;
 
 // User inputs
-const int START_MEASUREMENT = 2; // TODO: GPIO numbers
-const int START_CALIBRATION = 3;
+const int START_MEASUREMENT = 7; // TODO: GPIO numbers
+const int START_CALIBRATION = 5;
 const int LINE_OUT_MODE = 4;
 const int USB_OUT_MODE = 14;
 const int HDMI_OUT_MODE = 15;
