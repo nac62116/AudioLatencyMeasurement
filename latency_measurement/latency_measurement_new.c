@@ -334,6 +334,10 @@ void onUserInput(int gpio, int level, uint32_t tick) {
             // TODO: Saving measurements to .csv format
             // TODO: Clear measurement: descriptive values / measurements = -1
             status = gpioWrite(START_MEASUREMENT_LED, 0);
+            // Print measurements
+            for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
+                printf("\n##### Measurement %d latency: %d\n", i + 1, latencyMeasurementsInMicros[i]);
+            }
         }
         else if (gpio == START_CALIBRATION) {
             //TODO
@@ -430,11 +434,6 @@ int main(void) {
     //startMeasurementLineOut();
 
     waitForUserInput();
-    
-    // Print measurements
-    for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
-        printf("\n##### Measurement %d latency: %d\n", i + 1, latencyMeasurementsInMicros[i]);
-    }
     
     // Terminate library
     gpioTerminate();
