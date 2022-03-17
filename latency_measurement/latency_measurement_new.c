@@ -202,6 +202,7 @@ int startMeasurementDigitalOut() {
                     fprintf(stderr, "START TIMESTAMP\n");
                     startTimestamp = gpioTick();
                     status = gpioWrite(22, 1);
+                    printf("GPIO 22 Write status: %d\n", status);
                     signalStatus = SIGNAL_ON_THE_WAY;
                 }
             }
