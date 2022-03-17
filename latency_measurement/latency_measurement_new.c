@@ -21,12 +21,22 @@ const int SIGNAL_ARRIVED = 1;
 const int SIGNAL_ON_THE_WAY = 0;
 
 // User inputs
-const int START_MEASUREMENT = 1; // TODO: GPIO numbers
-const int START_CALIBRATION = 2;
-const int LINE_OUT_MODE = 3;
-const int USB_OUT_MODE = 4;
-const int HDMI_OUT_MODE = 5;
-const int PCIE_OUT_MODE = 6;
+const int START_MEASUREMENT = 2; // TODO: GPIO numbers
+const int START_CALIBRATION = 3;
+const int LINE_OUT_MODE = 4;
+const int USB_OUT_MODE = 14;
+const int HDMI_OUT_MODE = 15;
+const int PCIE_OUT_MODE = 18;
+
+// User feedback
+const int START_MEASUREMENT_LED = 22;
+const int START_CALIBRATION_RED_LED = 23;
+const int START_CALIBRATION_YELLOW_LED = 24;
+const int START_CALIBRATION_GREEN_LED = 10;
+const int LINE_OUT_MODE_LED = 9;
+const int USB_OUT_MODE_LED = 25;
+const int HDMI_OUT_MODE_LED = 11;
+const int PCIE_OUT_MODE_LED = 8;
 
 // Latency measurement
 int measurementMode = USB_OUT_MODE;
@@ -201,14 +211,12 @@ int startMeasurementDigitalOut() {
                 if (signalStatus != SIGNAL_ON_THE_WAY) {
                     fprintf(stderr, "START TIMESTAMP\n");
                     startTimestamp = gpioTick();
-                    status = gpioWrite(22, 1);
                     printf("GPIO 22 Write status: %d\n", status);
                     signalStatus = SIGNAL_ON_THE_WAY;
                 }
             }
             numberOfPeriods--;
         }
-        status = gpioWrite(22, 0);
         time_sleep(signalIntervalInS);
     }
 
@@ -304,7 +312,7 @@ int startMeasurementLineOut() {
 
 // TODO
 void startCalibration() {
-    //
+    time_sleep(1);
 }
 
 // ####
@@ -315,28 +323,43 @@ void onUserInput(int gpio, int level, uint32_t tick) {
 
     if (level == 1) {
         if (gpio == START_MEASUREMENT) {
+            status = gpioWrite(START_MEASUREMENT_LED, 1);
             if (measurementMode == LINE_OUT_MODE) {
                 status = startMeasurementLineOut();
-                if (status < 0) {
-                    // TODO: Display GPIO error with number status
-                }
             }
             // USB_, HDMI_, PCIE_OUT
             else {
                 status = startMeasurementDigitalOut();
-                if (status < 0) {
-                    // TODO: Display ALSA error via status variable
-                }
             }
             // TODO: Saving measurements to .csv format
-            // TODO: Clear measurement: descriptive values / measurements = -1 
+            // TODO: Clear measurement: descriptive values / measurements = -1
+            status = gpioWrite(START_MEASUREMENT_LED, 0);
         }
         else if (gpio == START_CALIBRATION) {
+            //TODO
+            status = gpioWrite(START_CALIBRATION_GREEN_LED, 1);
             startCalibration();
+            status = gpioWrite(START_CALIBRATION_GREEN_LED, 1);
         }
         // Measurement mode got changed
         else {
             measurementMode = gpio;
+            gpioWrite(LINE_OUT_MODE_LED, 0);
+            gpioWrite(USB_OUT_MODE_LED, 0);
+            gpioWrite(HDMI_OUT_MODE_LED, 0);
+            gpioWrite(PCIE_OUT_MODE_LED, 0);
+            if (gpio == LINE_OUT_MODE) {
+                gpioWrite(LINE_OUT_MODE_LED, 1);
+            }
+            else if (gpio == USB_OUT_MODE) {
+                gpioWrite(USB_OUT_MODE_LED, 1);
+            }
+            else if (gpio == HDMI_OUT_MODE) {
+                gpioWrite(HDMI_OUT_MODE_LED, 1);
+            }
+            else {
+                gpioWrite(PCIE_OUT_MODE_LED, 1);
+            }
         }
     }
 }
@@ -350,20 +373,37 @@ int initGpioLibrary() {
     // Set GPIO Modes
     gpioSetMode(LINE_OUT, PI_OUTPUT);
     gpioSetMode(LINE_IN, PI_INPUT);
-    gpioSetMode(22, PI_OUTPUT);
+    gpioSetMode(START_MEASUREMENT, PI_INPUT);
+    gpioSetMode(START_CALIBRATION, PI_INPUT);
+    gpioSetMode(LINE_OUT_MODE, PI_INPUT);
+    gpioSetMode(USB_OUT_MODE, PI_INPUT);
+    gpioSetMode(HDMI_OUT_MODE, PI_INPUT);
+    gpioSetMode(PCIE_OUT_MODE, PI_INPUT);
+    gpioSetMode(START_MEASUREMENT_LED, PI_OUTPUT);
+    gpioSetMode(START_CALIBRATION_LED, PI_OUTPUT);
+    gpioSetMode(LINE_OUT_MODE_LED, PI_OUTPUT);
+    gpioSetMode(USB_OUT_MODE_LED, PI_OUTPUT);
+    gpioSetMode(HDMI_OUT_MODE_LED, PI_OUTPUT);
+    gpioSetMode(PCIE_OUT_MODE_LED, PI_OUTPUT);
 
     // Register GPIO state change callback
     gpioSetAlertFunc(LINE_OUT, onLineOut);
     gpioSetAlertFunc(LINE_IN, onLineIn);
+    gpioSetAlertFunc(START_MEASUREMENT, onUserInput);
+    gpioSetAlertFunc(START_CALIBRATION, onUserInput);
+    gpioSetAlertFunc(LINE_OUT_MODE, onUserInput);
+    gpioSetAlertFunc(USB_OUT_MODE, onUserInput);
+    gpioSetAlertFunc(HDMI_OUT_MODE, onUserInput);
+    gpioSetAlertFunc(PCIE_OUT_MODE, onUserInput);
 
     return(status);
 }
 
-/*void waitForUserInput() {
+void waitForUserInput() {
     while (1) {
         // Waiting for input gpio callbacks in onUserInput()
     }
-}*/
+}
 
 int main(void) {
     int status;
@@ -371,6 +411,7 @@ int main(void) {
     // TODO: init gpio callbacks for the user inputs
     status = initGpioLibrary();
     printf("Status after gpioInitialise: %d\n", status);
+    status = gpioWrite(LINE_OUT_MODE_LED, 1);
 
     // TODO: Function
     // Fill measurement array with -1 values to mark invalid measurements
@@ -378,10 +419,10 @@ int main(void) {
         latencyMeasurementsInMicros[i] = -1;
     }
     
-    startMeasurementDigitalOut();
+    //startMeasurementDigitalOut();
     //startMeasurementLineOut();
 
-    // waitForUserInput();
+    waitForUserInput();
     
     // Print measurements
     for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
