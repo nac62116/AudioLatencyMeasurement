@@ -198,14 +198,16 @@ int startMeasurementDigitalOut() {
                 fprintf(stderr, "short write, write %d frames\n", status);
             }
             else {
-                if (startTimestamp == 0) {
+                if (signalStatus != SIGNAL_ON_THE_WAY) {
                     fprintf(stderr, "START TIMESTAMP\n");
                     startTimestamp = gpioTick();
+                    status = gpioWrite(22, 1);
                     signalStatus = SIGNAL_ON_THE_WAY;
                 }
             }
             numberOfPeriods--;
         }
+        status = gpioWrite(22, 0);
         time_sleep(signalIntervalInS);
     }
 
@@ -347,6 +349,7 @@ int initGpioLibrary() {
     // Set GPIO Modes
     gpioSetMode(LINE_OUT, PI_OUTPUT);
     gpioSetMode(LINE_IN, PI_INPUT);
+    gpioSetMode(22, PI_OUTPUT);
 
     // Register GPIO state change callback
     gpioSetAlertFunc(LINE_OUT, onLineOut);
