@@ -429,9 +429,9 @@ void waitForUserInput() {
                     gpioWrite(CALIBRATION_MODE_RED_LED, 1);
                 }
                 validMeasurmentsCount = 0;
-                //for (int millis = 0; millis <= 1000; millis++) {
-                //    time_sleep(0.001);
-                //}
+                for (int millis = 0; millis <= 1000; millis++) {
+                    time_sleep(0.001);
+                }
             }
             // Fill measurement array with -1 values to mark invalid measurements
             for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
