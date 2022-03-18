@@ -388,36 +388,39 @@ void waitForUserInput() {
             }
         }
         // Measurement mode got changed
-        else if (gpioRead(LINE_OUT_MODE) == 1
-                || gpioRead(USB_OUT_MODE) == 1
-                || gpioRead(HDMI_OUT_MODE) == 1
-                || gpioRead(PCIE_OUT_MODE) == 1) {
+        else if (gpioRead(LINE_OUT_MODE) == 1) {
             gpioWrite(LINE_OUT_MODE_LED, 0);
             gpioWrite(USB_OUT_MODE_LED, 0);
             gpioWrite(HDMI_OUT_MODE_LED, 0);
             gpioWrite(PCIE_OUT_MODE_LED, 0);
-
-            if (gpioRead(LINE_OUT_MODE) == 1) {
-                measurementMode = LINE_OUT_MODE;
-                gpioWrite(LINE_OUT_MODE_LED, 1);
-            }
-            else if (gpioRead(USB_OUT_MODE) == 1) {
-                measurementMode = USB_OUT_MODE;
-                gpioWrite(USB_OUT_MODE_LED, 1);
-            }
-            else if (gpioRead(HDMI_OUT_MODE) == 1) {
-                measurementMode = HDMI_OUT_MODE;
-                gpioWrite(HDMI_OUT_MODE_LED, 1);
-            }
-            else if (gpioRead(PCIE_OUT_MODE) == 1) {
-                measurementMode = PCIE_OUT_MODE;
-                gpioWrite(PCIE_OUT_MODE_LED, 1);
-                // TODO: Remove this
-                return;
-            }
-            else {
-                // No action, just keeping the while loop going
-            }
+            measurementMode = LINE_OUT_MODE;
+            gpioWrite(LINE_OUT_MODE_LED, 1);
+        }
+        else if (gpioRead(USB_OUT_MODE) == 1) {
+            gpioWrite(LINE_OUT_MODE_LED, 0);
+            gpioWrite(USB_OUT_MODE_LED, 0);
+            gpioWrite(HDMI_OUT_MODE_LED, 0);
+            gpioWrite(PCIE_OUT_MODE_LED, 0);
+            measurementMode = USB_OUT_MODE;
+            gpioWrite(USB_OUT_MODE_LED, 1);
+        }
+        else if (gpioRead(HDMI_OUT_MODE) == 1) {
+            gpioWrite(LINE_OUT_MODE_LED, 0);
+            gpioWrite(USB_OUT_MODE_LED, 0);
+            gpioWrite(HDMI_OUT_MODE_LED, 0);
+            gpioWrite(PCIE_OUT_MODE_LED, 0);
+            measurementMode = HDMI_OUT_MODE;
+            gpioWrite(HDMI_OUT_MODE_LED, 1);
+        }
+        else if (gpioRead(PCIE_OUT_MODE) == 1) {
+            gpioWrite(LINE_OUT_MODE_LED, 0);
+            gpioWrite(USB_OUT_MODE_LED, 0);
+            gpioWrite(HDMI_OUT_MODE_LED, 0);
+            gpioWrite(PCIE_OUT_MODE_LED, 0);
+            measurementMode = PCIE_OUT_MODE;
+            gpioWrite(PCIE_OUT_MODE_LED, 1);
+            // TODO: Remove this
+            return;
         }
         else {
             // No action, just keeping the while loop going
