@@ -27,14 +27,6 @@ const int LINE_OUT_MODE = 4; // GPIO 4
 const int USB_OUT_MODE = 14; // GPIO 14
 const int HDMI_OUT_MODE = 15; // GPIO 15
 const int PCIE_OUT_MODE = 18; // GPIO 18
-const int NO_INPUT = 0;
-
-// System states
-const int IS_CALIBRATING = 2;
-const int INPUT_ALLOWED = 1;
-const int NO_INPUT_ALLOWED = 0;
-// Remove this
-const int EXIT = 3;
 
 // User feedback
 const int START_MEASUREMENT_LED = 22; // GPIO 22
@@ -48,8 +40,6 @@ const int PCIE_OUT_MODE_LED = 8; // GPIO 8
 
 // Latency measurement
 int measurementMode = LINE_OUT_MODE;
-int systemState = INPUT_ALLOWED;
-int userInput = NO_INPUT;
 uint32_t startTimestamp, endTimestamp;
 int latencyInMicros;
 int latencyMeasurementsInMicros[TOTAL_MEASUREMENTS];
@@ -320,31 +310,6 @@ int startMeasurementLineOut() {
     return(0);
 }
 
-// TODO
-void startCalibration() {
-    time_sleep(1);
-}
-
-// ####
-// #### USER INTERFACE VIA GPIOS ####
-
-void onUserInput(int gpio, int level, uint32_t tick) {
-
-    if (level == 0) {
-        // Stopping calibration with any button pressed
-        if (systemState == IS_CALIBRATING) {
-            systemState = INPUT_ALLOWED;
-        }
-        if (systemState == INPUT_ALLOWED) {
-            systemState = NO_INPUT_ALLOWED;
-            userInput = gpio;
-        }
-        else {
-            // No input allowed
-        }
-    }
-}
-
 int initGpioLibrary() {
     int status;
 
@@ -372,21 +337,18 @@ int initGpioLibrary() {
     // Register GPIO state change callback
     gpioSetAlertFunc(LINE_OUT, onLineOut);
     gpioSetAlertFunc(LINE_IN, onLineIn);
-    gpioSetAlertFunc(START_MEASUREMENT, onUserInput);
-    gpioSetAlertFunc(CALIBRATION_MODE, onUserInput);
-    gpioSetAlertFunc(LINE_OUT_MODE, onUserInput);
-    gpioSetAlertFunc(USB_OUT_MODE, onUserInput);
-    gpioSetAlertFunc(HDMI_OUT_MODE, onUserInput);
-    gpioSetAlertFunc(PCIE_OUT_MODE, onUserInput);
 
     return(status);
 }
+
+// ####
+// #### USER INTERFACE VIA GPIOS ####
 
 void waitForUserInput() {
     int status;
 
     while (1) {
-        if (userInput == START_MEASUREMENT) {
+        if (gpioRead(START_MEASUREMENT) == 1) {
             status = gpioWrite(START_MEASUREMENT_LED, 1);
             if (measurementMode == LINE_OUT_MODE) {
                 status = startMeasurementLineOut();
@@ -402,47 +364,56 @@ void waitForUserInput() {
             for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
                 printf("\n##### Measurement %d latency: %d\n", i + 1, latencyMeasurementsInMicros[i]);
             }
+            printf("GPIO Status after user input: %d\n", status);
         }
-        else if (userInput == CALIBRATION_MODE) {
-            systemState = IS_CALIBRATING;
-            while (systemState == IS_CALIBRATING) {
+        else if (gpioRead(CALIBRATION_MODE) == 1) {
+            while (gpioRead(CALIBRATION_MODE) == 1) {
+                // Waiting until button is released
+            }
+            while (gpioRead(CALIBRATION_MODE) == 0) {
+                //TODO: Calibration
                 status = gpioWrite(CALIBRATION_MODE_GREEN_LED, 1);
                 status = gpioWrite(CALIBRATION_MODE_YELLOW_LED, 1);
                 status = gpioWrite(CALIBRATION_MODE_RED_LED, 1);
-                startCalibration();
                 status = gpioWrite(CALIBRATION_MODE_GREEN_LED, 0);
                 status = gpioWrite(CALIBRATION_MODE_YELLOW_LED, 0);
                 status = gpioWrite(CALIBRATION_MODE_RED_LED, 0);
             }
-        }
-        else if (userInput == NO_INPUT) {
-            // No action, just keeping the while loop going
+            printf("GPIO Status after user input: %d\n", status);
         }
         // Measurement mode got changed
-        else {
-            measurementMode = userInput;
+        else if (gpioRead(LINE_OUT_MODE) == 1
+                || gpioRead(USB_OUT_MODE) == 1
+                || gpioRead(HDMI_OUT_MODE) == 1
+                || gpioRead(PCIE_OUT_MODE) == 1) {
             status = gpioWrite(LINE_OUT_MODE_LED, 0);
             status = gpioWrite(USB_OUT_MODE_LED, 0);
             status = gpioWrite(HDMI_OUT_MODE_LED, 0);
             status = gpioWrite(PCIE_OUT_MODE_LED, 0);
-            if (measurementMode == LINE_OUT_MODE) {
+
+            if (gpioRead(LINE_OUT_MODE) == 1) {
+                measurementMode = LINE_OUT_MODE;
                 status = gpioWrite(LINE_OUT_MODE_LED, 1);
             }
-            else if (measurementMode == USB_OUT_MODE) {
+            else if (gpioRead(USB_OUT_MODE) == 1) {
+                measurementMode = USB_OUT_MODE;
                 status = gpioWrite(USB_OUT_MODE_LED, 1);
             }
-            else if (measurementMode == HDMI_OUT_MODE) {
+            else if (gpioRead(HDMI_OUT_MODE) == 1) {
+                measurementMode = HDMI_OUT_MODE;
                 status = gpioWrite(HDMI_OUT_MODE_LED, 1);
             }
             else {
+                measurementMode = PCIE_OUT_MODE;
                 status = gpioWrite(PCIE_OUT_MODE_LED, 1);
                 // TODO: Remove this
                 return;
             }
+            printf("GPIO Status after user input: %d\n", status);
         }
-        printf("GPIO Status after user input: %d\n", status);
-        userInput = NO_INPUT;
-        systemState = INPUT_ALLOWED;
+        else {
+            // No action, just keeping the while loop going
+        }
     }
 }
 
