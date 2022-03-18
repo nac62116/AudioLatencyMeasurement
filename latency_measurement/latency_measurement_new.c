@@ -111,7 +111,6 @@ void onLineIn(int gpio, int level, uint32_t tick) {
         // This condition avoids, that multiple trigger of the transistor lead to reassignment of the endTimestamp
         if (signalStatus == SIGNAL_ON_THE_WAY) {
             endTimestamp = tick;
-            gpioSetAlertFunc(LINE_IN, NULL);
             signalStatus = SIGNAL_ARRIVED;
 
             latencyInMicros = endTimestamp - startTimestamp;
@@ -148,7 +147,6 @@ void onLineOut(int gpio, int level, uint32_t tick) {
     // Rising Edge
     if (level == 1) {
         startTimestamp = tick;
-        gpioSetAlertFunc(LINE_IN, onLineIn);
         signalStatus = SIGNAL_ON_THE_WAY;
     }
 }
@@ -223,6 +221,7 @@ int initGpioLibrary() {
 
     // Register GPIO state change callback
     gpioSetAlertFunc(LINE_OUT, onLineOut);
+    gpioSetAlertFunc(LINE_IN, onLineIn);
 
     return(status);
 }
@@ -354,7 +353,6 @@ int startMeasurementDigitalOut(int measurementMethod) {
             else {
                 if (signalStatus != SIGNAL_ON_THE_WAY) {
                     startTimestamp = gpioTick();
-                    gpioSetAlertFunc(LINE_IN, onLineIn);
                     signalStatus = SIGNAL_ON_THE_WAY;
                 }
             }
