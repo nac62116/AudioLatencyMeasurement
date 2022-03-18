@@ -112,6 +112,7 @@ void onLineIn(int gpio, int level, uint32_t tick) {
         if (signalStatus == SIGNAL_ON_THE_WAY) {
             endTimestamp = tick;
             signalStatus = SIGNAL_ARRIVED;
+            gpioSetAlertFunc(LINE_IN, NULL);
 
             latencyInMicros = endTimestamp - startTimestamp;
 
@@ -187,6 +188,7 @@ int startMeasurementLineOut(int measurementMethod) {
         
         printf("\n\n----- Measurement %d started -----\n", i + 1);
 
+        gpioSetAlertFunc(LINE_IN, onLineIn);
         status = sendSignalViaLineOut(signalIntervalInS);
         if (status < 0) {
             return(status);
@@ -354,6 +356,7 @@ int startMeasurementDigitalOut(int measurementMethod) {
                 if (signalStatus != SIGNAL_ON_THE_WAY) {
                     startTimestamp = gpioTick();
                     signalStatus = SIGNAL_ON_THE_WAY;
+                    gpioSetAlertFunc(LINE_IN, onLineIn);
                 }
             }
             numberOfPeriods--;
