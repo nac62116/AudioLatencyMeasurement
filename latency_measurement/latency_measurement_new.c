@@ -364,6 +364,10 @@ void waitForUserInput() {
             for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
                 printf("\n##### Measurement %d latency: %d\n", i + 1, latencyMeasurementsInMicros[i]);
             }
+            // Fill measurement array with -1 values to mark invalid measurements
+            for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
+                latencyMeasurementsInMicros[i] = -1;
+            }
             printf("GPIO Status after user input: %d\n", status);
         }
         else if (gpioRead(CALIBRATION_MODE) == 1) {
