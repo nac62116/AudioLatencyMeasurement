@@ -18,8 +18,8 @@ const int LINE_OUT = 17; // GPIO 17
 const double SIGNAL_LENGTH_IN_S = 0.001;
 const double SIGNAL_START_INTERVAL_IN_S = 0.1;
 const double SIGNAL_MINIMUM_INTERVAL_IN_S = 0.02; // Minimum interval to ensure correct amplification
-//const int SIGNAL_ARRIVED = 1;
-//const int SIGNAL_ON_THE_WAY = 0;
+const int SIGNAL_ARRIVED = 1;
+const int SIGNAL_ON_THE_WAY = 0;
 const int CALIBRATE = 0;
 const int MEASURE = 1;
 const int GOOD_SIGNAL_PERCENTAGE = 0.8;
@@ -50,7 +50,7 @@ int latencyInMicros;
 int latencyMeasurementsInMicros[TOTAL_MEASUREMENTS];
 int validMeasurmentsCount = 0;
 int maxLatencyInMicros = -1;
-//int signalStatus;
+int signalStatus;
 
 // ALSA variables
 
@@ -98,6 +98,131 @@ double calculateSignalInterval(int measurementCount) {
         signalIntervalInS = SIGNAL_START_INTERVAL_IN_S;
     }
     return(signalIntervalInS);
+}
+
+// ####
+// #### LINE LEVEL VIA GPIOS ####
+
+// Line-in callback
+void onLineIn(int gpio, int level, uint32_t tick) {
+    printf("GPIO %d state changed to level %d at %d\n", gpio, level, tick);
+    
+    // Rising Edge
+    if (level == 1) {
+
+        // This condition avoids, that multiple trigger of the transistor lead to reassignment of the endTimestamp
+        if (signalStatus == SIGNAL_ON_THE_WAY) {
+            endTimestamp = tick;
+            gpioSetAlertFunc(LINE_IN, NULL);
+            signalStatus = SIGNAL_ARRIVED;
+
+            latencyInMicros = endTimestamp - startTimestamp;
+
+            // The uint32_t tick parameter represents the number of microseconds since boot.
+            // This wraps around from 4294967295 to 0 approximately every 72 minutes.
+            // Thats why the provided latency could be both negative and wrong in this specific situation.
+            if (latencyInMicros >= 0) {
+                
+                // Saving valid measurement
+                latencyMeasurementsInMicros[validMeasurmentsCount] = latencyInMicros;
+                printf("The signal had a latency of %d microseconds\n", latencyInMicros);
+                validMeasurmentsCount += 1;
+                
+                // Calculating running descriptive values (min, max, avg)
+                // max
+                if (maxLatencyInMicros == -1) {
+                    maxLatencyInMicros = latencyInMicros;
+                }
+                else if (latencyInMicros > maxLatencyInMicros) {
+                    maxLatencyInMicros = latencyInMicros;
+                }
+                else {}
+            }
+        }  
+    }
+}
+
+// Line-out callback
+void onLineOut(int gpio, int level, uint32_t tick) {
+    printf("GPIO %d state changed to level %d at %d\n", gpio, level, tick);
+    printf("onLineOut");
+    
+    // Rising Edge
+    if (level == 1) {
+        startTimestamp = tick;
+        gpioSetAlertFunc(LINE_IN, onLineIn);
+        signalStatus = SIGNAL_ON_THE_WAY;
+    }
+}
+
+
+// Line-out signal creation
+int sendSignalViaLineOut(double signalIntervalInS) {
+    int status = 0;
+
+    // Send signal through LINE_OUT gpio pin
+    status = gpioWrite(LINE_OUT, 1);
+    time_sleep(SIGNAL_LENGTH_IN_S);
+    status = gpioWrite(LINE_OUT, 0);
+    time_sleep(signalIntervalInS);
+
+    return(status);
+}
+
+int startMeasurementLineOut(int measurementMethod) {
+    double signalIntervalInS;
+    int status;
+    int iterations;
+
+    if (measurementMethod == CALIBRATE) {
+        iterations = TOTAL_CALIBRATION_MEASUREMENTS;
+    }
+    else {
+        iterations = TOTAL_MEASUREMENTS;
+    }
+
+    for (int i = 0; i < iterations; i++) {
+
+        signalIntervalInS = calculateSignalInterval(i);
+        
+        printf("\n\n----- Measurement %d started -----\n", i + 1);
+
+        status = sendSignalViaLineOut(signalIntervalInS);
+        if (status < 0) {
+            return(status);
+        }
+    }
+    return(0);
+}
+
+int initGpioLibrary() {
+    int status;
+
+    // Initialize library
+    status = gpioInitialise();
+
+    // Set GPIO Modes
+    gpioSetMode(LINE_OUT, PI_OUTPUT);
+    gpioSetMode(LINE_IN, PI_INPUT);
+    gpioSetMode(START_MEASUREMENT, PI_INPUT);
+    gpioSetMode(CALIBRATION_MODE, PI_INPUT);
+    gpioSetMode(LINE_OUT_MODE, PI_INPUT);
+    gpioSetMode(USB_OUT_MODE, PI_INPUT);
+    gpioSetMode(HDMI_OUT_MODE, PI_INPUT);
+    gpioSetMode(PCIE_OUT_MODE, PI_INPUT);
+    gpioSetMode(START_MEASUREMENT_LED, PI_OUTPUT);
+    gpioSetMode(CALIBRATION_MODE_GREEN_LED, PI_OUTPUT);
+    gpioSetMode(CALIBRATION_MODE_YELLOW_LED, PI_OUTPUT);
+    gpioSetMode(CALIBRATION_MODE_RED_LED, PI_OUTPUT);
+    gpioSetMode(LINE_OUT_MODE_LED, PI_OUTPUT);
+    gpioSetMode(USB_OUT_MODE_LED, PI_OUTPUT);
+    gpioSetMode(HDMI_OUT_MODE_LED, PI_OUTPUT);
+    gpioSetMode(PCIE_OUT_MODE_LED, PI_OUTPUT);
+
+    // Register GPIO state change callback
+    gpioSetAlertFunc(LINE_OUT, onLineOut);
+
+    return(status);
 }
 
 // ####
@@ -221,8 +346,8 @@ int startMeasurementDigitalOut(int measurementMethod) {
             }
             else {
                 if (signalStatus != SIGNAL_ON_THE_WAY) {
-                    fprintf(stderr, "START TIMESTAMP\n");
                     startTimestamp = gpioTick();
+                    gpioSetAlertFunc(LINE_IN, onLineIn);
                     signalStatus = SIGNAL_ON_THE_WAY;
                 }
             }
@@ -236,130 +361,6 @@ int startMeasurementDigitalOut(int measurementMethod) {
     free(buffer);
 
     return(0);
-}
-
-// ####
-// #### LINE LEVEL VIA GPIOS ####
-
-// Line-out callback
-void onLineOut(int gpio, int level, uint32_t tick) {
-    printf("GPIO %d state changed to level %d at %d\n", gpio, level, tick);
-    printf("onLineOut");
-    
-    // Rising Edge
-    if (level == 1) {
-        startTimestamp = tick;
-        gpioSetAlertFunc(LINE_IN, onLineIn);
-        //signalStatus = SIGNAL_ON_THE_WAY;
-    }
-}
-
-// Line-in callback
-void onLineIn(int gpio, int level, uint32_t tick) {
-    printf("GPIO %d state changed to level %d at %d\n", gpio, level, tick);
-    
-    // Rising Edge
-    if (level == 1) {
-
-        //if (signalStatus == SIGNAL_ON_THE_WAY) {
-            endTimestamp = tick;
-            // Close onLineIn callback to avoid multiple trigger. Just the first trigger is relevant.
-            gpioSetAlertFunc(LINE_IN, NULL);
-            //signalStatus = SIGNAL_ARRIVED;
-
-            latencyInMicros = endTimestamp - startTimestamp;
-
-            // The uint32_t tick parameter represents the number of microseconds since boot.
-            // This wraps around from 4294967295 to 0 approximately every 72 minutes.
-            // Thats why the provided latency could be both negative and wrong in this specific situation.
-            if (latencyInMicros >= 0) {
-                
-                // Saving valid measurement
-                latencyMeasurementsInMicros[validMeasurmentsCount] = latencyInMicros;
-                printf("The signal had a latency of %d microseconds\n", latencyInMicros);
-                validMeasurmentsCount += 1;
-                
-                // Calculating running descriptive values (min, max, avg)
-                // max
-                if (maxLatencyInMicros == -1) {
-                    maxLatencyInMicros = latencyInMicros;
-                }
-                else if (latencyInMicros > maxLatencyInMicros) {
-                    maxLatencyInMicros = latencyInMicros;
-                }
-                else {}
-            }
-        //}  
-    }
-}
-
-// Line-out signal creation
-int sendSignalViaLineOut(double signalIntervalInS) {
-    int status = 0;
-
-    // Send signal through LINE_OUT gpio pin
-    status = gpioWrite(LINE_OUT, 1);
-    time_sleep(SIGNAL_LENGTH_IN_S);
-    status = gpioWrite(LINE_OUT, 0);
-    time_sleep(signalIntervalInS);
-
-    return(status);
-}
-
-int startMeasurementLineOut(int measurementMethod) {
-    double signalIntervalInS;
-    int status;
-    int iterations;
-
-    if (measurementMethod == CALIBRATE) {
-        iterations = TOTAL_CALIBRATION_MEASUREMENTS;
-    }
-    else {
-        iterations = TOTAL_MEASUREMENTS;
-    }
-
-    for (int i = 0; i < iterations; i++) {
-
-        signalIntervalInS = calculateSignalInterval(i);
-        
-        printf("\n\n----- Measurement %d started -----\n", i + 1);
-
-        status = sendSignalViaLineOut(signalIntervalInS);
-        if (status < 0) {
-            return(status);
-        }
-    }
-    return(0);
-}
-
-int initGpioLibrary() {
-    int status;
-
-    // Initialize library
-    status = gpioInitialise();
-
-    // Set GPIO Modes
-    gpioSetMode(LINE_OUT, PI_OUTPUT);
-    gpioSetMode(LINE_IN, PI_INPUT);
-    gpioSetMode(START_MEASUREMENT, PI_INPUT);
-    gpioSetMode(CALIBRATION_MODE, PI_INPUT);
-    gpioSetMode(LINE_OUT_MODE, PI_INPUT);
-    gpioSetMode(USB_OUT_MODE, PI_INPUT);
-    gpioSetMode(HDMI_OUT_MODE, PI_INPUT);
-    gpioSetMode(PCIE_OUT_MODE, PI_INPUT);
-    gpioSetMode(START_MEASUREMENT_LED, PI_OUTPUT);
-    gpioSetMode(CALIBRATION_MODE_GREEN_LED, PI_OUTPUT);
-    gpioSetMode(CALIBRATION_MODE_YELLOW_LED, PI_OUTPUT);
-    gpioSetMode(CALIBRATION_MODE_RED_LED, PI_OUTPUT);
-    gpioSetMode(LINE_OUT_MODE_LED, PI_OUTPUT);
-    gpioSetMode(USB_OUT_MODE_LED, PI_OUTPUT);
-    gpioSetMode(HDMI_OUT_MODE_LED, PI_OUTPUT);
-    gpioSetMode(PCIE_OUT_MODE_LED, PI_OUTPUT);
-
-    // Register GPIO state change callback
-    gpioSetAlertFunc(LINE_OUT, onLineOut);
-
-    return(status);
 }
 
 // ####
