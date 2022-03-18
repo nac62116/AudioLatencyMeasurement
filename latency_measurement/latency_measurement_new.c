@@ -180,7 +180,6 @@ int startMeasurementLineOut(int measurementMethod) {
     else {
         iterations = TOTAL_MEASUREMENTS;
     }
-
     for (int i = 0; i < iterations; i++) {
 
         signalIntervalInS = calculateSignalInterval(i);
@@ -430,7 +429,9 @@ void waitForUserInput() {
                     gpioWrite(CALIBRATION_MODE_RED_LED, 1);
                 }
                 validMeasurmentsCount = 0;
-                time_sleep(0.1);
+                for (int millis = 0; millis <= 1000; millis++) {
+                    time_sleep(0.001);
+                }
             }
             // Fill measurement array with -1 values to mark invalid measurements
             for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
