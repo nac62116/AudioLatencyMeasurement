@@ -18,8 +18,8 @@ const int LINE_OUT = 17; // GPIO 17
 const double SIGNAL_LENGTH_IN_S = 0.001;
 const double SIGNAL_START_INTERVAL_IN_S = 0.1;
 const double SIGNAL_MINIMUM_INTERVAL_IN_S = 0.02; // Minimum interval to ensure correct amplification
-const int SIGNAL_ARRIVED = 1;
-const int SIGNAL_ON_THE_WAY = 0;
+//const int SIGNAL_ARRIVED = 1;
+//const int SIGNAL_ON_THE_WAY = 0;
 const int CALIBRATE = 0;
 const int MEASURE = 1;
 const int GOOD_SIGNAL_PERCENTAGE = 0.8;
@@ -50,7 +50,7 @@ int latencyInMicros;
 int latencyMeasurementsInMicros[TOTAL_MEASUREMENTS];
 int validMeasurmentsCount = 0;
 int maxLatencyInMicros = -1;
-int signalStatus;
+//int signalStatus;
 
 // ALSA variables
 
@@ -249,7 +249,8 @@ void onLineOut(int gpio, int level, uint32_t tick) {
     // Rising Edge
     if (level == 1) {
         startTimestamp = tick;
-        signalStatus = SIGNAL_ON_THE_WAY;
+        gpioSetAlertFunc(LINE_IN, onLineIn);
+        //signalStatus = SIGNAL_ON_THE_WAY;
     }
 }
 
@@ -260,10 +261,11 @@ void onLineIn(int gpio, int level, uint32_t tick) {
     // Rising Edge
     if (level == 1) {
 
-        // This condition avoids, that multiple trigger of the transistor lead to reassignment of the endTimestamp
-        if (signalStatus == SIGNAL_ON_THE_WAY) {
+        //if (signalStatus == SIGNAL_ON_THE_WAY) {
             endTimestamp = tick;
-            signalStatus = SIGNAL_ARRIVED;
+            // Close onLineIn callback to avoid multiple trigger. Just the first trigger is relevant.
+            gpioSetAlertFunc(LINE_IN, NULL);
+            //signalStatus = SIGNAL_ARRIVED;
 
             latencyInMicros = endTimestamp - startTimestamp;
 
@@ -287,7 +289,7 @@ void onLineIn(int gpio, int level, uint32_t tick) {
                 }
                 else {}
             }
-        }  
+        //}  
     }
 }
 
@@ -356,7 +358,6 @@ int initGpioLibrary() {
 
     // Register GPIO state change callback
     gpioSetAlertFunc(LINE_OUT, onLineOut);
-    gpioSetAlertFunc(LINE_IN, onLineIn);
 
     return(status);
 }
