@@ -332,11 +332,11 @@ void onUserInput(int gpio, int level, uint32_t tick) {
 
     if (level == 0) {
         // Stopping calibration with any button pressed
-        if (userInputState == IS_CALIBRATING) {
-            userInputState = INPUT_ALLOWED;
+        if (systemState == IS_CALIBRATING) {
+            systemState = INPUT_ALLOWED;
         }
-        if (userInputState == INPUT_ALLOWED) {
-            userInputState == NO_INPUT_ALLOWED;
+        if (systemState == INPUT_ALLOWED) {
+            systemState == NO_INPUT_ALLOWED;
             userInput = gpio;
         }
         else {
@@ -404,8 +404,8 @@ void waitForUserInput() {
             }
         }
         else if (userInput == CALIBRATION_MODE) {
-            userInputState = IS_CALIBRATING;
-            while (userInputState == IS_CALIBRATING) {
+            systemState = IS_CALIBRATING;
+            while (systemState == IS_CALIBRATING) {
                 status = gpioWrite(CALIBRATION_MODE_GREEN_LED, 1);
                 status = gpioWrite(CALIBRATION_MODE_YELLOW_LED, 1);
                 status = gpioWrite(CALIBRATION_MODE_RED_LED, 1);
@@ -425,13 +425,13 @@ void waitForUserInput() {
             status = gpioWrite(USB_OUT_MODE_LED, 0);
             status = gpioWrite(HDMI_OUT_MODE_LED, 0);
             status = gpioWrite(PCIE_OUT_MODE_LED, 0);
-            if (gpio == LINE_OUT_MODE) {
+            if (measurementMode == LINE_OUT_MODE) {
                 status = gpioWrite(LINE_OUT_MODE_LED, 1);
             }
-            else if (gpio == USB_OUT_MODE) {
+            else if (measurementMode == USB_OUT_MODE) {
                 status = gpioWrite(USB_OUT_MODE_LED, 1);
             }
-            else if (gpio == HDMI_OUT_MODE) {
+            else if (measurementMode == HDMI_OUT_MODE) {
                 status = gpioWrite(HDMI_OUT_MODE_LED, 1);
             }
             else {
@@ -442,7 +442,7 @@ void waitForUserInput() {
         }
         printf("GPIO Status after user input: %d\n", status);
         userInput = NO_INPUT;
-        userInputState = INPUT_ALLOWED;
+        systemState = INPUT_ALLOWED;
     }
 }
 
