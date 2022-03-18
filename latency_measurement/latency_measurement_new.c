@@ -409,11 +409,14 @@ void waitForUserInput() {
                 measurementMode = HDMI_OUT_MODE;
                 gpioWrite(HDMI_OUT_MODE_LED, 1);
             }
-            else {
+            else if (gpioRead(PCIE_OUT_MODE) == 1) {
                 measurementMode = PCIE_OUT_MODE;
                 gpioWrite(PCIE_OUT_MODE_LED, 1);
                 // TODO: Remove this
                 return;
+            }
+            else {
+                // No action, just keeping the while loop going
             }
         }
         else {
