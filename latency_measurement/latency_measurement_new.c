@@ -417,10 +417,13 @@ void waitForUserInput() {
                     gpioWrite(CALIBRATION_MODE_RED_LED, 1);
                 }
                 else if (signalPercentage >= MEDIUM_SIGNAL_PERCENTAGE) {
+                    gpioWrite(CALIBRATION_MODE_GREEN_LED, 0);
                     gpioWrite(CALIBRATION_MODE_YELLOW_LED, 1);
                     gpioWrite(CALIBRATION_MODE_RED_LED, 1);
                 }
                 else {
+                    gpioWrite(CALIBRATION_MODE_GREEN_LED, 0);
+                    gpioWrite(CALIBRATION_MODE_YELLOW_LED, 0);
                     gpioWrite(CALIBRATION_MODE_RED_LED, 1);
                 }
                 validMeasurmentsCount = 0;
