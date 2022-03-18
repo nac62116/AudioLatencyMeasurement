@@ -10,6 +10,7 @@ gcc -Wall -pthread latency_measurement_new.c -lasound -o latency_measurement_new
 #include <stdio.h>
 
 #define TOTAL_MEASUREMENTS 10
+#define TOTAL_CALIBRATION_MEASUREMENTS 10
 
 const int LINE_IN = 27; // GPIO 27
 const int LINE_OUT = 17; // GPIO 17
@@ -19,6 +20,10 @@ const double SIGNAL_START_INTERVAL_IN_S = 1.0;
 const double SIGNAL_MINIMUM_INTERVAL_IN_S = 0.02; // Minimum interval to ensure correct amplification
 const int SIGNAL_ARRIVED = 1;
 const int SIGNAL_ON_THE_WAY = 0;
+const int CALIBRATE = 0;
+const int MEASURE = 1;
+const int GOOD_SIGNAL_PERCENTAGE = 0.8;
+const int MEDIUM_SIGNAL_PERCENTAGE = 0.5;
 
 // User inputs
 const int START_MEASUREMENT = 7; // GPIO 7
@@ -98,7 +103,7 @@ double calculateSignalInterval(int measurementCount) {
 // ####
 // #### PCM DEVICES (USB, HDMI, PCIE) VIA ALSA ####
 
-int startMeasurementDigitalOut() {
+int startMeasurementDigitalOut(int measurementMethod) {
     double signalIntervalInS;
     int status;
     int dir;
@@ -110,6 +115,14 @@ int startMeasurementDigitalOut() {
     snd_pcm_uframes_t frames;
     char *buffer;
     int size;
+    int iterations;
+
+    if (measurementMethod == CALIBRATE) {
+        iterations = TOTAL_CALIBRATION_MEASUREMENTS;
+    }
+    else {
+        iterations = TOTAL_MEASUREMENTS;
+    }
 
     /* Open PCM device for playback. */ // TODO: switch HDMI_MODE USB_MODE PCI_MODE
     if (measurementMode == USB_OUT_MODE) {
@@ -181,9 +194,8 @@ int startMeasurementDigitalOut() {
     /* We want to loop for SIGNAL_LENGTH_IN_S */
     snd_pcm_hw_params_get_period_time(params, &periodTimeInMicros, &dir);
     
-    for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
+    for (int i = 0; i < iterations; i++) {
         signalIntervalInS = calculateSignalInterval(i);
-        startTimestamp = 0;
 
         printf("\n\n----- Measurement %d started -----\n", i + 1);
         /* signal length in micros divided by period time */
@@ -293,11 +305,20 @@ int sendSignalViaLineOut(double signalIntervalInS) {
     return(status);
 }
 
-int startMeasurementLineOut() {
+int startMeasurementLineOut(int measurementMethod) {
     double signalIntervalInS;
     int status;
+    int iterations;
 
-    for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
+    if (measurementMethod == CALIBRATE) {
+        iterations = TOTAL_CALIBRATION_MEASUREMENTS;
+    }
+    else {
+        iterations = TOTAL_MEASUREMENTS;
+    }
+
+    for (int i = 0; i < iterations; i++) {
+
         signalIntervalInS = calculateSignalInterval(i);
         
         printf("\n\n----- Measurement %d started -----\n", i + 1);
@@ -345,16 +366,18 @@ int initGpioLibrary() {
 // #### USER INTERFACE VIA GPIOS ####
 
 void waitForUserInput() {
+    double signalPercentage;
+
     while (1) {
         if (gpioRead(START_MEASUREMENT) == 1) {
             gpioWrite(START_MEASUREMENT_LED, 1);
             validMeasurmentsCount = 0;
             if (measurementMode == LINE_OUT_MODE) {
-                startMeasurementLineOut();
+                startMeasurementLineOut(MEASURE);
             }
             // USB_, HDMI_, PCIE_OUT
             else {
-                startMeasurementDigitalOut();
+                startMeasurementDigitalOut(MEASURE);
             }
             // TODO: Saving measurements to .csv format
             // TODO: Clear measurement: descriptive values / measurements = -1
@@ -378,14 +401,36 @@ void waitForUserInput() {
                     && gpioRead(USB_OUT_MODE) == 0
                     && gpioRead(HDMI_OUT_MODE) == 0
                     && gpioRead(PCIE_OUT_MODE) == 0) {
-                //TODO: Calibration
-                gpioWrite(CALIBRATION_MODE_GREEN_LED, 1);
-                gpioWrite(CALIBRATION_MODE_YELLOW_LED, 1);
-                gpioWrite(CALIBRATION_MODE_RED_LED, 1);
-                gpioWrite(CALIBRATION_MODE_GREEN_LED, 0);
-                gpioWrite(CALIBRATION_MODE_YELLOW_LED, 0);
-                gpioWrite(CALIBRATION_MODE_RED_LED, 0);
+                validMeasurmentsCount = 0;
+                if (measurementMode == LINE_OUT_MODE) {
+                    startMeasurementLineOut(CALIBRATE);
+                }
+                // USB_, HDMI_, PCIE_OUT
+                else {
+                    startMeasurementDigitalOut(CALIBRATE);
+                }
+                signalPercentage = (validMeasurmentsCount * 1.0) / (TOTAL_CALIBRATION_MEASUREMENTS * 1.0);
+                if (signalPercentage >= GOOD_SIGNAL_PERCENTAGE) {
+                    gpioWrite(CALIBRATION_MODE_GREEN_LED, 1);
+                    gpioWrite(CALIBRATION_MODE_YELLOW_LED, 1);
+                    gpioWrite(CALIBRATION_MODE_RED_LED, 1);
+                }
+                else if (signalPercentage >= MEDIUM_SIGNAL_PERCENTAGE) {
+                    gpioWrite(CALIBRATION_MODE_YELLOW_LED, 1);
+                    gpioWrite(CALIBRATION_MODE_RED_LED, 1);
+                }
+                else {
+                    gpioWrite(CALIBRATION_MODE_RED_LED, 1);
+                }
+                validMeasurmentsCount = 0;
             }
+            // Fill measurement array with -1 values to mark invalid measurements
+            for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
+                latencyMeasurementsInMicros[i] = -1;
+            }
+            gpioWrite(CALIBRATION_MODE_GREEN_LED, 0);
+            gpioWrite(CALIBRATION_MODE_YELLOW_LED, 0);
+            gpioWrite(CALIBRATION_MODE_RED_LED, 0);
         }
         // Measurement mode got changed
         // Duplicate code could not be avoided here.
