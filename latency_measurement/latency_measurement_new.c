@@ -379,6 +379,11 @@ void waitForUserInput() {
         if (gpioRead(START_MEASUREMENT) == 1) {
             gpioWrite(START_MEASUREMENT_LED, 1);
             validMeasurmentsCount = 0;
+            maxLatencyInMicros = -1;
+            // Fill measurement array with -1 values to mark invalid measurements
+            for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
+                latencyMeasurementsInMicros[i] = -1;
+            }
             if (measurementMode == LINE_OUT_MODE) {
                 startMeasurementLineOut(MEASURE);
             }
@@ -393,10 +398,7 @@ void waitForUserInput() {
             for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
                 printf("\n##### Measurement %d latency: %d\n", i + 1, latencyMeasurementsInMicros[i]);
             }
-            // Fill measurement array with -1 values to mark invalid measurements
-            for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
-                latencyMeasurementsInMicros[i] = -1;
-            }
+            
         }
         else if (gpioRead(CALIBRATION_MODE) == 1) {
             while (gpioRead(CALIBRATION_MODE) == 1) {
@@ -435,10 +437,6 @@ void waitForUserInput() {
                 for (int millis = 0; millis <= 1000; millis++) {
                     time_sleep(0.001);
                 }
-            }
-            // Fill measurement array with -1 values to mark invalid measurements
-            for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
-                latencyMeasurementsInMicros[i] = -1;
             }
             gpioWrite(CALIBRATION_MODE_GREEN_LED, 0);
             gpioWrite(CALIBRATION_MODE_YELLOW_LED, 0);
