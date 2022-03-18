@@ -372,10 +372,10 @@ void waitForUserInput() {
             }
             while (gpioRead(START_MEASUREMENT) == 0
                     && gpioRead(CALIBRATION_MODE) == 0
-                    && gpioRead(LINE_OUT_MODE == 0
-                    && gpioRead(USB_OUT_MODE == 0
-                    && gpioRead(HDMI_OUT_MODE == 0
-                    && gpioRead(PCIE_OUT_MODE == 0)) {
+                    && gpioRead(LINE_OUT_MODE) == 0
+                    && gpioRead(USB_OUT_MODE) == 0
+                    && gpioRead(HDMI_OUT_MODE) == 0
+                    && gpioRead(PCIE_OUT_MODE) == 0) {
                 //TODO: Calibration
                 status = gpioWrite(CALIBRATION_MODE_GREEN_LED, 1);
                 status = gpioWrite(CALIBRATION_MODE_YELLOW_LED, 1);
