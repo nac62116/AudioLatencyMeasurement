@@ -388,11 +388,14 @@ void waitForUserInput() {
             }
         }
         // Measurement mode got changed
+        // Duplicate code could not be avoided here.
         else if (gpioRead(LINE_OUT_MODE) == 1) {
+            //TODO: Function
             gpioWrite(LINE_OUT_MODE_LED, 0);
             gpioWrite(USB_OUT_MODE_LED, 0);
             gpioWrite(HDMI_OUT_MODE_LED, 0);
             gpioWrite(PCIE_OUT_MODE_LED, 0);
+            //
             measurementMode = LINE_OUT_MODE;
             gpioWrite(LINE_OUT_MODE_LED, 1);
         }
