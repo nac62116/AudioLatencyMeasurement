@@ -336,7 +336,7 @@ void onUserInput(int gpio, int level, uint32_t tick) {
             systemState = INPUT_ALLOWED;
         }
         if (systemState == INPUT_ALLOWED) {
-            systemState == NO_INPUT_ALLOWED;
+            systemState = NO_INPUT_ALLOWED;
             userInput = gpio;
         }
         else {
