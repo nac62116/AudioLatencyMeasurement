@@ -22,8 +22,6 @@ const int SIGNAL_ARRIVED = 1;
 const int SIGNAL_ON_THE_WAY = 0;
 const int CALIBRATE = 0;
 const int MEASURE = 1;
-const int GOOD_SIGNAL_PERCENTAGE = 0.9;
-const int MEDIUM_SIGNAL_PERCENTAGE = 0.3;
 
 // User inputs
 const int START_MEASUREMENT = 7; // GPIO 7
@@ -419,21 +417,17 @@ void waitForUserInput() {
                 else {
                     startMeasurementDigitalOut(CALIBRATE);
                 }
-                signalPercentage = (validMeasurmentsCount * 1.0) / (TOTAL_CALIBRATION_MEASUREMENTS * 1.0);
-                if (signalPercentage > GOOD_SIGNAL_PERCENTAGE) {
-                    printf("GOOD SIGNAL: %f\n", signalPercentage);
+                if (validMeasurmentsCount == TOTAL_CALIBRATION_MEASUREMENTS) {
                     gpioWrite(CALIBRATION_MODE_GREEN_LED, 1);
                     gpioWrite(CALIBRATION_MODE_YELLOW_LED, 1);
                     gpioWrite(CALIBRATION_MODE_RED_LED, 1);
                 }
-                else if (signalPercentage > MEDIUM_SIGNAL_PERCENTAGE) {
-                    printf("MEDIUM SIGNAL: %f\n", signalPercentage);
+                else if (validMeasurmentsCount > TOTAL_CALIBRATION_MEASUREMENTS / 2) {
                     gpioWrite(CALIBRATION_MODE_GREEN_LED, 0);
                     gpioWrite(CALIBRATION_MODE_YELLOW_LED, 1);
                     gpioWrite(CALIBRATION_MODE_RED_LED, 1);
                 }
                 else {
-                    printf("BAD SIGNAL: %f\n", signalPercentage);
                     gpioWrite(CALIBRATION_MODE_GREEN_LED, 0);
                     gpioWrite(CALIBRATION_MODE_YELLOW_LED, 0);
                     gpioWrite(CALIBRATION_MODE_RED_LED, 1);
