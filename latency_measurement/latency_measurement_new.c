@@ -374,8 +374,6 @@ int startMeasurementDigitalOut(int measurementMethod) {
 // #### USER INTERFACE VIA GPIOS ####
 
 void waitForUserInput() {
-    double signalPercentage;
-
     while (1) {
         if (gpioRead(START_MEASUREMENT) == 1) {
             gpioWrite(START_MEASUREMENT_LED, 1);
