@@ -444,6 +444,25 @@ int main(void) {
     //startMeasurementLineOut();
 
     waitForUserInput();
+
+    // TODO: Remove this
+    gpioSetMode(LINE_OUT, PI_OUTPUT);
+    gpioSetMode(LINE_IN, PI_OUTPUT);
+    gpioSetMode(START_MEASUREMENT, PI_OUTPUT);
+    gpioSetMode(CALIBRATION_MODE, PI_OUTPUT);
+    gpioSetMode(LINE_OUT_MODE, PI_OUTPUT);
+    gpioSetMode(USB_OUT_MODE, PI_OUTPUT);
+    gpioSetMode(HDMI_OUT_MODE, PI_OUTPUT);
+    gpioSetMode(PCIE_OUT_MODE, PI_OUTPUT);
+
+    gpioWrite(LINE_OUT, 0);
+    gpioWrite(LINE_IN, 0);
+    gpioWrite(START_MEASUREMENT, 0);
+    gpioWrite(CALIBRATION_MODE, 0);
+    gpioWrite(LINE_OUT_MODE, 0);
+    gpioWrite(USB_OUT_MODE, 0);
+    gpioWrite(HDMI_OUT_MODE, 0);
+    gpioWrite(PCIE_OUT_MODE, 0);
     
     // Terminate library
     gpioTerminate();
