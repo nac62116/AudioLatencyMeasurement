@@ -223,7 +223,6 @@ int startMeasurementDigitalOut(int measurementMethod) {
                 if (signalStatus != SIGNAL_ON_THE_WAY) {
                     fprintf(stderr, "START TIMESTAMP\n");
                     startTimestamp = gpioTick();
-                    printf("GPIO 22 Write status: %d\n", status);
                     signalStatus = SIGNAL_ON_THE_WAY;
                 }
             }
@@ -429,6 +428,7 @@ void waitForUserInput() {
                     gpioWrite(CALIBRATION_MODE_RED_LED, 1);
                 }
                 validMeasurmentsCount = 0;
+                time_sleep(0.1);
             }
             // Fill measurement array with -1 values to mark invalid measurements
             for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
