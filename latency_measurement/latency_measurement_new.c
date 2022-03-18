@@ -22,8 +22,8 @@ const int SIGNAL_ARRIVED = 1;
 const int SIGNAL_ON_THE_WAY = 0;
 const int CALIBRATE = 0;
 const int MEASURE = 1;
-const int GOOD_SIGNAL_PERCENTAGE = 0.8;
-const int MEDIUM_SIGNAL_PERCENTAGE = 0.5;
+const int GOOD_SIGNAL_PERCENTAGE = 0.9;
+const int MEDIUM_SIGNAL_PERCENTAGE = 0.3;
 
 // User inputs
 const int START_MEASUREMENT = 7; // GPIO 7
