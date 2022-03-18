@@ -411,7 +411,7 @@ void waitForUserInput() {
                 }
                 signalPercentage = (validMeasurmentsCount * 1.0) / (TOTAL_CALIBRATION_MEASUREMENTS * 1.0);
                 if (signalPercentage >= GOOD_SIGNAL_PERCENTAGE) {
-                    printf("GOOD SIGNAL: %f\n", signalPercentage);
+                    printf("GOOD SIGNAL: %f\n", signalPercentage >= GOOD_SIGNAL_PERCENTAGE);
                     gpioWrite(CALIBRATION_MODE_GREEN_LED, 1);
                     gpioWrite(CALIBRATION_MODE_YELLOW_LED, 1);
                     gpioWrite(CALIBRATION_MODE_RED_LED, 1);
