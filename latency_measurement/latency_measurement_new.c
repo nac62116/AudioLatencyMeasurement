@@ -463,6 +463,14 @@ int main(void) {
     gpioWrite(USB_OUT_MODE, 0);
     gpioWrite(HDMI_OUT_MODE, 0);
     gpioWrite(PCIE_OUT_MODE, 0);
+    gpioWrite(START_MEASUREMENT_LED, 0);
+    gpioWrite(CALIBRATION_MODE_GREEN_LED, 0);
+    gpioWrite(CALIBRATION_MODE_YELLOW_LED, 0);
+    gpioWrite(CALIBRATION_MODE_RED_LED, 0);
+    gpioWrite(LINE_OUT_MODE_LED, 0);
+    gpioWrite(USB_OUT_MODE_LED, 0);
+    gpioWrite(HDMI_OUT_MODE_LED, 0);
+    gpioWrite(PCIE_OUT_MODE_LED, 0);
     
     // Terminate library
     gpioTerminate();
