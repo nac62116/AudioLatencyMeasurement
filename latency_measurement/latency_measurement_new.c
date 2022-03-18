@@ -392,7 +392,6 @@ void waitForUserInput() {
                 startMeasurementDigitalOut(MEASURE);
             }
             // TODO: Saving measurements to .csv format
-            // TODO: Clear measurement: descriptive values / measurements = -1
             gpioWrite(START_MEASUREMENT_LED, 0);
             // Print measurements
             for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
@@ -493,12 +492,6 @@ int main(void) {
     status = initGpioLibrary();
     printf("Status after gpioInitialise: %d\n", status);
     status = gpioWrite(LINE_OUT_MODE_LED, 1);
-
-    // TODO: Function
-    // Fill measurement array with -1 values to mark invalid measurements
-    for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
-        latencyMeasurementsInMicros[i] = -1;
-    }
     
     //startMeasurementDigitalOut();
     //startMeasurementLineOut();
