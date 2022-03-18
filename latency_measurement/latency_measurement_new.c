@@ -182,7 +182,12 @@ int startMeasurementLineOut(int measurementMethod) {
     }
     for (int i = 0; i < iterations; i++) {
 
-        signalIntervalInS = calculateSignalInterval(i);
+        if (measurementMethod == MEASURE) {
+            signalIntervalInS = calculateSignalInterval(i);
+        }
+        else {
+            signalIntervalInS = SIGNAL_START_INTERVAL_IN_S;
+        }
         
         printf("\n\n----- Measurement %d started -----\n", i + 1);
 
@@ -319,7 +324,12 @@ int startMeasurementDigitalOut(int measurementMethod) {
     snd_pcm_hw_params_get_period_time(params, &periodTimeInMicros, &dir);
     
     for (int i = 0; i < iterations; i++) {
-        signalIntervalInS = calculateSignalInterval(i);
+        if (measurementMethod == MEASURE) {
+            signalIntervalInS = calculateSignalInterval(i);
+        }
+        else {
+            signalIntervalInS = SIGNAL_START_INTERVAL_IN_S;
+        }
 
         printf("\n\n----- Measurement %d started -----\n", i + 1);
         /* signal length in micros divided by period time */
@@ -429,9 +439,9 @@ void waitForUserInput() {
                     gpioWrite(CALIBRATION_MODE_RED_LED, 1);
                 }
                 validMeasurmentsCount = 0;
-                for (int millis = 0; millis <= 1000; millis++) {
-                    time_sleep(0.001);
-                }
+                //for (int millis = 0; millis <= 1000; millis++) {
+                //    time_sleep(0.001);
+                //}
             }
             // Fill measurement array with -1 values to mark invalid measurements
             for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
