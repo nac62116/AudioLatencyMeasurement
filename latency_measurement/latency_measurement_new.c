@@ -12,8 +12,8 @@ gcc -Wall -pthread latency_measurement_new.c -lasound -o latency_measurement_new
 #define TOTAL_MEASUREMENTS 10
 #define TOTAL_CALIBRATION_MEASUREMENTS 10
 
-const int LINE_IN = 27; // GPIO 27
-const int LINE_OUT = 17; // GPIO 17
+const int LINE_IN = 14; // GPIO 14
+const int LINE_OUT = 15; // GPIO 15
 //const double SIGNAL_LENGTH_IN_S = 0.001;
 const double SIGNAL_LENGTH_IN_S = 0.001;
 const double SIGNAL_START_INTERVAL_IN_S = 0.1;
@@ -24,25 +24,25 @@ const int CALIBRATE = 0;
 const int MEASURE = 1;
 
 // User inputs
-const int START_MEASUREMENT = 7; // GPIO 7
-const int CALIBRATION_MODE = 5; // GPIO 5
-const int LINE_OUT_MODE = 4; // GPIO 4
-const int USB_OUT_MODE = 14; // GPIO 14
-const int HDMI_OUT_MODE = 15; // GPIO 15
-const int PCIE_OUT_MODE = 18; // GPIO 18
+const int START_MEASUREMENT_BUTTON = 7; // GPIO 7
+const int CALIBRATION_MODE_BUTTON = 25; // GPIO 25
+const int LINE_OUT_MODE_BUTTON = 17; // GPIO 17
+const int USB_OUT_MODE_BUTTON = 22; // GPIO 22
+const int HDMI_OUT_MODE_BUTTON = 9; // GPIO 9
+const int PCIE_OUT_MODE_BUTTON = 5; // GPIO 5
 
 // User feedback
-const int START_MEASUREMENT_LED = 22; // GPIO 22
-const int CALIBRATION_MODE_RED_LED = 23; // GPIO 23
-const int CALIBRATION_MODE_YELLOW_LED = 24; // GPIO 24
-const int CALIBRATION_MODE_GREEN_LED = 10; // GPIO 19
-const int LINE_OUT_MODE_LED = 9; // GPIO 9
-const int USB_OUT_MODE_LED = 25; // GPIO 25
-const int HDMI_OUT_MODE_LED = 11; // GPIO 11
-const int PCIE_OUT_MODE_LED = 8; // GPIO 8
+const int START_MEASUREMENT_LED = 8; // GPIO 8
+const int CALIBRATION_MODE_RED_LED = 24; // GPIO 24
+const int CALIBRATION_MODE_YELLOW_LED = 23; // GPIO 23
+const int CALIBRATION_MODE_GREEN_LED = 18; // GPIO 18
+const int LINE_OUT_MODE_LED = 4; // GPIO 4
+const int USB_OUT_MODE_LED = 27; // GPIO 27
+const int HDMI_OUT_MODE_LED = 10; // GPIO 10
+const int PCIE_OUT_MODE_LED = 11; // GPIO 11
 
 // Latency measurement
-int measurementMode = LINE_OUT_MODE;
+int measurementMode = LINE_OUT_MODE_BUTTON;
 uint32_t startTimestamp, endTimestamp;
 int latencyInMicros;
 int latencyMeasurementsInMicros[TOTAL_MEASUREMENTS];
@@ -206,12 +206,12 @@ int initGpioLibrary() {
     // Set GPIO Modes
     gpioSetMode(LINE_OUT, PI_OUTPUT);
     gpioSetMode(LINE_IN, PI_INPUT);
-    gpioSetMode(START_MEASUREMENT, PI_INPUT);
-    gpioSetMode(CALIBRATION_MODE, PI_INPUT);
-    gpioSetMode(LINE_OUT_MODE, PI_INPUT);
-    gpioSetMode(USB_OUT_MODE, PI_INPUT);
-    gpioSetMode(HDMI_OUT_MODE, PI_INPUT);
-    gpioSetMode(PCIE_OUT_MODE, PI_INPUT);
+    gpioSetMode(START_MEASUREMENT_BUTTON, PI_INPUT);
+    gpioSetMode(CALIBRATION_MODE_BUTTON, PI_INPUT);
+    gpioSetMode(LINE_OUT_MODE_BUTTON, PI_INPUT);
+    gpioSetMode(USB_OUT_MODE_BUTTON, PI_INPUT);
+    gpioSetMode(HDMI_OUT_MODE_BUTTON, PI_INPUT);
+    gpioSetMode(PCIE_OUT_MODE_BUTTON, PI_INPUT);
     gpioSetMode(START_MEASUREMENT_LED, PI_OUTPUT);
     gpioSetMode(CALIBRATION_MODE_GREEN_LED, PI_OUTPUT);
     gpioSetMode(CALIBRATION_MODE_YELLOW_LED, PI_OUTPUT);
@@ -252,8 +252,8 @@ int startMeasurementDigitalOut(int measurementMethod) {
         iterations = TOTAL_MEASUREMENTS;
     }
 
-    /* Open PCM device for playback. */ // TODO: switch HDMI_MODE USB_MODE PCI_MODE
-    if (measurementMode == USB_OUT_MODE) {
+    /* Open PCM device for playback. */
+    if (measurementMode == USB_OUT_MODE_BUTTON) {
         status = snd_pcm_open(&handle, ALSA_USB_TOP_OUT, SND_PCM_STREAM_PLAYBACK, 0);
         if (status < 0) {
             fprintf(stderr, "unable to open pcm device: %s\n", snd_strerror(status));
@@ -264,7 +264,7 @@ int startMeasurementDigitalOut(int measurementMethod) {
             }
         }
     }
-    else if (measurementMode == HDMI_OUT_MODE) {
+    else if (measurementMode == HDMI_OUT_MODE_BUTTON) {
         status = snd_pcm_open(&handle, ALSA_HDMI0_OUT, SND_PCM_STREAM_PLAYBACK, 0);
         if (status < 0) {
             fprintf(stderr, "unable to open pcm device: %s\n", snd_strerror(status));
@@ -376,7 +376,7 @@ int startMeasurementDigitalOut(int measurementMethod) {
 
 void waitForUserInput() {
     while (1) {
-        if (gpioRead(START_MEASUREMENT) == 1) {
+        if (gpioRead(START_MEASUREMENT_BUTTON) == 1) {
             gpioWrite(START_MEASUREMENT_LED, 1);
             validMeasurmentsCount = 0;
             maxLatencyInMicros = -1;
@@ -384,7 +384,7 @@ void waitForUserInput() {
             for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
                 latencyMeasurementsInMicros[i] = -1;
             }
-            if (measurementMode == LINE_OUT_MODE) {
+            if (measurementMode == LINE_OUT_MODE_BUTTON) {
                 startMeasurementLineOut(MEASURE);
             }
             // USB_, HDMI_, PCIE_OUT
@@ -399,18 +399,18 @@ void waitForUserInput() {
             }
             
         }
-        else if (gpioRead(CALIBRATION_MODE) == 1) {
-            while (gpioRead(CALIBRATION_MODE) == 1) {
+        else if (gpioRead(CALIBRATION_MODE_BUTTON) == 1) {
+            while (gpioRead(CALIBRATION_MODE_BUTTON) == 1) {
                 // Waiting until button is released
             }
-            while (gpioRead(START_MEASUREMENT) == 0
-                    && gpioRead(CALIBRATION_MODE) == 0
-                    && gpioRead(LINE_OUT_MODE) == 0
-                    && gpioRead(USB_OUT_MODE) == 0
-                    && gpioRead(HDMI_OUT_MODE) == 0
-                    && gpioRead(PCIE_OUT_MODE) == 0) {
+            while (gpioRead(START_MEASUREMENT_BUTTON) == 0
+                    && gpioRead(CALIBRATION_MODE_BUTTON) == 0
+                    && gpioRead(LINE_OUT_MODE_BUTTON) == 0
+                    && gpioRead(USB_OUT_MODE_BUTTON) == 0
+                    && gpioRead(HDMI_OUT_MODE_BUTTON) == 0
+                    && gpioRead(PCIE_OUT_MODE_BUTTON) == 0) {
                 validMeasurmentsCount = 0;
-                if (measurementMode == LINE_OUT_MODE) {
+                if (measurementMode == LINE_OUT_MODE_BUTTON) {
                     startMeasurementLineOut(CALIBRATE);
                 }
                 // USB_, HDMI_, PCIE_OUT
@@ -443,38 +443,38 @@ void waitForUserInput() {
         }
         // Measurement mode got changed
         // Duplicate code could not be avoided here.
-        else if (gpioRead(LINE_OUT_MODE) == 1) {
+        else if (gpioRead(LINE_OUT_MODE_BUTTON) == 1) {
             //TODO: Function
             gpioWrite(LINE_OUT_MODE_LED, 0);
             gpioWrite(USB_OUT_MODE_LED, 0);
             gpioWrite(HDMI_OUT_MODE_LED, 0);
             gpioWrite(PCIE_OUT_MODE_LED, 0);
             //
-            measurementMode = LINE_OUT_MODE;
+            measurementMode = LINE_OUT_MODE_BUTTON;
             gpioWrite(LINE_OUT_MODE_LED, 1);
         }
-        else if (gpioRead(USB_OUT_MODE) == 1) {
+        else if (gpioRead(USB_OUT_MODE_BUTTON) == 1) {
             gpioWrite(LINE_OUT_MODE_LED, 0);
             gpioWrite(USB_OUT_MODE_LED, 0);
             gpioWrite(HDMI_OUT_MODE_LED, 0);
             gpioWrite(PCIE_OUT_MODE_LED, 0);
-            measurementMode = USB_OUT_MODE;
+            measurementMode = USB_OUT_MODE_BUTTON;
             gpioWrite(USB_OUT_MODE_LED, 1);
         }
-        else if (gpioRead(HDMI_OUT_MODE) == 1) {
+        else if (gpioRead(HDMI_OUT_MODE_BUTTON) == 1) {
             gpioWrite(LINE_OUT_MODE_LED, 0);
             gpioWrite(USB_OUT_MODE_LED, 0);
             gpioWrite(HDMI_OUT_MODE_LED, 0);
             gpioWrite(PCIE_OUT_MODE_LED, 0);
-            measurementMode = HDMI_OUT_MODE;
+            measurementMode = HDMI_OUT_MODE_BUTTON;
             gpioWrite(HDMI_OUT_MODE_LED, 1);
         }
-        else if (gpioRead(PCIE_OUT_MODE) == 1) {
+        else if (gpioRead(PCIE_OUT_MODE_BUTTON) == 1) {
             gpioWrite(LINE_OUT_MODE_LED, 0);
             gpioWrite(USB_OUT_MODE_LED, 0);
             gpioWrite(HDMI_OUT_MODE_LED, 0);
             gpioWrite(PCIE_OUT_MODE_LED, 0);
-            measurementMode = PCIE_OUT_MODE;
+            measurementMode = PCIE_OUT_MODE_BUTTON;
             gpioWrite(PCIE_OUT_MODE_LED, 1);
             // TODO: Remove this
             return;
@@ -501,21 +501,21 @@ int main(void) {
     // TODO: Remove this
     gpioSetMode(LINE_OUT, PI_OUTPUT);
     gpioSetMode(LINE_IN, PI_OUTPUT);
-    gpioSetMode(START_MEASUREMENT, PI_OUTPUT);
-    gpioSetMode(CALIBRATION_MODE, PI_OUTPUT);
-    gpioSetMode(LINE_OUT_MODE, PI_OUTPUT);
-    gpioSetMode(USB_OUT_MODE, PI_OUTPUT);
-    gpioSetMode(HDMI_OUT_MODE, PI_OUTPUT);
-    gpioSetMode(PCIE_OUT_MODE, PI_OUTPUT);
+    gpioSetMode(START_MEASUREMENT_BUTTON, PI_OUTPUT);
+    gpioSetMode(CALIBRATION_MODE_BUTTON, PI_OUTPUT);
+    gpioSetMode(LINE_OUT_MODE_BUTTON, PI_OUTPUT);
+    gpioSetMode(USB_OUT_MODE_BUTTON, PI_OUTPUT);
+    gpioSetMode(HDMI_OUT_MODE_BUTTON, PI_OUTPUT);
+    gpioSetMode(PCIE_OUT_MODE_BUTTON, PI_OUTPUT);
 
     gpioWrite(LINE_OUT, 0);
     gpioWrite(LINE_IN, 0);
-    gpioWrite(START_MEASUREMENT, 0);
-    gpioWrite(CALIBRATION_MODE, 0);
-    gpioWrite(LINE_OUT_MODE, 0);
-    gpioWrite(USB_OUT_MODE, 0);
-    gpioWrite(HDMI_OUT_MODE, 0);
-    gpioWrite(PCIE_OUT_MODE, 0);
+    gpioWrite(START_MEASUREMENT_BUTTON, 0);
+    gpioWrite(CALIBRATION_MODE_BUTTON, 0);
+    gpioWrite(LINE_OUT_MODE_BUTTON, 0);
+    gpioWrite(USB_OUT_MODE_BUTTON, 0);
+    gpioWrite(HDMI_OUT_MODE_BUTTON, 0);
+    gpioWrite(PCIE_OUT_MODE_BUTTON, 0);
     gpioWrite(START_MEASUREMENT_LED, 0);
     gpioWrite(CALIBRATION_MODE_GREEN_LED, 0);
     gpioWrite(CALIBRATION_MODE_YELLOW_LED, 0);
