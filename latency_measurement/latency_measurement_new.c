@@ -377,6 +377,7 @@ int startMeasurementDigitalOut(int measurementMethod) {
 void waitForUserInput() {
     while (1) {
         if (gpioRead(START_MEASUREMENT_BUTTON) == 1) {
+            printf("START_MEASUREMENT\n");
             gpioWrite(START_MEASUREMENT_LED, 1);
             validMeasurmentsCount = 0;
             maxLatencyInMicros = -1;
@@ -400,6 +401,7 @@ void waitForUserInput() {
             
         }
         else if (gpioRead(CALIBRATION_MODE_BUTTON) == 1) {
+            printf("START_CALIBRATION\n");
             while (gpioRead(CALIBRATION_MODE_BUTTON) == 1) {
                 // Waiting until button is released
             }
@@ -444,6 +446,7 @@ void waitForUserInput() {
         // Measurement mode got changed
         // Duplicate code could not be avoided here.
         else if (gpioRead(LINE_OUT_MODE_BUTTON) == 1) {
+            printf("LINE_OUT\n");
             //TODO: Function
             gpioWrite(LINE_OUT_MODE_LED, 0);
             gpioWrite(USB_OUT_MODE_LED, 0);
@@ -454,6 +457,7 @@ void waitForUserInput() {
             gpioWrite(LINE_OUT_MODE_LED, 1);
         }
         else if (gpioRead(USB_OUT_MODE_BUTTON) == 1) {
+            printf("USB_OUT\n");
             gpioWrite(LINE_OUT_MODE_LED, 0);
             gpioWrite(USB_OUT_MODE_LED, 0);
             gpioWrite(HDMI_OUT_MODE_LED, 0);
@@ -462,6 +466,7 @@ void waitForUserInput() {
             gpioWrite(USB_OUT_MODE_LED, 1);
         }
         else if (gpioRead(HDMI_OUT_MODE_BUTTON) == 1) {
+            printf("HDMI_OUT\n");
             gpioWrite(LINE_OUT_MODE_LED, 0);
             gpioWrite(USB_OUT_MODE_LED, 0);
             gpioWrite(HDMI_OUT_MODE_LED, 0);
@@ -470,6 +475,7 @@ void waitForUserInput() {
             gpioWrite(HDMI_OUT_MODE_LED, 1);
         }
         else if (gpioRead(PCIE_OUT_MODE_BUTTON) == 1) {
+            printf("PCIE_OUT\n");
             gpioWrite(LINE_OUT_MODE_LED, 0);
             gpioWrite(USB_OUT_MODE_LED, 0);
             gpioWrite(HDMI_OUT_MODE_LED, 0);
