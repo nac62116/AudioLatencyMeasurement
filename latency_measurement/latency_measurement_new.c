@@ -24,7 +24,7 @@ const int CALIBRATE = 0;
 const int MEASURE = 1;
 
 // User inputs
-const int START_MEASUREMENT_BUTTON = 7; // GPIO 7
+const int START_MEASUREMENT_BUTTON = 8; // GPIO 8
 const int CALIBRATION_MODE_BUTTON = 25; // GPIO 25
 const int LINE_OUT_MODE_BUTTON = 17; // GPIO 17
 const int USB_OUT_MODE_BUTTON = 22; // GPIO 22
@@ -32,7 +32,7 @@ const int HDMI_OUT_MODE_BUTTON = 9; // GPIO 9
 const int PCIE_OUT_MODE_BUTTON = 5; // GPIO 5
 
 // User feedback
-const int START_MEASUREMENT_LED = 8; // GPIO 8
+const int START_MEASUREMENT_LED = 7; // GPIO 7
 const int CALIBRATION_MODE_RED_LED = 24; // GPIO 24
 const int CALIBRATION_MODE_YELLOW_LED = 23; // GPIO 23
 const int CALIBRATION_MODE_GREEN_LED = 18; // GPIO 18
