@@ -26,9 +26,9 @@ const int MEASURE = 1;
 // User inputs
 const int START_MEASUREMENT_BUTTON = 9; // GPIO 9
 const int CALIBRATION_MODE_BUTTON = 10; // GPIO 10
-const int LINE_OUT_MODE_BUTTON = 23; // GPIO 23
+const int LINE_OUT_MODE_BUTTON = 25; // GPIO 23
 const int USB_OUT_MODE_BUTTON = 15; // GPIO 15
-const int HDMI_OUT_MODE_BUTTON = 25; // GPIO 25
+const int HDMI_OUT_MODE_BUTTON = 23; // GPIO 25
 const int PCIE_OUT_MODE_BUTTON = 7; // GPIO 7
 
 // User feedback
