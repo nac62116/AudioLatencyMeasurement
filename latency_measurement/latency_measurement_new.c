@@ -103,7 +103,7 @@ double calculateSignalInterval(int measurementCount) {
 
 // Line-in callback
 void onLineIn(int gpio, int level, uint32_t tick) {
-    printf("GPIO %d state changed to level %d at %d\n", gpio, level, tick);
+    printf("onLineIn: GPIO %d state changed to level %d at %d\n", gpio, level, tick);
     
     // Rising Edge
     if (level == 1) {
@@ -142,8 +142,7 @@ void onLineIn(int gpio, int level, uint32_t tick) {
 
 // Line-out callback
 void onLineOut(int gpio, int level, uint32_t tick) {
-    printf("GPIO %d state changed to level %d at %d\n", gpio, level, tick);
-    printf("onLineOut");
+    printf("onLineOut: GPIO %d state changed to level %d at %d\n", gpio, level, tick);
     
     // Rising Edge
     if (level == 1) {
@@ -374,6 +373,9 @@ int startMeasurementDigitalOut(int measurementMethod) {
 // ####
 // #### USER INTERFACE VIA GPIOS ####
 
+// TODO: Remove this
+int lineButtonCount = 1;
+
 void waitForUserInput() {
     while (1) {
         if (gpioRead(START_MEASUREMENT_BUTTON) == 1) {
@@ -446,7 +448,8 @@ void waitForUserInput() {
         // Measurement mode got changed
         // Duplicate code could not be avoided here.
         else if (gpioRead(LINE_OUT_MODE_BUTTON) == 1) {
-            printf("LINE_OUT\n");
+            printf("LINE_OUT: %d\n", lineButtonCount);
+            lineButtonCount++;
             //TODO: Function
             gpioWrite(LINE_OUT_MODE_LED, 0);
             gpioWrite(USB_OUT_MODE_LED, 0);
