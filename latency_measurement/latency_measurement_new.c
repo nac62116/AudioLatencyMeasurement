@@ -36,9 +36,9 @@ const int START_MEASUREMENT_LED = 11; // GPIO 11
 const int CALIBRATION_MODE_RED_LED = 22; // GPIO 22
 const int CALIBRATION_MODE_YELLOW_LED = 27; // GPIO 27
 const int CALIBRATION_MODE_GREEN_LED = 17; // GPIO 17
-const int LINE_OUT_MODE_LED = 18; // GPIO 18
+const int LINE_OUT_MODE_LED = 24; // GPIO 18
 const int USB_OUT_MODE_LED = 14; // GPIO 14
-const int HDMI_OUT_MODE_LED = 24; // GPIO 24
+const int HDMI_OUT_MODE_LED = 18; // GPIO 24
 const int PCIE_OUT_MODE_LED = 8; // GPIO 8
 
 // Latency measurement
