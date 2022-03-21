@@ -501,6 +501,7 @@ int main(void) {
     status = initGpioLibrary();
     printf("Status after gpioInitialise: %d\n", status);
     status = gpioWrite(LINE_OUT_MODE_LED, 1);
+    status = gpioWrite(LINE_IN, 0);
     
     //startMeasurementDigitalOut();
     //startMeasurementLineOut();
