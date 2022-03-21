@@ -476,6 +476,8 @@ void waitForUserInput() {
             gpioWrite(PCIE_OUT_MODE_LED, 0);
             measurementMode = HDMI_OUT_MODE_BUTTON;
             gpioWrite(HDMI_OUT_MODE_LED, 1);
+            // TODO: Remove this
+            return;
         }
         else if (gpioRead(PCIE_OUT_MODE_BUTTON) == 1) {
             printf("PCIE_OUT\n");
@@ -485,8 +487,6 @@ void waitForUserInput() {
             gpioWrite(PCIE_OUT_MODE_LED, 0);
             measurementMode = PCIE_OUT_MODE_BUTTON;
             gpioWrite(PCIE_OUT_MODE_LED, 1);
-            // TODO: Remove this
-            return;
         }
         else {
             // No action, just keeping the while loop going
