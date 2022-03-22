@@ -2,8 +2,8 @@ KERNEL!="sd[a-z][0-9]", GOTO="media_by_label_auto_mount_end"
 # Import FS infos  
 IMPORT{program}="/usr/sbin/blkid -o udev -p %N" 
 # Copy latency measurements to device
-ACTION=="change", ENV{ID_FS_LABEL}!="", RUN+="/usr/bin/cp -r /home/pi/Desktop/AudioLagModule/Measurements /media/pi/%E{ID_FS_LABEL}"
-ACTION=="change", ENV{ID_FS_LABEL}=="", RUN+="/usr/bin/cp -r /home/pi/Desktop/AudioLagModule/Measurements /media/pi/usbhd-%k"
+ACTION=="change", ENV{ID_FS_LABEL}!="", RUN+="/usr/bin/cp -r /home/pi/Desktop/AudioLagModule/measurements /media/pi/%E{ID_FS_LABEL}"
+ACTION=="change", ENV{ID_FS_LABEL}=="", RUN+="/usr/bin/cp -r /home/pi/Desktop/AudioLagModule/measurements /media/pi/usbhd-%k"
 # Delete ghost directories
 ACTION=="remove", ENV{ID_FS_LABEL}!="", RUN+="/usr/bin/rm -r /media/pi/%E{ID_FS_LABEL}"
 ACTION=="remove", ENV{ID_FS_LABEL}=="", RUN+="/usr/bin/rm -r /media/pi/usbhd-%k"
