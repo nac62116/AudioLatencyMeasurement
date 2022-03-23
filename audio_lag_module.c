@@ -259,7 +259,7 @@ void writeMeasurementsToCSV() {
         fclose(filePointer);
     }
     else {
-        // Could not open file
+        printf("audio_lag_module.c l.262: Could not open file\n");
     }
 }
 
@@ -493,7 +493,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
 
     status = openPCMDeviceForPlayback(&handle);
     if (status < 0) {
-        // Unable to open PCM Device
+        printf("audio_lag_module.c l.496: Unable to open PCM Device\n");
         return;
     }
     /* Open PCM device for playback. 
@@ -530,7 +530,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
 
     status = setPCMDevicesHardwareParameters(handle, &params, &frames, dir);
     if (status < 0) {
-        // Unable to set hardware parameters
+        printf("audio_lag_module.c l.533: Unable to set PCM devices hardware parameters\n");
         return;
     }
     /* Allocate a hardware parameters object. 
