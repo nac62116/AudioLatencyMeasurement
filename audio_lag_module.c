@@ -428,7 +428,8 @@ int setPCMDevicesHardwareParameters(snd_pcm_t *handle, snd_pcm_hw_params_t **par
     return(status);
 }
 
-void createMinimumAudioBuffer(char *buffer, snd_pcm_hw_params_t *params, snd_pcm_uframes_t *frames, int dir) {
+char * createMinimumAudioBuffer(snd_pcm_hw_params_t *params, snd_pcm_uframes_t *frames, int dir) {
+    char *buffer;
     /* Use a buffer large enough to hold one period */
     snd_pcm_hw_params_get_period_size(params, frames, &dir);
     bufferSize = (snd_pcm_uframes_t) frames * BYTES_PER_SAMPLE * NUMBER_OF_CHANNELS;
@@ -438,6 +439,7 @@ void createMinimumAudioBuffer(char *buffer, snd_pcm_hw_params_t *params, snd_pcm
     for (int byte = 0; byte < bufferSize; byte++) {
         buffer[byte] = 127;
     }
+    return(buffer);
 }
 
 void writeAudioBufferToPCMDevice(snd_pcm_t *handle, char *buffer, snd_pcm_uframes_t frames, unsigned int periodTimeInMicros) {
@@ -555,7 +557,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
         return;
     }*/
 
-    createMinimumAudioBuffer(&buffer, params, &frames, dir);
+    buffer = createMinimumAudioBuffer(params, &frames, dir);
     /* Use a buffer large enough to hold one period 
     snd_pcm_hw_params_get_period_size(params, &frames, &dir);
     bufferSize = frames * BYTES_PER_SAMPLE * NUMBER_OF_CHANNELS;
