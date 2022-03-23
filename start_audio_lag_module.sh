@@ -1,4 +1,5 @@
 #!/bin/sh
 
 make
-nohup ./audio_lag_module
+./audio_lag_module
+$SHELL
