@@ -420,7 +420,7 @@ int setPCMDevicesHardwareParameters(snd_pcm_t *handle, snd_pcm_hw_params_t **par
     sampleRate = PREFERRED_SAMPLE_RATE;
     snd_pcm_hw_params_set_rate_near(handle, (snd_pcm_hw_params_t *) params, &sampleRate, &dir);
     /* Set period size to minimum to create smallest possible buffer size. */
-    snd_pcm_hw_params_get_period_size_min(params, &frames, &dir);
+    snd_pcm_hw_params_get_period_size_min((snd_pcm_hw_params_t *) params, frames, &dir);
     snd_pcm_hw_params_set_period_size_near(handle, (snd_pcm_hw_params_t *) params, frames, &dir);
 
     /* Write the parameters to the driver */
@@ -555,7 +555,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
         return;
     }*/
 
-    createMinimumAudioBuffer(buffer, params, &frames, dir);
+    createMinimumAudioBuffer(&buffer, params, &frames, dir);
     /* Use a buffer large enough to hold one period 
     snd_pcm_hw_params_get_period_size(params, &frames, &dir);
     bufferSize = frames * BYTES_PER_SAMPLE * NUMBER_OF_CHANNELS;
