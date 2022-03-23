@@ -403,35 +403,35 @@ int openPCMDeviceForPlayback(snd_pcm_t **handle) {
     return(status);
 }
 
-int setPCMDevicesHardwareParameters(snd_pcm_t *handle, snd_pcm_hw_params_t *params, snd_pcm_uframes_t frames, int dir) {
+int setPCMDevicesHardwareParameters(snd_pcm_t *handle, snd_pcm_hw_params_t **params, snd_pcm_uframes_t *frames, int dir) {
     int status;
 
     /* Allocate a hardware parameters object. */
-    snd_pcm_hw_params_alloca(&params);
+    snd_pcm_hw_params_alloca(params);
 
     /* Fill it in with default values. */
-    snd_pcm_hw_params_any(handle, params);
+    snd_pcm_hw_params_any(handle, (snd_pcm_hw_params_t *) params);
 
     /* Set the desired hardware parameters. */
-    snd_pcm_hw_params_set_access(handle, params, ACCESS_TYPE);
+    snd_pcm_hw_params_set_access(handle, (snd_pcm_hw_params_t *) params, ACCESS_TYPE);
     //snd_pcm_hw_params_set_access(handle, params, SND_PCM_FORMAT_S32_LE);
-    snd_pcm_hw_params_set_format(handle, params, FORMAT_TYPE);
-    snd_pcm_hw_params_set_channels(handle, params, NUMBER_OF_CHANNELS);
+    snd_pcm_hw_params_set_format(handle, (snd_pcm_hw_params_t *) params, FORMAT_TYPE);
+    snd_pcm_hw_params_set_channels(handle, (snd_pcm_hw_params_t *) params, NUMBER_OF_CHANNELS);
     sampleRate = PREFERRED_SAMPLE_RATE;
-    snd_pcm_hw_params_set_rate_near(handle, params, &sampleRate, &dir);
+    snd_pcm_hw_params_set_rate_near(handle, (snd_pcm_hw_params_t *) params, &sampleRate, &dir);
     /* Set period size to minimum to create smallest possible buffer size. */
-    snd_pcm_hw_params_get_period_size_min(params, (snd_pcm_uframes_t *) &frames, &dir);
-    snd_pcm_hw_params_set_period_size_near(handle, params, &frames, &dir);
+    snd_pcm_hw_params_get_period_size_min(params, &frames, &dir);
+    snd_pcm_hw_params_set_period_size_near(handle, (snd_pcm_hw_params_t *) params, frames, &dir);
 
     /* Write the parameters to the driver */
-    status = snd_pcm_hw_params(handle, params);
+    status = snd_pcm_hw_params(handle, (snd_pcm_hw_params_t *) params);
     return(status);
 }
 
-void createMinimumAudioBuffer(char *buffer, snd_pcm_hw_params_t *params, snd_pcm_uframes_t frames, int dir) {
+void createMinimumAudioBuffer(char *buffer, snd_pcm_hw_params_t *params, snd_pcm_uframes_t *frames, int dir) {
     /* Use a buffer large enough to hold one period */
-    snd_pcm_hw_params_get_period_size(params, &frames, &dir);
-    bufferSize = frames * BYTES_PER_SAMPLE * NUMBER_OF_CHANNELS;
+    snd_pcm_hw_params_get_period_size(params, frames, &dir);
+    bufferSize = (snd_pcm_uframes_t) frames * BYTES_PER_SAMPLE * NUMBER_OF_CHANNELS;
     buffer = (char *) malloc(bufferSize);
 
     /* Fill audio buffer */
@@ -526,7 +526,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
         }
     }*/
 
-    status = setPCMDevicesHardwareParameters(handle, params, frames, dir);
+    status = setPCMDevicesHardwareParameters(handle, &params, &frames, dir);
     if (status < 0) {
         // Unable to set hardware parameters
         return;
@@ -555,7 +555,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
         return;
     }*/
 
-    createMinimumAudioBuffer(buffer, params, frames, dir);
+    createMinimumAudioBuffer(buffer, params, &frames, dir);
     /* Use a buffer large enough to hold one period 
     snd_pcm_hw_params_get_period_size(params, &frames, &dir);
     bufferSize = frames * BYTES_PER_SAMPLE * NUMBER_OF_CHANNELS;
