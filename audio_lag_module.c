@@ -399,6 +399,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
     snd_pcm_hw_params_t *params;
     unsigned int periodTimeInMicros;
     snd_pcm_uframes_t frames;
+    long numberOfPeriods;
     char *buffer;
     int iterations;
 
