@@ -90,7 +90,7 @@ const char *DUT_INPUT_VALUE_USB = "USB IN";
 const char *DUT_INPUT_VALUE_HDMI = "HDMI IN";
 const char *DUT_INPUT_VALUE_PCIE = "PCIE IN";
 const char *MEASUREMENTS_FOLDER_PATH = "/home/pi/Desktop/AudioLatencyMeasurement/measurements/";
-const char *CSV_HEADER = "LATENCY_IN_MICROS,DUT_INPUT,DUT_OUTPUT,BUFFER_SIZE,SAMPLE_RATE\n";
+const char *CSV_HEADER = "LATENCY_IN_MICROS,DUT_INPUT,DUT_OUTPUT,BUFFER_SIZE,SAMPLE_RATE,CHANNELS\n";
 
 // ####
 // #### LOGIC ####
@@ -191,82 +191,30 @@ void writeMeasurementsToCSV() {
     char dutOutput[1024];
     char measurementsFolderPath[1024];
 
-    printf("before getMeasurementDependentValues\n");
     getMeasurementDependentValuesForCSV(fileName, dutInput, dutOutput);
-    /*
-    if (measurementMode == LINE_OUT_MODE_BUTTON) {
-        fileNamePrefix = FILE_NAME_PREFIX_LINE_TO_LINE;
-        dutInput = DUT_INPUT_VALUE_LINE;
-    }
-    else if (measurementMode == USB_OUT_MODE_BUTTON) {
-        fileNamePrefix = FILE_NAME_PREFIX_USB_TO_LINE;
-        dutInput = DUT_INPUT_VALUE_USB;
-    }
-    else if (measurementMode == HDMI_OUT_MODE_BUTTON) {
-        fileNamePrefix = FILE_NAME_PREFIX_HDMI_TO_LINE;
-        dutInput = DUT_INPUT_VALUE_HDMI;
-    }
-    else {
-        fileNamePrefix = FILE_NAME_PREFIX_PCIE_TO_LINE;
-        dutInput = DUT_INPUT_VALUE_PCIE;
-    }
-    strcpy(fileName, fileNamePrefix);
-    dutOutput = DUT_OUTPUT_VALUE_LINE;
-    */
-    printf("before addTimestampToFileName\n");
     addTimestampToFileName(fileName);
-    /* Obtain current time. 
-    currentTime = time(NULL);
-
-    if (currentTime == ((time_t)-1)) {
-        if (gpioTime(PI_TIME_ABSOLUTE, secondsSinceEpoch, microsSinceEpoch) == 0) {
-            strcat(fileName, secondsSinceEpoch);
-        }
-        else {
-            strcat(fileName, FILE_NAME_SUFFIX_NO_TIMESTAMP);
-        }
-    }
-    else {
-        // Convert to local time format. 
-        currentTimeString = ctime(&currentTime);
-
-        if (currentTimeString == NULL) {
-            if (gpioTime(PI_TIME_ABSOLUTE, secondsSinceEpoch, microsSinceEpoch) == 0) {
-                strcat(fileName, secondsSinceEpoch);
-            }
-            else {
-                strcat(fileName, FILE_NAME_SUFFIX_NO_TIMESTAMP);
-            }
-        }
-        else {
-            strcat(fileName, currentTimeString);
-        }
-    }
-    */
-    printf("before addFileTypeToFileName\n");
     // Adding file type .csv and writing csv file
     strcat(fileName, FILE_TYPE_SUFFIX);
-
-    printf("before fopen\n");
+    // Appending file name to measurements folder path
     strcpy(measurementsFolderPath, MEASUREMENTS_FOLDER_PATH);
     strcat(measurementsFolderPath, fileName);
     filePointer = fopen(measurementsFolderPath, "w");
 
-    printf("before write file\n");
     if (filePointer != NULL) {
         fprintf(filePointer, CSV_HEADER);
         for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
-            fprintf(filePointer, "%d,%s,%s,%d,%d\n",
+            fprintf(filePointer, "%d,%s,%s,%d,%d,%d\n",
                     latencyMeasurementsInMicros[i],
                     dutInput,
                     dutOutput,
                     bufferSize,
-                    sampleRate);
+                    sampleRate,
+                    NUMBER_OF_CHANNELS);
         }
         fclose(filePointer);
     }
     else {
-        printf("audio_lag_module.c l.262: Could not open file\n");
+        printf("audio_lag_module.c l.217: Could not open file\n");
     }
 }
 
@@ -417,7 +365,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
             // Unable to open pcm device
             status = snd_pcm_open(&handle, ALSA_USB_BOTTOM_OUT, SND_PCM_STREAM_PLAYBACK, 0);
             if (status < 0) {
-                printf("audio_lag_module.c l.496: Unable to open PCM Device\n");
+                printf("audio_lag_module.c l.368: Unable to open PCM Device\n");
                 return;
             }
         }
@@ -428,7 +376,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
             // Unable to open pcm device
             status = snd_pcm_open(&handle, ALSA_HDMI1_OUT, SND_PCM_STREAM_PLAYBACK, 0);
             if (status < 0) {
-                printf("audio_lag_module.c l.496: Unable to open PCM Device\n");
+                printf("audio_lag_module.c l.379: Unable to open PCM Device\n");
                 return;
             }
         }
@@ -437,7 +385,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
     else {
         status = snd_pcm_open(&handle, ALSA_PCIE_OUT, SND_PCM_STREAM_PLAYBACK, 0);
         if (status < 0) {
-            printf("audio_lag_module.c l.496: Unable to open PCM Device\n");
+            printf("audio_lag_module.c l.388: Unable to open PCM Device\n");
             return;
         }
     }
@@ -462,7 +410,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
     // Write the parameters to the driver 
     status = snd_pcm_hw_params(handle, params);
     if (status < 0) {
-        printf("audio_lag_module.c l.533: Unable to set PCM devices hardware parameters\n");
+        printf("audio_lag_module.c l.413: Unable to set PCM devices hardware parameters\n");
         return;
     }
     
