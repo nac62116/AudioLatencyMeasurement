@@ -69,7 +69,7 @@ const char *ALSA_HDMI0_OUT = "hw:CARD=hdmi_audio_1";
 const char *ALSA_PCIE_OUT = "hw:CARD=pcie_audio";
 /* Specific hardware parameters */
 const unsigned int PREFERRED_SAMPLE_RATE = 44100;
-const unsigned int NUMBER_OF_CHANNELS = 2;
+const unsigned int NUMBER_OF_CHANNELS = 1;
 const long MINIMUM_NUMBER_OF_PERIODS = 25;
 const snd_pcm_access_t ACCESS_TYPE = SND_PCM_ACCESS_RW_INTERLEAVED;
 const snd_pcm_format_t FORMAT_TYPE = SND_PCM_FORMAT_S16_LE;
@@ -95,7 +95,7 @@ const char *CSV_HEADER = "LATENCY_IN_MICROS,DUT_INPUT,DUT_OUTPUT,BUFFER_SIZE,SAM
 // ####
 // #### LOGIC ####
 
-void initMeasurement() {
+void resetMeasurement() {
     validMeasurmentsCount = 0;
     maxLatencyInMicros = -1;
     bufferSize = 0;
@@ -508,7 +508,7 @@ void waitForUserInput() {
     while (1) {
         if (gpioRead(START_MEASUREMENT_BUTTON) == 1) {
             gpioWrite(START_MEASUREMENT_LED, 1);
-            initMeasurement();
+            resetMeasurement();
             if (measurementMode == LINE_OUT_MODE_BUTTON) {
                 startMeasurementLineOut(MEASURE);
             }
@@ -531,7 +531,7 @@ void waitForUserInput() {
                     && gpioRead(USB_OUT_MODE_BUTTON) == 0
                     && gpioRead(HDMI_OUT_MODE_BUTTON) == 0
                     && gpioRead(PCIE_OUT_MODE_BUTTON) == 0) {
-                initMeasurement();
+                resetMeasurement();
                 if (measurementMode == LINE_OUT_MODE_BUTTON) {
                     startMeasurementLineOut(CALIBRATE);
                 }
