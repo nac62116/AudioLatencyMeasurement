@@ -155,7 +155,7 @@ void usePigpioForTimestamp(char *fileName) {
 
     if (gpioTime(PI_TIME_ABSOLUTE, &secondsSinceEpoch, &microsSinceEpoch) == 0) {
         sprintf(secondsSinceEpochString, "%d", secondsSinceEpoch);
-        strcat(fileName, (const char) secondsSinceEpochString);
+        strcat(fileName, (const char *) secondsSinceEpochString);
     }
     else {
         strcat(fileName, FILE_NAME_SUFFIX_NO_TIMESTAMP);
@@ -379,31 +379,31 @@ void initGpioLibrary() {
 // ####
 // #### PCM DEVICES (USB, HDMI, PCIE) VIA ALSA ####
 
-int openPCMDeviceForPlayback(snd_pcm_t handle) {
+int openPCMDeviceForPlayback(snd_pcm_t **handle) {
     int status;
 
     if (measurementMode == USB_OUT_MODE_BUTTON) {
-        status = snd_pcm_open(&handle, ALSA_USB_TOP_OUT, SND_PCM_STREAM_PLAYBACK, 0);
+        status = snd_pcm_open(handle, ALSA_USB_TOP_OUT, SND_PCM_STREAM_PLAYBACK, 0);
         if (status < 0) {
             // Unable to open pcm device
-            status = snd_pcm_open(&handle, ALSA_USB_BOTTOM_OUT, SND_PCM_STREAM_PLAYBACK, 0);
+            status = snd_pcm_open(handle, ALSA_USB_BOTTOM_OUT, SND_PCM_STREAM_PLAYBACK, 0);
         }
     }
     else if (measurementMode == HDMI_OUT_MODE_BUTTON) {
-        status = snd_pcm_open(&handle, ALSA_HDMI0_OUT, SND_PCM_STREAM_PLAYBACK, 0);
+        status = snd_pcm_open(handle, ALSA_HDMI0_OUT, SND_PCM_STREAM_PLAYBACK, 0);
         if (status < 0) {
             // Unable to open pcm device
-            status = snd_pcm_open(&handle, ALSA_HDMI1_OUT, SND_PCM_STREAM_PLAYBACK, 0);
+            status = snd_pcm_open(handle, ALSA_HDMI1_OUT, SND_PCM_STREAM_PLAYBACK, 0);
         }
     }
     // PCI_MODE
     else {
-        status = snd_pcm_open(&handle, ALSA_PCIE_OUT, SND_PCM_STREAM_PLAYBACK, 0);
+        status = snd_pcm_open(handle, ALSA_PCIE_OUT, SND_PCM_STREAM_PLAYBACK, 0);
     }
     return(status);
 }
 
-int setPCMDevicesHardwareParameters(snd_pcm_t handle, snd_pcm_hw_params_t params, snd_pcm_uframes_t frames, int dir) {
+int setPCMDevicesHardwareParameters(snd_pcm_t *handle, snd_pcm_hw_params_t *params, snd_pcm_uframes_t frames, int dir) {
     int status;
 
     /* Allocate a hardware parameters object. */
@@ -428,9 +428,7 @@ int setPCMDevicesHardwareParameters(snd_pcm_t handle, snd_pcm_hw_params_t params
     return(status);
 }
 
-char * createMinimumAudioBuffer(snd_pcm_hw_params_t params, snd_pcm_uframes_t frames, int dir) {
-    char *buffer;
-
+void createMinimumAudioBuffer(char *buffer, snd_pcm_hw_params_t *params, snd_pcm_uframes_t frames, int dir) {
     /* Use a buffer large enough to hold one period */
     snd_pcm_hw_params_get_period_size(params, &frames, &dir);
     bufferSize = frames * BYTES_PER_SAMPLE * NUMBER_OF_CHANNELS;
@@ -440,10 +438,9 @@ char * createMinimumAudioBuffer(snd_pcm_hw_params_t params, snd_pcm_uframes_t fr
     for (int byte = 0; byte < bufferSize; byte++) {
         buffer[byte] = 127;
     }
-    return(buffer);
 }
 
-void writeAudioBufferToPCMDevice(snd_pcm_t handle, char *buffer, snd_pcm_uframes_t frames, unsigned int periodTimeInMicros) {
+void writeAudioBufferToPCMDevice(snd_pcm_t *handle, char *buffer, snd_pcm_uframes_t frames, unsigned int periodTimeInMicros) {
     long numberOfPeriods;
     int status;
 
@@ -478,8 +475,8 @@ void startMeasurementDigitalOut(int measurementMethod) {
     double signalIntervalInS;
     int status;
     int dir;
-    snd_pcm_t handle;
-    snd_pcm_hw_params_t params;
+    snd_pcm_t *handle;
+    snd_pcm_hw_params_t *params;
     unsigned int periodTimeInMicros;
     snd_pcm_uframes_t frames;
     char *buffer;
@@ -492,7 +489,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
         iterations = TOTAL_MEASUREMENTS;
     }
 
-    status = openPCMDeviceForPlayback(handle);
+    status = openPCMDeviceForPlayback(&handle);
     if (status < 0) {
         // Unable to open PCM Device
         return;
@@ -558,7 +555,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
         return;
     }*/
 
-    buffer = createMinimumAudioBuffer(params, frames, dir);
+    createMinimumAudioBuffer(buffer, params, frames, dir);
     /* Use a buffer large enough to hold one period 
     snd_pcm_hw_params_get_period_size(params, &frames, &dir);
     bufferSize = frames * BYTES_PER_SAMPLE * NUMBER_OF_CHANNELS;
