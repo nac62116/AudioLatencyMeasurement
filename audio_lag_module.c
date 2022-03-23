@@ -503,6 +503,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
         iterations = TOTAL_MEASUREMENTS;
     }
 
+    printf("before openPCM\n");
     status = openPCMDeviceForPlayback(&handle);
     if (status < 0) {
         printf("audio_lag_module.c l.496: Unable to open PCM Device\n");
@@ -539,7 +540,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
             return;
         }
     }*/
-
+    printf("before PCM hw params\n");
     status = setPCMDevicesHardwareParameters(handle, &params, &frames, dir);
     if (status < 0) {
         printf("audio_lag_module.c l.533: Unable to set PCM devices hardware parameters\n");
@@ -568,7 +569,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
         // Unable to set harware parameters
         return;
     }*/
-
+    printf("before audio buffer\n");
     buffer = createMinimumAudioBuffer(params, &frames, dir);
     /* Use a buffer large enough to hold one period 
     snd_pcm_hw_params_get_period_size(params, &frames, &dir);
@@ -580,7 +581,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
         buffer[byte] = 127;
     }
     */
-
+    printf("before write buffer\n");
     /* We want to loop for SIGNAL_LENGTH_IN_S */
     snd_pcm_hw_params_get_period_time(params, &periodTimeInMicros, &dir);
     
