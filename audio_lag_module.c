@@ -93,35 +93,7 @@ const char *MEASUREMENTS_FOLDER_PATH = "/home/pi/Desktop/AudioLatencyMeasurement
 const char *CSV_HEADER = "LATENCY_IN_MICROS,DUT_INPUT,DUT_OUTPUT,BUFFER_SIZE,SAMPLE_RATE\n";
 
 // ####
-// #### LOGIC AND INITIALISATION ####
-
-void initGpioLibrary() {
-
-    // Initialize library
-    gpioInitialise();
-
-    // Set GPIO Modes
-    gpioSetMode(LINE_OUT, PI_OUTPUT);
-    gpioSetMode(LINE_IN, PI_INPUT);
-    gpioSetMode(START_MEASUREMENT_BUTTON, PI_INPUT);
-    gpioSetMode(CALIBRATION_MODE_BUTTON, PI_INPUT);
-    gpioSetMode(LINE_OUT_MODE_BUTTON, PI_INPUT);
-    gpioSetMode(USB_OUT_MODE_BUTTON, PI_INPUT);
-    gpioSetMode(HDMI_OUT_MODE_BUTTON, PI_INPUT);
-    gpioSetMode(PCIE_OUT_MODE_BUTTON, PI_INPUT);
-    gpioSetMode(START_MEASUREMENT_LED, PI_OUTPUT);
-    gpioSetMode(CALIBRATION_MODE_GREEN_LED, PI_OUTPUT);
-    gpioSetMode(CALIBRATION_MODE_YELLOW_LED, PI_OUTPUT);
-    gpioSetMode(CALIBRATION_MODE_RED_LED, PI_OUTPUT);
-    gpioSetMode(LINE_OUT_MODE_LED, PI_OUTPUT);
-    gpioSetMode(USB_OUT_MODE_LED, PI_OUTPUT);
-    gpioSetMode(HDMI_OUT_MODE_LED, PI_OUTPUT);
-    gpioSetMode(PCIE_OUT_MODE_LED, PI_OUTPUT);
-
-    // Register GPIO state change callback
-    gpioSetAlertFunc(LINE_OUT, onLineOut);
-    gpioSetAlertFunc(LINE_IN, onLineIn);
-}
+// #### LOGIC ####
 
 void initMeasurement() {
     validMeasurmentsCount = 0;
@@ -153,7 +125,7 @@ double calculateSignalInterval(int measurementCount) {
     return(signalIntervalInS);
 }
 
-void getMeasurementDependentValuesForCSV(char *fileName, char *dutInput, char *dutOutput) {
+void getMeasurementDependentValuesForCSV(const char *fileName, const char *dutInput, const char *dutOutput) {
     char *fileNamePrefix;
 
     if (measurementMode == LINE_OUT_MODE_BUTTON) {
@@ -186,7 +158,7 @@ void addTimestampToFileName(char *fileName) {
 
     if (currentTime == ((time_t)-1)) {
         if (gpioTime(PI_TIME_ABSOLUTE, secondsSinceEpoch, microsSinceEpoch) == 0) {
-            strcat(fileName, secondsSinceEpoch);
+            strcat(fileName, (const char *) secondsSinceEpoch);
         }
         else {
             strcat(fileName, FILE_NAME_SUFFIX_NO_TIMESTAMP);
@@ -198,7 +170,7 @@ void addTimestampToFileName(char *fileName) {
 
         if (currentTimeString == NULL) {
             if (gpioTime(PI_TIME_ABSOLUTE, secondsSinceEpoch, microsSinceEpoch) == 0) {
-                strcat(fileName, secondsSinceEpoch);
+                strcat(fileName, (const char *) secondsSinceEpoch);
             }
             else {
                 strcat(fileName, FILE_NAME_SUFFIX_NO_TIMESTAMP);
@@ -251,7 +223,7 @@ void writeMeasurementsToCSV() {
         }
     }
     else {
-        /* Convert to local time format. 
+        // Convert to local time format. 
         currentTimeString = ctime(&currentTime);
 
         if (currentTimeString == NULL) {
@@ -270,7 +242,7 @@ void writeMeasurementsToCSV() {
     // Adding file type .csv and writing csv file
     strcat(fileName, FILE_TYPE_SUFFIX);
 
-    filePointer = fopen(strcat(MEASUREMENTS_FOLDER_PATH, fileName), "w");
+    filePointer = fopen(strcat((char *) MEASUREMENTS_FOLDER_PATH, fileName), "w");
 
     if (filePointer != NULL) {
         fprintf(filePointer, CSV_HEADER);
@@ -374,6 +346,34 @@ void startMeasurementLineOut(int measurementMethod) {
     }
 }
 
+void initGpioLibrary() {
+
+    // Initialize library
+    gpioInitialise();
+
+    // Set GPIO Modes
+    gpioSetMode(LINE_OUT, PI_OUTPUT);
+    gpioSetMode(LINE_IN, PI_INPUT);
+    gpioSetMode(START_MEASUREMENT_BUTTON, PI_INPUT);
+    gpioSetMode(CALIBRATION_MODE_BUTTON, PI_INPUT);
+    gpioSetMode(LINE_OUT_MODE_BUTTON, PI_INPUT);
+    gpioSetMode(USB_OUT_MODE_BUTTON, PI_INPUT);
+    gpioSetMode(HDMI_OUT_MODE_BUTTON, PI_INPUT);
+    gpioSetMode(PCIE_OUT_MODE_BUTTON, PI_INPUT);
+    gpioSetMode(START_MEASUREMENT_LED, PI_OUTPUT);
+    gpioSetMode(CALIBRATION_MODE_GREEN_LED, PI_OUTPUT);
+    gpioSetMode(CALIBRATION_MODE_YELLOW_LED, PI_OUTPUT);
+    gpioSetMode(CALIBRATION_MODE_RED_LED, PI_OUTPUT);
+    gpioSetMode(LINE_OUT_MODE_LED, PI_OUTPUT);
+    gpioSetMode(USB_OUT_MODE_LED, PI_OUTPUT);
+    gpioSetMode(HDMI_OUT_MODE_LED, PI_OUTPUT);
+    gpioSetMode(PCIE_OUT_MODE_LED, PI_OUTPUT);
+
+    // Register GPIO state change callback
+    gpioSetAlertFunc(LINE_OUT, onLineOut);
+    gpioSetAlertFunc(LINE_IN, onLineIn);
+}
+
 // ####
 // #### PCM DEVICES (USB, HDMI, PCIE) VIA ALSA ####
 
@@ -401,7 +401,7 @@ int openPCMDeviceForPlayback(snd_pcm_t *handle) {
     return(status);
 }
 
-int setPCMDevicesHardwareParameters(snd_pcm_t *handle, snd_pcm_hw_params_t *params, snd_pcm_uframes_t frames) {
+int setPCMDevicesHardwareParameters(snd_pcm_t *handle, snd_pcm_hw_params_t *params, snd_pcm_uframes_t frames, int dir) {
     int status;
 
     /* Allocate a hardware parameters object. */
@@ -439,6 +439,9 @@ void createMinimumAudioBuffer(char *buffer, snd_pcm_hw_params_t *params, snd_pcm
 }
 
 void writeAudioBufferToPCMDevice(snd_pcm_t *handle, char *buffer, snd_pcm_uframes_t frames, unsigned int periodTimeInMicros) {
+    long numberOfPeriods;
+    int status;
+
     numberOfPeriods = SIGNAL_LENGTH_IN_S * 1000000 / periodTimeInMicros;
         if (numberOfPeriods < MINIMUM_NUMBER_OF_PERIODS) {
             numberOfPeriods = MINIMUM_NUMBER_OF_PERIODS;
@@ -472,7 +475,6 @@ void startMeasurementDigitalOut(int measurementMethod) {
     int dir;
     snd_pcm_t *handle;
     snd_pcm_hw_params_t *params;
-    long numberOfPeriods;
     unsigned int periodTimeInMicros;
     snd_pcm_uframes_t frames;
     char *buffer;
@@ -522,7 +524,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
         }
     }*/
 
-    status = setPCMDevicesHardwareParameters(handle, params, frames);
+    status = setPCMDevicesHardwareParameters(handle, params, frames, dir);
     if (status < 0) {
         // Unable to set hardware parameters
         return;
@@ -530,21 +532,21 @@ void startMeasurementDigitalOut(int measurementMethod) {
     /* Allocate a hardware parameters object. 
     snd_pcm_hw_params_alloca(&params);
 
-    /* Fill it in with default values. 
+    // Fill it in with default values. 
     snd_pcm_hw_params_any(handle, params);
 
-    /* Set the desired hardware parameters. 
+    // Set the desired hardware parameters. 
     snd_pcm_hw_params_set_access(handle, params, ACCESS_TYPE);
     //snd_pcm_hw_params_set_access(handle, params, SND_PCM_FORMAT_S32_LE);
     snd_pcm_hw_params_set_format(handle, params, FORMAT_TYPE);
     snd_pcm_hw_params_set_channels(handle, params, NUMBER_OF_CHANNELS);
     sampleRate = PREFERRED_SAMPLE_RATE;
     snd_pcm_hw_params_set_rate_near(handle, params, &sampleRate, &dir);
-    /* Set period size to minimum to create smallest possible buffer size.
+    // Set period size to minimum to create smallest possible buffer size.
     snd_pcm_hw_params_get_period_size_min(params, (snd_pcm_uframes_t *) &frames, &dir);
     snd_pcm_hw_params_set_period_size_near(handle, params, &frames, &dir);
 
-    /* Write the parameters to the driver 
+    // Write the parameters to the driver 
     status = snd_pcm_hw_params(handle, params);
     if (status < 0) {
         // Unable to set harware parameters
@@ -557,7 +559,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
     bufferSize = frames * BYTES_PER_SAMPLE * NUMBER_OF_CHANNELS;
     buffer = (char *) malloc(bufferSize);
 
-    /* Fill audio buffer
+    // Fill audio buffer
     for (int byte = 0; byte < bufferSize; byte++) {
         buffer[byte] = 127;
     }
