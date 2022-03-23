@@ -440,11 +440,9 @@ int setPCMDevicesHardwareParameters(snd_pcm_t *handle, snd_pcm_hw_params_t **par
     return(status);
 }
 
-char * createMinimumAudioBuffer(snd_pcm_hw_params_t *params, snd_pcm_uframes_t frames, int dir) {
+char * createMinimumAudioBuffer(snd_pcm_uframes_t frames) {
     char *buffer;
     /* Use a buffer large enough to hold one period */
-    printf("before getPeriodSize\n");
-    snd_pcm_hw_params_get_period_size(params, &frames, &dir);
     printf("before calculate buffer size\n");
     bufferSize = frames * BYTES_PER_SAMPLE * NUMBER_OF_CHANNELS;
     printf("before malloc buffer\n");
@@ -572,8 +570,10 @@ void startMeasurementDigitalOut(int measurementMethod) {
         // Unable to set harware parameters
         return;
     }*/
+    printf("before getPeriodSize\n");
+    snd_pcm_hw_params_get_period_size(params, &frames, &dir);
     printf("before audio buffer\n");
-    buffer = createMinimumAudioBuffer(params, frames, dir);
+    buffer = createMinimumAudioBuffer(frames);
     /* Use a buffer large enough to hold one period 
     snd_pcm_hw_params_get_period_size(params, &frames, &dir);
     bufferSize = frames * BYTES_PER_SAMPLE * NUMBER_OF_CHANNELS;
