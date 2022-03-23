@@ -1,4 +1,4 @@
 #!/bin/sh
 
 make
-./audio_lag_module
+nohup ./audio_lag_module
