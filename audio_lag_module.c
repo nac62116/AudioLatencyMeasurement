@@ -248,7 +248,7 @@ void writeMeasurementsToCSV() {
     strcat(fileName, FILE_TYPE_SUFFIX);
 
     printf("before fopen\n");
-    strcpy(measurementsFolderPath, MEASUREMENTS_FOLDER_PATH)
+    strcpy(measurementsFolderPath, MEASUREMENTS_FOLDER_PATH);
     strcat(measurementsFolderPath, fileName);
     filePointer = fopen(measurementsFolderPath, "w");
 
