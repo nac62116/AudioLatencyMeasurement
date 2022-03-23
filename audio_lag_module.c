@@ -189,6 +189,7 @@ void writeMeasurementsToCSV() {
     char fileName[1024];
     char dutInput[1024];
     char dutOutput[1024];
+    char measurementsFolderPath[1024];
 
     printf("before getMeasurementDependentValues\n");
     getMeasurementDependentValuesForCSV(fileName, dutInput, dutOutput);
@@ -247,7 +248,9 @@ void writeMeasurementsToCSV() {
     strcat(fileName, FILE_TYPE_SUFFIX);
 
     printf("before fopen\n");
-    filePointer = fopen(strcat((char *) MEASUREMENTS_FOLDER_PATH, fileName), "w");
+    strcpy(measurementsFolderPath, MEASUREMENTS_FOLDER_PATH)
+    strcat(measurementsFolderPath, fileName);
+    filePointer = fopen(measurementsFolderPath, "w");
 
     printf("before write file\n");
     if (filePointer != NULL) {
