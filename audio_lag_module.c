@@ -89,7 +89,7 @@ const char *DUT_INPUT_VALUE_LINE = "LINE IN";
 const char *DUT_INPUT_VALUE_USB = "USB IN";
 const char *DUT_INPUT_VALUE_HDMI = "HDMI IN";
 const char *DUT_INPUT_VALUE_PCIE = "PCIE IN";
-const char *MEASUREMENTS_FOLDER_PATH = "/home/pi/Desktop/AudioLagModule/measurements/";
+const char *MEASUREMENTS_FOLDER_PATH = "/home/pi/Desktop/AudioLatencyMeasurement/measurements/";
 const char *CSV_HEADER = "LATENCY_IN_MICROS,DUT_INPUT,DUT_OUTPUT,BUFFER_SIZE,SAMPLE_RATE\n";
 
 // ####
