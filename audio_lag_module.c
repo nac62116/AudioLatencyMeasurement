@@ -377,6 +377,8 @@ void initGPIOs() {
 
     // Initial measurement mode
     gpioWrite(LINE_OUT_MODE_LED, 1);
+    // For strange debugging reasons
+    gpioWrite(LINE_IN, 0);
 }
 
 // ####
@@ -745,7 +747,7 @@ int main(void) {
 
     waitForUserInput();
 
-    /* TODO: Remove this
+    // TODO: Remove this
     gpioSetMode(LINE_OUT, PI_OUTPUT);
     gpioSetMode(LINE_IN, PI_OUTPUT);
     gpioSetMode(START_MEASUREMENT_BUTTON, PI_OUTPUT);
@@ -770,7 +772,7 @@ int main(void) {
     gpioWrite(LINE_OUT_MODE_LED, 0);
     gpioWrite(USB_OUT_MODE_LED, 0);
     gpioWrite(HDMI_OUT_MODE_LED, 0);
-    gpioWrite(PCIE_OUT_MODE_LED, 0);*/
+    gpioWrite(PCIE_OUT_MODE_LED, 0);
     
     // Terminate library
     gpioTerminate();
