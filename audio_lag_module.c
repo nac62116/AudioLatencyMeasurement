@@ -10,7 +10,7 @@ gcc -Wall -pthread latency_measurement_new.c -lasound -o latency_measurement_new
 #include <stdio.h>
 #include <time.h>
 
-#define TOTAL_MEASUREMENTS 1000
+#define TOTAL_MEASUREMENTS 100
 #define TOTAL_CALIBRATION_MEASUREMENTS 10
 
 // Line level in and output
@@ -190,6 +190,7 @@ void writeMeasurementsToCSV() {
     char dutInput[1024];
     char dutOutput[1024];
 
+    printf("before getMeasurementDependentValues\n");
     getMeasurementDependentValuesForCSV(fileName, dutInput, dutOutput);
     /*
     if (measurementMode == LINE_OUT_MODE_BUTTON) {
@@ -211,7 +212,7 @@ void writeMeasurementsToCSV() {
     strcpy(fileName, fileNamePrefix);
     dutOutput = DUT_OUTPUT_VALUE_LINE;
     */
-
+    printf("before addTimestampToFileName\n");
     addTimestampToFileName(fileName);
     /* Obtain current time. 
     currentTime = time(NULL);
@@ -241,11 +242,14 @@ void writeMeasurementsToCSV() {
         }
     }
     */
+    printf("before addFileTypeToFileName\n");
     // Adding file type .csv and writing csv file
     strcat(fileName, FILE_TYPE_SUFFIX);
 
+    printf("before fopen\n");
     filePointer = fopen(strcat((char *) MEASUREMENTS_FOLDER_PATH, fileName), "w");
 
+    printf("before write file\n");
     if (filePointer != NULL) {
         fprintf(filePointer, CSV_HEADER);
         for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
@@ -667,7 +671,7 @@ void waitForUserInput() {
             else {
                 startMeasurementDigitalOut(MEASURE);
             }
-            //writeMeasurementsToCSV();
+            writeMeasurementsToCSV();
             gpioWrite(START_MEASUREMENT_LED, 0);
             // TODO: Remove this
             // Print measurements
