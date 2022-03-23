@@ -148,33 +148,35 @@ void getMeasurementDependentValuesForCSV(char *fileName, char *dutInput, char *d
     strcpy(dutOutput, DUT_OUTPUT_VALUE_LINE);
 }
 
+void usePigpioForTimestamp(char *fileName) {
+    int secondsSinceEpoch;
+    char secondsSinceEpochString[1024];
+    int microsSinceEpoch;
+
+    if (gpioTime(PI_TIME_ABSOLUTE, &secondsSinceEpoch, &microsSinceEpoch) == 0) {
+        sprintf(secondsSinceEpochString, "%d", secondsSinceEpoch);
+        strcat(fileName, (const char) secondsSinceEpochString);
+    }
+    else {
+        strcat(fileName, FILE_NAME_SUFFIX_NO_TIMESTAMP);
+    }
+}
+
 void addTimestampToFileName(char *fileName) {
     time_t currentTime;
     char *currentTimeString;
-    int secondsSinceEpoch;
-    int microsSinceEpoch;
 
     currentTime = time(NULL);
 
     if (currentTime == ((time_t)-1)) {
-        if (gpioTime(PI_TIME_ABSOLUTE, &secondsSinceEpoch, &microsSinceEpoch) == 0) {
-            strcat(fileName, (const char *) secondsSinceEpoch);
-        }
-        else {
-            strcat(fileName, FILE_NAME_SUFFIX_NO_TIMESTAMP);
-        }
+        usePigpioForTimestamp(fileName);
     }
     else {
         /* Convert to local time format. */
         currentTimeString = ctime(&currentTime);
 
         if (currentTimeString == NULL) {
-            if (gpioTime(PI_TIME_ABSOLUTE, &secondsSinceEpoch, &microsSinceEpoch) == 0) {
-                strcat(fileName, (const char *) secondsSinceEpoch);
-            }
-            else {
-                strcat(fileName, FILE_NAME_SUFFIX_NO_TIMESTAMP);
-            }
+            usePigpioForTimestamp(fileName);
         }
         else {
             strcat(fileName, currentTimeString);
@@ -377,7 +379,7 @@ void initGpioLibrary() {
 // ####
 // #### PCM DEVICES (USB, HDMI, PCIE) VIA ALSA ####
 
-int openPCMDeviceForPlayback(snd_pcm_t *handle) {
+int openPCMDeviceForPlayback(snd_pcm_t handle) {
     int status;
 
     if (measurementMode == USB_OUT_MODE_BUTTON) {
@@ -401,7 +403,7 @@ int openPCMDeviceForPlayback(snd_pcm_t *handle) {
     return(status);
 }
 
-int setPCMDevicesHardwareParameters(snd_pcm_t *handle, snd_pcm_hw_params_t *params, snd_pcm_uframes_t frames, int dir) {
+int setPCMDevicesHardwareParameters(snd_pcm_t handle, snd_pcm_hw_params_t params, snd_pcm_uframes_t frames, int dir) {
     int status;
 
     /* Allocate a hardware parameters object. */
@@ -426,7 +428,9 @@ int setPCMDevicesHardwareParameters(snd_pcm_t *handle, snd_pcm_hw_params_t *para
     return(status);
 }
 
-void createMinimumAudioBuffer(char *buffer, snd_pcm_hw_params_t *params, snd_pcm_uframes_t frames, int dir) {
+char * createMinimumAudioBuffer(snd_pcm_hw_params_t params, snd_pcm_uframes_t frames, int dir) {
+    char *buffer;
+
     /* Use a buffer large enough to hold one period */
     snd_pcm_hw_params_get_period_size(params, &frames, &dir);
     bufferSize = frames * BYTES_PER_SAMPLE * NUMBER_OF_CHANNELS;
@@ -436,9 +440,10 @@ void createMinimumAudioBuffer(char *buffer, snd_pcm_hw_params_t *params, snd_pcm
     for (int byte = 0; byte < bufferSize; byte++) {
         buffer[byte] = 127;
     }
+    return(buffer);
 }
 
-void writeAudioBufferToPCMDevice(snd_pcm_t *handle, char *buffer, snd_pcm_uframes_t frames, unsigned int periodTimeInMicros) {
+void writeAudioBufferToPCMDevice(snd_pcm_t handle, char *buffer, snd_pcm_uframes_t frames, unsigned int periodTimeInMicros) {
     long numberOfPeriods;
     int status;
 
@@ -473,8 +478,8 @@ void startMeasurementDigitalOut(int measurementMethod) {
     double signalIntervalInS;
     int status;
     int dir;
-    snd_pcm_t *handle;
-    snd_pcm_hw_params_t *params;
+    snd_pcm_t handle;
+    snd_pcm_hw_params_t params;
     unsigned int periodTimeInMicros;
     snd_pcm_uframes_t frames;
     char *buffer;
@@ -553,7 +558,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
         return;
     }*/
 
-    createMinimumAudioBuffer(buffer, params, frames, dir);
+    buffer = createMinimumAudioBuffer(params, frames, dir);
     /* Use a buffer large enough to hold one period 
     snd_pcm_hw_params_get_period_size(params, &frames, &dir);
     bufferSize = frames * BYTES_PER_SAMPLE * NUMBER_OF_CHANNELS;
