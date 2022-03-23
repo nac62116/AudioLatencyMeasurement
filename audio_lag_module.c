@@ -667,7 +667,7 @@ void waitForUserInput() {
             else {
                 startMeasurementDigitalOut(MEASURE);
             }
-            writeMeasurementsToCSV();
+            //writeMeasurementsToCSV();
             gpioWrite(START_MEASUREMENT_LED, 0);
             // TODO: Remove this
             // Print measurements
