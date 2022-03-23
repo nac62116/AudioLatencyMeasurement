@@ -125,8 +125,8 @@ double calculateSignalInterval(int measurementCount) {
     return(signalIntervalInS);
 }
 
-void getMeasurementDependentValuesForCSV(const char *fileName, const char *dutInput, const char *dutOutput) {
-    char *fileNamePrefix;
+void getMeasurementDependentValuesForCSV(char *fileName, const char *dutInput, const char *dutOutput) {
+    const char *fileNamePrefix;
 
     if (measurementMode == LINE_OUT_MODE_BUTTON) {
         fileNamePrefix = FILE_NAME_PREFIX_LINE_TO_LINE;
@@ -185,8 +185,8 @@ void addTimestampToFileName(char *fileName) {
 void writeMeasurementsToCSV() {
     FILE *filePointer;
     char fileName[1024];
-    char *dutInput;
-    char *dutOutput;
+    const char *dutInput;
+    const char *dutOutput;
 
     getMeasurementDependentValuesForCSV(fileName, dutInput, dutOutput);
     /*
