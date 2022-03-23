@@ -348,7 +348,7 @@ void startMeasurementLineOut(int measurementMethod) {
     }
 }
 
-void initGpioLibrary() {
+void initGPIOs() {
 
     // Initialize library
     gpioInitialise();
@@ -374,6 +374,9 @@ void initGpioLibrary() {
     // Register GPIO state change callback
     gpioSetAlertFunc(LINE_OUT, onLineOut);
     gpioSetAlertFunc(LINE_IN, onLineIn);
+
+    // Initial measurement mode
+    gpioWrite(LINE_OUT_MODE_LED, 1);
 }
 
 // ####
@@ -733,7 +736,7 @@ void waitForUserInput() {
 
 int main(void) {
 
-    initGpioLibrary();
+    initGPIOs();
 
     /* TODO: Test without this
     gpioWrite(LINE_OUT_MODE_LED, 1);
