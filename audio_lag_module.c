@@ -151,13 +151,13 @@ void getMeasurementDependentValuesForCSV(char *fileName, const char *dutInput, c
 void addTimestampToFileName(char *fileName) {
     time_t currentTime;
     char *currentTimeString;
-    int *secondsSinceEpoch;
-    int *microsSinceEpoch;
+    int secondsSinceEpoch;
+    int microsSinceEpoch;
 
     currentTime = time(NULL);
 
     if (currentTime == ((time_t)-1)) {
-        if (gpioTime(PI_TIME_ABSOLUTE, secondsSinceEpoch, microsSinceEpoch) == 0) {
+        if (gpioTime(PI_TIME_ABSOLUTE, &secondsSinceEpoch, &microsSinceEpoch) == 0) {
             strcat(fileName, (const char *) secondsSinceEpoch);
         }
         else {
@@ -169,7 +169,7 @@ void addTimestampToFileName(char *fileName) {
         currentTimeString = ctime(&currentTime);
 
         if (currentTimeString == NULL) {
-            if (gpioTime(PI_TIME_ABSOLUTE, secondsSinceEpoch, microsSinceEpoch) == 0) {
+            if (gpioTime(PI_TIME_ABSOLUTE, &secondsSinceEpoch, &microsSinceEpoch) == 0) {
                 strcat(fileName, (const char *) secondsSinceEpoch);
             }
             else {
@@ -188,7 +188,7 @@ void writeMeasurementsToCSV() {
     const char *dutInput;
     const char *dutOutput;
 
-    getMeasurementDependentValuesForCSV(fileName, dutInput, dutOutput);
+    getMeasurementDependentValuesForCSV(fileName, &dutInput, &dutOutput);
     /*
     if (measurementMode == LINE_OUT_MODE_BUTTON) {
         fileNamePrefix = FILE_NAME_PREFIX_LINE_TO_LINE;
@@ -487,7 +487,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
         iterations = TOTAL_MEASUREMENTS;
     }
 
-    status = openPCMDeviceForPlayback(handle);
+    status = openPCMDeviceForPlayback(&handle);
     if (status < 0) {
         // Unable to open PCM Device
         return;
@@ -524,7 +524,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
         }
     }*/
 
-    status = setPCMDevicesHardwareParameters(handle, params, frames, dir);
+    status = setPCMDevicesHardwareParameters(handle, &params, &frames, dir);
     if (status < 0) {
         // Unable to set hardware parameters
         return;
@@ -553,7 +553,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
         return;
     }*/
 
-    createMinimumAudioBuffer(buffer, params, frames, dir);
+    createMinimumAudioBuffer(&buffer, params, frames, dir);
     /* Use a buffer large enough to hold one period 
     snd_pcm_hw_params_get_period_size(params, &frames, &dir);
     bufferSize = frames * BYTES_PER_SAMPLE * NUMBER_OF_CHANNELS;
@@ -586,7 +586,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
         while (numberOfPeriods > 0) {
             status = snd_pcm_writei(handle, buffer, frames);
             if (status == -EPIPE) {
-                /* EPIPE means underrun 
+                // EPIPE means underrun 
                 snd_pcm_prepare(handle);
             }
             else if (status < 0) {
