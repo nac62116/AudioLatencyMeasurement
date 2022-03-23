@@ -98,6 +98,8 @@ const char *CSV_HEADER = "LATENCY_IN_MICROS,DUT_INPUT,DUT_OUTPUT,BUFFER_SIZE,SAM
 void initMeasurement() {
     validMeasurmentsCount = 0;
     maxLatencyInMicros = -1;
+    bufferSize = 0;
+    sampleRate = 0;
     // Fill measurement array with -1 values to mark invalid measurements
     for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
         latencyMeasurementsInMicros[i] = -1;
