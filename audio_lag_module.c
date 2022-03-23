@@ -443,10 +443,13 @@ int setPCMDevicesHardwareParameters(snd_pcm_t *handle, snd_pcm_hw_params_t **par
 char * createMinimumAudioBuffer(snd_pcm_hw_params_t *params, snd_pcm_uframes_t *frames, int dir) {
     char *buffer;
     /* Use a buffer large enough to hold one period */
+    printf("before getPeriodSize\n");
     snd_pcm_hw_params_get_period_size(params, frames, &dir);
+    printf("before calculate buffer size\n");
     bufferSize = (snd_pcm_uframes_t) frames * BYTES_PER_SAMPLE * NUMBER_OF_CHANNELS;
+    printf("before malloc buffer\n");
     buffer = (char *) malloc(bufferSize);
-
+    printf("before fill buffer\n");
     /* Fill audio buffer */
     for (int byte = 0; byte < bufferSize; byte++) {
         buffer[byte] = 127;
