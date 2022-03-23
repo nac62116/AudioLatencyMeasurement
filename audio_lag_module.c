@@ -125,27 +125,27 @@ double calculateSignalInterval(int measurementCount) {
     return(signalIntervalInS);
 }
 
-void getMeasurementDependentValuesForCSV(char *fileName, const char *dutInput, const char *dutOutput) {
+void getMeasurementDependentValuesForCSV(char *fileName, char *dutInput, char *dutOutput) {
     const char *fileNamePrefix;
 
     if (measurementMode == LINE_OUT_MODE_BUTTON) {
         fileNamePrefix = FILE_NAME_PREFIX_LINE_TO_LINE;
-        dutInput = DUT_INPUT_VALUE_LINE;
+        strcpy(dutInput, DUT_INPUT_VALUE_LINE);
     }
     else if (measurementMode == USB_OUT_MODE_BUTTON) {
         fileNamePrefix = FILE_NAME_PREFIX_USB_TO_LINE;
-        dutInput = DUT_INPUT_VALUE_USB;
+        strcpy(dutInput, DUT_INPUT_VALUE_USB);
     }
     else if (measurementMode == HDMI_OUT_MODE_BUTTON) {
         fileNamePrefix = FILE_NAME_PREFIX_HDMI_TO_LINE;
-        dutInput = DUT_INPUT_VALUE_HDMI;
+        strcpy(dutInput, DUT_INPUT_VALUE_HDMI);
     }
     else {
         fileNamePrefix = FILE_NAME_PREFIX_PCIE_TO_LINE;
-        dutInput = DUT_INPUT_VALUE_PCIE;
+        strcpy(dutInput, DUT_INPUT_VALUE_PCIE);
     }
     strcpy(fileName, fileNamePrefix);
-    dutOutput = DUT_OUTPUT_VALUE_LINE;
+    strcpy(dutOutput, DUT_OUTPUT_VALUE_LINE);
 }
 
 void addTimestampToFileName(char *fileName) {
@@ -185,10 +185,10 @@ void addTimestampToFileName(char *fileName) {
 void writeMeasurementsToCSV() {
     FILE *filePointer;
     char fileName[1024];
-    const char *dutInput;
-    const char *dutOutput;
+    char dutInput[1024];
+    char dutOutput[1024];
 
-    getMeasurementDependentValuesForCSV(fileName, &dutInput, &dutOutput);
+    getMeasurementDependentValuesForCSV(fileName, dutInput, dutOutput);
     /*
     if (measurementMode == LINE_OUT_MODE_BUTTON) {
         fileNamePrefix = FILE_NAME_PREFIX_LINE_TO_LINE;
@@ -487,7 +487,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
         iterations = TOTAL_MEASUREMENTS;
     }
 
-    status = openPCMDeviceForPlayback(&handle);
+    status = openPCMDeviceForPlayback(handle);
     if (status < 0) {
         // Unable to open PCM Device
         return;
@@ -524,7 +524,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
         }
     }*/
 
-    status = setPCMDevicesHardwareParameters(handle, &params, &frames, dir);
+    status = setPCMDevicesHardwareParameters(handle, params, frames, dir);
     if (status < 0) {
         // Unable to set hardware parameters
         return;
@@ -553,7 +553,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
         return;
     }*/
 
-    createMinimumAudioBuffer(&buffer, params, frames, dir);
+    createMinimumAudioBuffer(buffer, params, frames, dir);
     /* Use a buffer large enough to hold one period 
     snd_pcm_hw_params_get_period_size(params, &frames, &dir);
     bufferSize = frames * BYTES_PER_SAMPLE * NUMBER_OF_CHANNELS;
