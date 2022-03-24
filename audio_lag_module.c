@@ -63,7 +63,6 @@ int signalStatus;
 /* (hw:CARD=usb_audio_top, ...)                            */
 const char *ALSA_USB_TOP_OUT = "hw:CARD=usb_audio_top";
 const char *ALSA_USB_BOTTOM_OUT = "hw:CARD=usb_audio_bot";
-// TODO: create udev rules for changing card ids of pcie and hdmi sound devices
 const char *ALSA_HDMI1_OUT = "hw:CARD=hdmi_audio_0";
 const char *ALSA_HDMI0_OUT = "hw:CARD=hdmi_audio_1";
 const char *ALSA_PCIE_OUT = "hw:CARD=pcie_audio";
@@ -216,7 +215,7 @@ void writeMeasurementsToCSV() {
         fclose(filePointer);
     }
     else {
-        printf("audio_lag_module.c l.217: Could not open file\n");
+        printf("audio_lag_module.c l.218: Could not open file\n");
     }
 }
 
@@ -270,7 +269,6 @@ void onLineOut(int gpio, int level, uint32_t tick) {
         signalStatus = SIGNAL_ON_THE_WAY;
     }
 }
-
 
 // Line-out signal creation
 void sendSignalViaLineOut(double signalIntervalInS) {
@@ -383,7 +381,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
             }
         }
     }
-    // PCI_MODE
+    // PCIE_MODE
     else {
         status = snd_pcm_open(&handle, ALSA_PCIE_OUT, SND_PCM_STREAM_PLAYBACK, 0);
         if (status < 0) {
@@ -518,12 +516,6 @@ void waitForUserInput() {
             }
             writeMeasurementsToCSV();
             gpioWrite(START_MEASUREMENT_LED, 0);
-            // TODO: Remove this
-            // Print measurements
-            for (int i = 0; i < TOTAL_MEASUREMENTS; i++) {
-                printf("\n##### Measurement %d latency: %d\n", i + 1, latencyMeasurementsInMicros[i]);
-            }
-            
         }
         else if (gpioRead(CALIBRATION_MODE_BUTTON) == 1) {
             while (gpioRead(START_MEASUREMENT_BUTTON) == 0
@@ -542,16 +534,12 @@ void waitForUserInput() {
                 if (validMeasurmentsCount == TOTAL_CALIBRATION_MEASUREMENTS) {
                     userFeedbackGoodSignal();
                 }
-                else if (validMeasurmentsCount > TOTAL_CALIBRATION_MEASUREMENTS / 2) {
+                else if (validMeasurmentsCount > TOTAL_CALIBRATION_MEASUREMENTS / 5) {
                     userFeedbackMediumSignal();
                 }
                 else {
                     userFeedbackBadSignal();
                 }
-                /* TODO: Test without this
-                for (int millis = 0; millis <= 1000; millis++) {
-                    time_sleep(0.001);
-                }*/
             }
             userFeedbackCalibrationCancelled();
         }
@@ -576,8 +564,6 @@ void waitForUserInput() {
             turnOffAllButtonLEDs();
             measurementMode = PCIE_OUT_MODE_BUTTON;
             gpioWrite(PCIE_OUT_MODE_LED, 1);
-            // TODO: Remove this
-            return;
         }
         else {
             // No action, just keeping the while loop going
@@ -589,40 +575,8 @@ int main(void) {
 
     initGPIOs();
 
-    /* TODO: Test without this
-    gpioWrite(LINE_OUT_MODE_LED, 1);
-    gpioWrite(LINE_IN, 0);
-    */
-
     waitForUserInput();
 
-    // TODO: Remove this
-    gpioSetMode(LINE_OUT, PI_OUTPUT);
-    gpioSetMode(LINE_IN, PI_OUTPUT);
-    gpioSetMode(START_MEASUREMENT_BUTTON, PI_OUTPUT);
-    gpioSetMode(CALIBRATION_MODE_BUTTON, PI_OUTPUT);
-    gpioSetMode(LINE_OUT_MODE_BUTTON, PI_OUTPUT);
-    gpioSetMode(USB_OUT_MODE_BUTTON, PI_OUTPUT);
-    gpioSetMode(HDMI_OUT_MODE_BUTTON, PI_OUTPUT);
-    gpioSetMode(PCIE_OUT_MODE_BUTTON, PI_OUTPUT);
-
-    gpioWrite(LINE_OUT, 0);
-    gpioWrite(LINE_IN, 0);
-    gpioWrite(START_MEASUREMENT_BUTTON, 0);
-    gpioWrite(CALIBRATION_MODE_BUTTON, 0);
-    gpioWrite(LINE_OUT_MODE_BUTTON, 0);
-    gpioWrite(USB_OUT_MODE_BUTTON, 0);
-    gpioWrite(HDMI_OUT_MODE_BUTTON, 0);
-    gpioWrite(PCIE_OUT_MODE_BUTTON, 0);
-    gpioWrite(START_MEASUREMENT_LED, 0);
-    gpioWrite(CALIBRATION_MODE_GREEN_LED, 0);
-    gpioWrite(CALIBRATION_MODE_YELLOW_LED, 0);
-    gpioWrite(CALIBRATION_MODE_RED_LED, 0);
-    gpioWrite(LINE_OUT_MODE_LED, 0);
-    gpioWrite(USB_OUT_MODE_LED, 0);
-    gpioWrite(HDMI_OUT_MODE_LED, 0);
-    gpioWrite(PCIE_OUT_MODE_LED, 0);
-    
     // Terminate library
     gpioTerminate();
     
