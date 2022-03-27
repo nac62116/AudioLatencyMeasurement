@@ -23,7 +23,7 @@ const int CALIBRATION_MODE_BUTTON = 10; // GPIO 10
 const int LINE_OUT_MODE_BUTTON = 15; // GPIO 15
 const int USB_OUT_MODE_BUTTON = 23; // GPIO 23
 const int HDMI_OUT_MODE_BUTTON = 25; // GPIO 25
-const int PCIE_OUT_MODE_BUTTON = 7; // GPIO 7
+const int EXIT_BUTTON = 7; // GPIO 7
 
 // User feedback
 const int START_MEASUREMENT_LED = 11; // GPIO 11
@@ -316,7 +316,7 @@ void initGPIOs() {
     gpioSetMode(LINE_OUT_MODE_BUTTON, PI_INPUT);
     gpioSetMode(USB_OUT_MODE_BUTTON, PI_INPUT);
     gpioSetMode(HDMI_OUT_MODE_BUTTON, PI_INPUT);
-    gpioSetMode(PCIE_OUT_MODE_BUTTON, PI_INPUT);
+    gpioSetMode(EXIT_BUTTON, PI_INPUT);
     gpioSetMode(START_MEASUREMENT_LED, PI_OUTPUT);
     gpioSetMode(CALIBRATION_MODE_GREEN_LED, PI_OUTPUT);
     gpioSetMode(CALIBRATION_MODE_YELLOW_LED, PI_OUTPUT);
@@ -334,6 +334,39 @@ void initGPIOs() {
     gpioWrite(LINE_OUT_MODE_LED, 1);
     // For strange debugging reasons
     gpioWrite(LINE_IN, 0);
+}
+
+void exitProgram() {
+    gpioSetMode(LINE_OUT, PI_OUTPUT);
+    gpioSetMode(LINE_IN, PI_OUTPUT);
+    gpioSetMode(START_MEASUREMENT_BUTTON, PI_OUTPUT);
+    gpioSetMode(CALIBRATION_MODE_BUTTON, PI_OUTPUT);
+    gpioSetMode(LINE_OUT_MODE_BUTTON, PI_OUTPUT);
+    gpioSetMode(USB_OUT_MODE_BUTTON, PI_OUTPUT);
+    gpioSetMode(HDMI_OUT_MODE_BUTTON, PI_OUTPUT);
+    gpioSetMode(EXIT_BUTTON, PI_OUTPUT);
+
+    gpioWrite(LINE_OUT, 0);
+    gpioWrite(LINE_IN, 0);
+    gpioWrite(START_MEASUREMENT_BUTTON, 0);
+    gpioWrite(CALIBRATION_MODE_BUTTON, 0);
+    gpioWrite(LINE_OUT_MODE_BUTTON, 0);
+    gpioWrite(USB_OUT_MODE_BUTTON, 0);
+    gpioWrite(HDMI_OUT_MODE_BUTTON, 0);
+    gpioWrite(EXIT_BUTTON, 0);
+    gpioWrite(START_MEASUREMENT_LED, 0);
+    gpioWrite(CALIBRATION_MODE_GREEN_LED, 0);
+    gpioWrite(CALIBRATION_MODE_YELLOW_LED, 0);
+    gpioWrite(CALIBRATION_MODE_RED_LED, 0);
+    gpioWrite(LINE_OUT_MODE_LED, 0);
+    gpioWrite(USB_OUT_MODE_LED, 0);
+    gpioWrite(HDMI_OUT_MODE_LED, 0);
+    gpioWrite(PCIE_OUT_MODE_LED, 0);
+    
+    // Terminate library
+    gpioTerminate();
+    
+    printf("\nExit\n");
 }
 
 // ####
@@ -522,7 +555,7 @@ void waitForUserInput() {
                     && gpioRead(LINE_OUT_MODE_BUTTON) == 0
                     && gpioRead(USB_OUT_MODE_BUTTON) == 0
                     && gpioRead(HDMI_OUT_MODE_BUTTON) == 0
-                    && gpioRead(PCIE_OUT_MODE_BUTTON) == 0) {
+                    && gpioRead(EXIT_BUTTON) == 0) {
                 resetMeasurement();
                 if (measurementMode == LINE_OUT_MODE_BUTTON) {
                     startMeasurementLineOut(CALIBRATE);
@@ -560,16 +593,8 @@ void waitForUserInput() {
             measurementMode = HDMI_OUT_MODE_BUTTON;
             gpioWrite(HDMI_OUT_MODE_LED, 1);
         }
-        else if (gpioRead(PCIE_OUT_MODE_BUTTON) == 1) {
-            turnOffAllButtonLEDs();
-            measurementMode = PCIE_OUT_MODE_BUTTON;
-            gpioWrite(PCIE_OUT_MODE_LED, 1);
-        }
-        else if (gpioRead(LINE_OUT_MODE_BUTTON) == 1
-                && gpioRead(USB_OUT_MODE_BUTTON) == 1) {
-            // Terminate library
-            gpioTerminate();
-            printf("\nExit\n");
+        else if (gpioRead(EXIT_BUTTON) == 1) {
+            exitProgram();
         }
         else {
             // No action, just keeping the while loop going
