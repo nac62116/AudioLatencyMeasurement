@@ -112,17 +112,19 @@ double calculateSignalInterval(int measurementCount) {
     // If its smaller than SIGNAL_MINIMUM_INTERVAL_IN_S it converges to that value
     if (maxLatencyInMicros != -1 && measurementCount > 0) {
         maxLatencyInS = (double) maxLatencyInMicros / 1000000.0;
+        printf("maxLatencyInS: %f", maxLatencyInS);
         if (maxLatencyInS <= SIGNAL_MINIMUM_INTERVAL_IN_S) {
             signalIntervalInS = SIGNAL_MINIMUM_INTERVAL_IN_S + 1 / measurementCount * maxLatencyInS;
         }
         else {
-            // The interval from the first to the second signal is SIGNAL_START_INTERVAL_IN_S
             signalIntervalInS = maxLatencyInS + 1 / measurementCount * maxLatencyInS;
         }
     }
+    // The interval from the first to the second signal is SIGNAL_START_INTERVAL_IN_S
     else {
         signalIntervalInS = SIGNAL_START_INTERVAL_IN_S;
     }
+    printf("signalIntervalInS: %f", signalIntervalInS);
     return(signalIntervalInS);
 }
 
