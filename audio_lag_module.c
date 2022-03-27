@@ -597,7 +597,7 @@ void waitForUserInput() {
             gpioWrite(EXIT_LED, 1);
             time_sleep(0.1);
             prepareExit();
-            return();
+            return;
         }
         else {
             // No action, just keeping the while loop going
