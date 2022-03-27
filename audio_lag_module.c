@@ -483,24 +483,30 @@ void startMeasurementDigitalOut(int measurementMethod) {
             status = snd_pcm_writei(handle, buffer, frames);
             if (status == -EPIPE) {
                 // EPIPE means underrun
-                printf("underrun\n");
-                snd_pcm_prepare(handle);
+                if (snd_pcm_recover(handle, status, 0) < 0) {
+                    snd_pcm_drop(handle);
+                    snd_pcm_close(handle);
+                    free(buffer);
+                    return;
+                }
             }
             else if (status < 0) {
                 // Error from writei
-                printf("error from writei\n");
-                snd_pcm_drain(handle);
-                snd_pcm_close(handle);
-                free(buffer);
-                return;
+                if (snd_pcm_recover(handle, status, 0) < 0) {
+                    snd_pcm_drop(handle);
+                    snd_pcm_close(handle);
+                    free(buffer);
+                    return;
+                }
             }
             else if (status != (int)frames) {
                 // Short write
-                printf("short write\n");
-                snd_pcm_drain(handle);
-                snd_pcm_close(handle);
-                free(buffer);
-                return;
+                if (snd_pcm_recover(handle, status, 0) < 0) {
+                    snd_pcm_drop(handle);
+                    snd_pcm_close(handle);
+                    free(buffer);
+                    return;
+                }
             }
             else {
                 if (signalStatus != SIGNAL_ON_THE_WAY) {
