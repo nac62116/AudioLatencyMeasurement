@@ -304,15 +304,9 @@ void startMeasurementLineOut(int measurementMethod) {
 }
 
 void initGPIOs() {
-    int status;
-
-    // Terminate library if still initialised
-    gpioTerminate();
 
     // Initialise library
-    status = gpioInitialise();
-
-    printf("Status after gpioInitialise, %d", status);
+    gpioInitialise();
 
     // Set GPIO Modes
     gpioSetMode(LINE_OUT, PI_OUTPUT);
@@ -571,6 +565,12 @@ void waitForUserInput() {
             measurementMode = PCIE_OUT_MODE_BUTTON;
             gpioWrite(PCIE_OUT_MODE_LED, 1);
         }
+        else if (gpioRead(LINE_OUT_MODE_BUTTON) == 1
+                && gpioRead(USB_OUT_MODE_BUTTON) == 1) {
+            // Terminate library
+            gpioTerminate();
+            printf("\nExit\n");
+        }
         else {
             // No action, just keeping the while loop going
         }
@@ -580,11 +580,5 @@ void waitForUserInput() {
 int main(void) {
 
     initGPIOs();
-
-    //waitForUserInput();
-
-    // Terminate library
-    gpioTerminate();
-    
-    printf("\nExit\n");
+    waitForUserInput();
 }
