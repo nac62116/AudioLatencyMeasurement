@@ -112,7 +112,7 @@ double calculateSignalInterval(int measurementCount) {
     // If its smaller than SIGNAL_MINIMUM_INTERVAL_IN_S it converges to that value
     if (maxLatencyInMicros != -1 && measurementCount > 0) {
         maxLatencyInS = (double) maxLatencyInMicros / 1000000.0;
-        printf("maxLatencyInS: %f", maxLatencyInS);
+        printf("maxLatencyInS: %f\n", maxLatencyInS);
         if (maxLatencyInS <= SIGNAL_MINIMUM_INTERVAL_IN_S) {
             signalIntervalInS = SIGNAL_MINIMUM_INTERVAL_IN_S + 1 / measurementCount * maxLatencyInS;
         }
@@ -124,7 +124,7 @@ double calculateSignalInterval(int measurementCount) {
     else {
         signalIntervalInS = SIGNAL_START_INTERVAL_IN_S;
     }
-    printf("signalIntervalInS: %f", signalIntervalInS);
+    printf("signalIntervalInS: %f\n", signalIntervalInS);
     return(signalIntervalInS);
 }
 
@@ -469,7 +469,6 @@ void startMeasurementDigitalOut(int measurementMethod) {
         else {
             signalIntervalInS = SIGNAL_START_INTERVAL_IN_S;
         }
-        printf("signalInterval: %f", signalIntervalInS);
         numberOfPeriods = SIGNAL_LENGTH_IN_S * 1000000 / periodTimeInMicros;
         if (numberOfPeriods < MINIMUM_NUMBER_OF_PERIODS) {
             numberOfPeriods = MINIMUM_NUMBER_OF_PERIODS;
