@@ -469,6 +469,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
         else {
             signalIntervalInS = SIGNAL_START_INTERVAL_IN_S;
         }
+        printf("# signalInterval: %f\n", signalIntervalInS);
         numberOfPeriods = SIGNAL_LENGTH_IN_S * 1000000 / periodTimeInMicros;
         if (numberOfPeriods < MINIMUM_NUMBER_OF_PERIODS) {
             numberOfPeriods = MINIMUM_NUMBER_OF_PERIODS;
