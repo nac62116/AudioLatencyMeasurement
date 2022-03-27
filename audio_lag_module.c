@@ -305,7 +305,10 @@ void startMeasurementLineOut(int measurementMethod) {
 
 void initGPIOs() {
 
-    // Initialize library
+    // Terminate library if still initialised
+    gpioTerminate();
+
+    // Initialise library
     gpioInitialise();
 
     // Set GPIO Modes
