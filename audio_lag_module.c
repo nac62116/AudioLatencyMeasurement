@@ -336,7 +336,7 @@ void initGPIOs() {
     gpioWrite(LINE_IN, 0);
 }
 
-void exitProgram() {
+void prepareExit() {
     gpioSetMode(LINE_OUT, PI_OUTPUT);
     gpioSetMode(LINE_IN, PI_OUTPUT);
     gpioSetMode(START_MEASUREMENT_BUTTON, PI_OUTPUT);
@@ -596,7 +596,8 @@ void waitForUserInput() {
         else if (gpioRead(EXIT_BUTTON) == 1) {
             gpioWrite(EXIT_LED, 1);
             time_sleep(0.1);
-            exitProgram();
+            prepareExit();
+            return();
         }
         else {
             // No action, just keeping the while loop going
