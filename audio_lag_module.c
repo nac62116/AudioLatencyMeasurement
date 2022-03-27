@@ -478,6 +478,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
             numberOfPeriods = MINIMUM_NUMBER_OF_PERIODS;
         }
         printf("# signalLength: %ld\n", numberOfPeriods * 1000000 / periodTimeInMicros);
+        gpioSetAlertFunc(LINE_IN, onLineIn);
         while (numberOfPeriods > 0) {
             status = snd_pcm_writei(handle, buffer, frames);
             if (status == -EPIPE) {
@@ -499,7 +500,6 @@ void startMeasurementDigitalOut(int measurementMethod) {
                 if (signalStatus != SIGNAL_ON_THE_WAY) {
                     startTimestamp = gpioTick();
                     signalStatus = SIGNAL_ON_THE_WAY;
-                    gpioSetAlertFunc(LINE_IN, onLineIn);
                 }
             }
             numberOfPeriods--;
