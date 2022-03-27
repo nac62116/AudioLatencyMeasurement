@@ -485,8 +485,8 @@ void startMeasurementDigitalOut(int measurementMethod) {
                 continue;
             }
             if (status < 0) {
-                if (xrun_recovery(handle, err) < 0) {
-                    printf("Write error: %s\n", snd_strerror(err));
+                if (xrun_recovery(handle, status) < 0) {
+                    printf("Write error: %s\n", snd_strerror(status));
                     exit(EXIT_FAILURE);
                 }
                 continue;  /* skip one period */
