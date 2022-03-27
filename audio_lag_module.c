@@ -474,6 +474,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
         if (numberOfPeriods < MINIMUM_NUMBER_OF_PERIODS) {
             numberOfPeriods = MINIMUM_NUMBER_OF_PERIODS;
         }
+        printf("# signalLength: %d\n", numberOfPeriods * 1000000 / periodTimeInMicros);
         while (numberOfPeriods > 0) {
             status = snd_pcm_writei(handle, buffer, frames);
             if (status == -EPIPE) {
