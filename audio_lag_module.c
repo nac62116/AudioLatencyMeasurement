@@ -304,12 +304,15 @@ void startMeasurementLineOut(int measurementMethod) {
 }
 
 void initGPIOs() {
+    int status;
 
     // Terminate library if still initialised
     gpioTerminate();
 
     // Initialise library
-    gpioInitialise();
+    status = gpioInitialise();
+
+    printf("Status after gpioInitialise, %d", status);
 
     // Set GPIO Modes
     gpioSetMode(LINE_OUT, PI_OUTPUT);
