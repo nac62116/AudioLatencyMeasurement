@@ -10,7 +10,7 @@ gcc -Wall -pthread latency_measurement_new.c -lasound -o latency_measurement_new
 #include <stdio.h>
 #include <time.h>
 
-#define TOTAL_MEASUREMENTS 10
+#define TOTAL_MEASUREMENTS 5000
 #define TOTAL_CALIBRATION_MEASUREMENTS 10
 
 // Line level in and output
