@@ -581,7 +581,7 @@ int main(void) {
 
     initGPIOs();
 
-    waitForUserInput();
+    //waitForUserInput();
 
     // Terminate library
     gpioTerminate();
