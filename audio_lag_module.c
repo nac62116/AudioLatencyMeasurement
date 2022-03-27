@@ -489,12 +489,18 @@ void startMeasurementDigitalOut(int measurementMethod) {
             else if (status < 0) {
                 // Error from writei
                 printf("error from writei\n");
-                continue;
+                snd_pcm_drain(handle);
+                snd_pcm_close(handle);
+                free(buffer);
+                return;
             }
             else if (status != (int)frames) {
                 // Short write
                 printf("short write\n");
-                continue;
+                snd_pcm_drain(handle);
+                snd_pcm_close(handle);
+                free(buffer);
+                return;
             }
             else {
                 if (signalStatus != SIGNAL_ON_THE_WAY) {
