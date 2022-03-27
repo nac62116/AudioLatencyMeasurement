@@ -118,7 +118,6 @@ double calculateSignalInterval(int measurementCount) {
         if (maxLatencyInS <= SIGNAL_MINIMUM_INTERVAL_IN_S) {
             signalIntervalInS = SIGNAL_MINIMUM_INTERVAL_IN_S + 1 / measurementCount * maxLatencyInS;
         }
-        else if (maxLatencyInS )
         else {
             signalIntervalInS = maxLatencyInS + 1 / measurementCount * maxLatencyInS;
         }
