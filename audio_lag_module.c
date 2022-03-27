@@ -385,9 +385,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
     unsigned int periodTimeInMicros;
     snd_pcm_uframes_t frames;
     long numberOfPeriods;
-    long numberOfZeroPeriods;
     char *buffer;
-    char *zeroBuffer;
     int iterations;
 
     if (measurementMethod == CALIBRATE) {
@@ -457,16 +455,10 @@ void startMeasurementDigitalOut(int measurementMethod) {
     snd_pcm_hw_params_get_period_size(params, &frames, &dir);
     bufferSize = frames * BYTES_PER_SAMPLE * NUMBER_OF_CHANNELS;
     buffer = (char *) malloc(bufferSize);
-    zeroBuffer = (char *) malloc(bufferSize);
 
     // Fill audio buffer
     for (int byte = 0; byte < bufferSize; byte++) {
         buffer[byte] = 127;
-    }
-
-    // Fill zero buffer
-    for (int byte = 0; byte < bufferSize; byte++) {
-        zeroBuffer[byte] = 0;
     }
     
     /* We want to loop for SIGNAL_LENGTH_IN_S */
@@ -486,12 +478,12 @@ void startMeasurementDigitalOut(int measurementMethod) {
             numberOfPeriods = MINIMUM_NUMBER_OF_PERIODS;
         }
         printf("# signalLength: %ld\n", numberOfPeriods * 1000000 / periodTimeInMicros);
-        numberOfZeroPeriods = signalIntervalInS * 1000000 / periodTimeInMicros;
-
+        
         while (numberOfPeriods > 0) {
             status = snd_pcm_writei(handle, buffer, frames);
             if (status == -EPIPE) {
                 // EPIPE means underrun
+                printf("underrun\n");
                 if (snd_pcm_recover(handle, status, 0) < 0) {
                     snd_pcm_drop(handle);
                     snd_pcm_close(handle);
@@ -526,40 +518,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
             }
             numberOfPeriods--;
         }
-        while (numberOfZeroPeriods > 0) {
-            status = snd_pcm_writei(handle, zeroBuffer, frames);
-            if (status == -EPIPE) {
-                // EPIPE means underrun
-                if (snd_pcm_recover(handle, status, 0) < 0) {
-                    snd_pcm_drop(handle);
-                    snd_pcm_close(handle);
-                    free(buffer);
-                    return;
-                }
-            }
-            else if (status < 0) {
-                // Error from writei
-                if (snd_pcm_recover(handle, status, 0) < 0) {
-                    snd_pcm_drop(handle);
-                    snd_pcm_close(handle);
-                    free(buffer);
-                    return;
-                }
-            }
-            else if (status != (int)frames) {
-                // Short write
-                if (snd_pcm_recover(handle, status, 0) < 0) {
-                    snd_pcm_drop(handle);
-                    snd_pcm_close(handle);
-                    free(buffer);
-                    return;
-                }
-            }
-            else {
-                //
-            }
-            numberOfZeroPeriods--;
-        }
+        time_sleep(signalIntervalInS);
     }
 
     snd_pcm_drain(handle);
