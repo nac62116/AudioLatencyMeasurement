@@ -484,12 +484,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
             if (status == -EPIPE) {
                 // EPIPE means underrun
                 printf("underrun\n");
-                if (snd_pcm_recover(handle, status, 0) < 0) {
-                    snd_pcm_drop(handle);
-                    snd_pcm_close(handle);
-                    free(buffer);
-                    return;
-                }
+                snd_pcm_prepare(handle);
             }
             else if (status < 0) {
                 // Error from writei
