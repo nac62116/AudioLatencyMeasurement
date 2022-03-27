@@ -556,11 +556,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
                 }
             }
             else {
-                if (signalStatus != SIGNAL_ON_THE_WAY) {
-                    startTimestamp = gpioTick();
-                    signalStatus = SIGNAL_ON_THE_WAY;
-                    gpioSetAlertFunc(LINE_IN, onLineIn);
-                }
+                //
             }
             numberOfZeroPeriods--;
         }
