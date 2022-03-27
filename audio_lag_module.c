@@ -33,7 +33,7 @@ const int CALIBRATION_MODE_GREEN_LED = 17; // GPIO 17
 const int LINE_OUT_MODE_LED = 14; // GPIO 14
 const int USB_OUT_MODE_LED = 18; // GPIO 18
 const int HDMI_OUT_MODE_LED = 24; // GPIO 24
-const int PCIE_OUT_MODE_LED = 8; // GPIO 8
+const int EXIT_LED = 8; // GPIO 8
 
 // Latency measurement
 const double SIGNAL_LENGTH_IN_S = 0.001;
@@ -324,7 +324,7 @@ void initGPIOs() {
     gpioSetMode(LINE_OUT_MODE_LED, PI_OUTPUT);
     gpioSetMode(USB_OUT_MODE_LED, PI_OUTPUT);
     gpioSetMode(HDMI_OUT_MODE_LED, PI_OUTPUT);
-    gpioSetMode(PCIE_OUT_MODE_LED, PI_OUTPUT);
+    gpioSetMode(EXIT_LED, PI_OUTPUT);
 
     // Register GPIO state change callback
     gpioSetAlertFunc(LINE_OUT, onLineOut);
@@ -361,7 +361,7 @@ void exitProgram() {
     gpioWrite(LINE_OUT_MODE_LED, 0);
     gpioWrite(USB_OUT_MODE_LED, 0);
     gpioWrite(HDMI_OUT_MODE_LED, 0);
-    gpioWrite(PCIE_OUT_MODE_LED, 0);
+    gpioWrite(EXIT_LED, 0);
     
     // Terminate library
     gpioTerminate();
@@ -532,7 +532,7 @@ void turnOffAllButtonLEDs() {
     gpioWrite(LINE_OUT_MODE_LED, 0);
     gpioWrite(USB_OUT_MODE_LED, 0);
     gpioWrite(HDMI_OUT_MODE_LED, 0);
-    gpioWrite(PCIE_OUT_MODE_LED, 0);
+    gpioWrite(EXIT_LED, 0);
 }
 
 void waitForUserInput() {
@@ -594,6 +594,8 @@ void waitForUserInput() {
             gpioWrite(HDMI_OUT_MODE_LED, 1);
         }
         else if (gpioRead(EXIT_BUTTON) == 1) {
+            gpioWrite(EXIT_LED, 1);
+            time_sleep(0.1);
             exitProgram();
         }
         else {
