@@ -110,12 +110,15 @@ double calculateSignalInterval(int measurementCount) {
 
     // After the first signal that arrived, the signal interval converges to the maximum measured latency
     // If its smaller than SIGNAL_MINIMUM_INTERVAL_IN_S it converges to that value
-    if (maxLatencyInMicros != -1 && measurementCount > 0) {
-        maxLatencyInS = (double) maxLatencyInMicros / 1000000.0;
+    maxLatencyInS = (double) maxLatencyInMicros / 1000000.0;
+    if (maxLatencyInMicros != -1 
+        && maxLatencyInS < SIGNAL_START_INTERVAL_IN_S
+        && measurementCount > 0) {
         printf("maxLatencyInS: %f\n", maxLatencyInS);
         if (maxLatencyInS <= SIGNAL_MINIMUM_INTERVAL_IN_S) {
             signalIntervalInS = SIGNAL_MINIMUM_INTERVAL_IN_S + 1 / measurementCount * maxLatencyInS;
         }
+        else if (maxLatencyInS )
         else {
             signalIntervalInS = maxLatencyInS + 1 / measurementCount * maxLatencyInS;
         }
