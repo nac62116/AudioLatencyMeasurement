@@ -463,6 +463,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
     snd_pcm_hw_params_get_period_time(params, &periodTimeInMicros, &dir);
     
     for (int i = 0; i < iterations; i++) {
+        printf("### Measurement %d\n", i);
         if (measurementMethod == MEASURE) {
             signalIntervalInS = calculateSignalInterval(i);
         }
