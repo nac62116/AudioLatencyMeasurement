@@ -503,9 +503,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
         
         while (numberOfPeriods > 0) {
             status = snd_pcm_writei(handle, buffer, frames);
-            if (status == -EPIPE) {
-                // EPIPE means underrun
-                printf("underrun\n");
+            if (status == -EAGAIN) {
                 continue;
             }
             if (status < 0) {
