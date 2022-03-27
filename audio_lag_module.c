@@ -472,37 +472,24 @@ void startMeasurementDigitalOut(int measurementMethod) {
         else {
             signalIntervalInS = SIGNAL_START_INTERVAL_IN_S;
         }
-        printf("# signalInterval: %f\n", signalIntervalInS);
         numberOfPeriods = SIGNAL_LENGTH_IN_S * 1000000 / periodTimeInMicros;
         if (numberOfPeriods < MINIMUM_NUMBER_OF_PERIODS) {
             numberOfPeriods = MINIMUM_NUMBER_OF_PERIODS;
         }
-        printf("# signalLength: %ld\n", numberOfPeriods * 1000000 / periodTimeInMicros);
         
         while (numberOfPeriods > 0) {
             status = snd_pcm_writei(handle, buffer, frames);
             if (status == -EPIPE) {
                 // EPIPE means underrun
                 printf("underrun\n");
-                snd_pcm_prepare(handle);
+                continue;
             }
-            else if (status < 0) {
-                // Error from writei
-                if (snd_pcm_recover(handle, status, 0) < 0) {
-                    snd_pcm_drop(handle);
-                    snd_pcm_close(handle);
-                    free(buffer);
-                    return;
+            if (status < 0) {
+                if (xrun_recovery(handle, err) < 0) {
+                    printf("Write error: %s\n", snd_strerror(err));
+                    exit(EXIT_FAILURE);
                 }
-            }
-            else if (status != (int)frames) {
-                // Short write
-                if (snd_pcm_recover(handle, status, 0) < 0) {
-                    snd_pcm_drop(handle);
-                    snd_pcm_close(handle);
-                    free(buffer);
-                    return;
-                }
+                continue;  /* skip one period */
             }
             else {
                 if (signalStatus != SIGNAL_ON_THE_WAY) {
