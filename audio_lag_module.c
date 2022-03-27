@@ -10,7 +10,7 @@ gcc -Wall -pthread latency_measurement_new.c -lasound -o latency_measurement_new
 #include <stdio.h>
 #include <time.h>
 
-#define TOTAL_MEASUREMENTS 5000
+#define TOTAL_MEASUREMENTS 1000
 #define TOTAL_CALIBRATION_MEASUREMENTS 10
 
 // Line level in and output
@@ -467,7 +467,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
         else {
             signalIntervalInS = SIGNAL_START_INTERVAL_IN_S;
         }
-
+        printf("signalInterval: %d", signalIntervalInS);
         numberOfPeriods = SIGNAL_LENGTH_IN_S * 1000000 / periodTimeInMicros;
         if (numberOfPeriods < MINIMUM_NUMBER_OF_PERIODS) {
             numberOfPeriods = MINIMUM_NUMBER_OF_PERIODS;
