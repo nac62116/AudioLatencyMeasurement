@@ -193,6 +193,7 @@ void writeMeasurementsToCSV() {
     char dutInput[1024];
     char dutOutput[1024];
     char measurementsFolderPath[1024];
+    int i = 0;
 
     getMeasurementDependentValuesForCSV(fileName, dutInput, dutOutput);
     addTimestampToFileName(fileName);
