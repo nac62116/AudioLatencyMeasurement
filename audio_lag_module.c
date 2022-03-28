@@ -198,12 +198,12 @@ void writeMeasurementsToCSV() {
     getMeasurementDependentValuesForCSV(fileName, dutInput, dutOutput);
     addTimestampToFileName(fileName);
     // Removing ":" character to make it windows compatible
-    while (fileName[i] != "\0") {
-        if (fileName[i] == ":") {
-            fileName[i] = "_";
+    while (fileName[i] != '\0') {
+        if (fileName[i] == ':') {
+            fileName[i] = '_';
         }
-        if (fileName[i] == "\n") {
-            fileName[i] = "";
+        if (fileName[i] == '\n') {
+            fileName[i] = '';
         }
         i++;
     }
