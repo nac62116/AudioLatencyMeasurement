@@ -114,7 +114,6 @@ double calculateSignalInterval(int measurementCount) {
     if (maxLatencyInMicros != -1 
         && maxLatencyInS < SIGNAL_START_INTERVAL_IN_S
         && measurementCount > 0) {
-        printf("maxLatencyInS: %f\n", maxLatencyInS);
         if (maxLatencyInS <= SIGNAL_MINIMUM_INTERVAL_IN_S) {
             signalIntervalInS = SIGNAL_MINIMUM_INTERVAL_IN_S + 1 / measurementCount * maxLatencyInS;
         }
@@ -126,7 +125,6 @@ double calculateSignalInterval(int measurementCount) {
     else {
         signalIntervalInS = SIGNAL_START_INTERVAL_IN_S;
     }
-    printf("signalIntervalInS: %f\n", signalIntervalInS);
     return(signalIntervalInS);
 }
 
@@ -219,7 +217,7 @@ void writeMeasurementsToCSV() {
         fclose(filePointer);
     }
     else {
-        printf("audio_lag_module.c l.218: Could not open file\n");
+        printf("audio_lag_module.c l.220: Could not open file\n");
     }
 }
 
@@ -243,7 +241,7 @@ void onLineIn(int gpio, int level, uint32_t tick) {
             // The uint32_t tick parameter represents the number of microseconds since boot.
             // This wraps around from 4294967295 to 0 approximately every 72 minutes.
             // Thats why the provided latency could be both negative and wrong in this specific situation.
-            if (latencyInMicros >= 0 && validMeasurementsCount <= TOTAL_MEASUREMENTS) {
+            if (latencyInMicros >= 0 && validMeasurementsCount < TOTAL_MEASUREMENTS) {
                 
                 // Saving valid measurement
                 latencyMeasurementsInMicros[validMeasurementsCount] = latencyInMicros;
@@ -402,7 +400,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
             // Unable to open pcm device
             status = snd_pcm_open(&handle, ALSA_USB_BOTTOM_OUT, SND_PCM_STREAM_PLAYBACK, 0);
             if (status < 0) {
-                printf("audio_lag_module.c l.368: Unable to open PCM Device\n");
+                printf("audio_lag_module.c l.403: Unable to open PCM Device\n");
                 return;
             }
         }
@@ -413,7 +411,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
             // Unable to open pcm device
             status = snd_pcm_open(&handle, ALSA_HDMI1_OUT, SND_PCM_STREAM_PLAYBACK, 0);
             if (status < 0) {
-                printf("audio_lag_module.c l.379: Unable to open PCM Device\n");
+                printf("audio_lag_module.c l.414: Unable to open PCM Device\n");
                 return;
             }
         }
@@ -422,7 +420,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
     else {
         status = snd_pcm_open(&handle, ALSA_PCIE_OUT, SND_PCM_STREAM_PLAYBACK, 0);
         if (status < 0) {
-            printf("audio_lag_module.c l.388: Unable to open PCM Device\n");
+            printf("audio_lag_module.c l.423: Unable to open PCM Device\n");
             return;
         }
     }
@@ -447,7 +445,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
     // Write the parameters to the driver 
     status = snd_pcm_hw_params(handle, params);
     if (status < 0) {
-        printf("audio_lag_module.c l.413: Unable to set PCM devices hardware parameters\n");
+        printf("audio_lag_module.c l.448: Unable to set PCM devices hardware parameters\n");
         return;
     }
     
@@ -482,9 +480,11 @@ void startMeasurementDigitalOut(int measurementMethod) {
         while (numberOfPeriods > 0) {
             status = snd_pcm_writei(handle, buffer, frames);
             if (status == -EPIPE) {
+                printf("audio_lag_module.c l.484: Underrun occured during snd_pcm_writei -> Preparing PCM device to continue measurement\n");
                 snd_pcm_prepare(handle);
             }
             else if (status < 0) {
+                printf("audio_lag_module.c l.487: Error during snd_pcm_writei -> Reopening PCM device\n");
                 snd_pcm_drain(handle);
                 snd_pcm_close(handle);
                 free(buffer);
@@ -553,9 +553,9 @@ void waitForUserInput() {
             else {
                 // This loop restarts the digital measurement when it is cancelled due to an error.
                 // That guarantees to obtain the number of TOTAL_MEASUREMENTS.
-                while (validMeasurementsCount <= TOTAL_MEASUREMENTS) {
+                while (validMeasurementsCount < TOTAL_MEASUREMENTS) {
                     startMeasurementDigitalOut(MEASURE);
-                    //time_sleep(1)
+                    time_sleep(1);
                 }
             }
             writeMeasurementsToCSV();
