@@ -405,78 +405,77 @@ void startMeasurementDigitalOut(int measurementMethod) {
     }
 
     for (int i = 0; i < iterations; i++) {
-    // Open PCM device for playback. 
-    if (measurementMode == USB_OUT_MODE_BUTTON) {
-        status = snd_pcm_open(&handle, ALSA_USB_TOP_OUT, SND_PCM_STREAM_PLAYBACK, 0);
-        if (status < 0) {
-            // Unable to open pcm device
-            status = snd_pcm_open(&handle, ALSA_USB_BOTTOM_OUT, SND_PCM_STREAM_PLAYBACK, 0);
+        printf("### Measurement %d\n", i);
+        // Open PCM device for playback. 
+        // Measurement is only working consistently if pcm device is opened and closed in every iteration.
+        if (measurementMode == USB_OUT_MODE_BUTTON) {
+            status = snd_pcm_open(&handle, ALSA_USB_TOP_OUT, SND_PCM_STREAM_PLAYBACK, 0);
             if (status < 0) {
-                printf("audio_lag_module.c l.414: Unable to open PCM Device\n");
+                // Unable to open pcm device
+                status = snd_pcm_open(&handle, ALSA_USB_BOTTOM_OUT, SND_PCM_STREAM_PLAYBACK, 0);
+                if (status < 0) {
+                    printf("audio_lag_module.c l.417: Unable to open PCM Device\n");
+                    return;
+                }
+            }
+        }
+        else if (measurementMode == HDMI_OUT_MODE_BUTTON) {
+            status = snd_pcm_open(&handle, ALSA_HDMI0_OUT, SND_PCM_STREAM_PLAYBACK, 0);
+            if (status < 0) {
+                // Unable to open pcm device
+                status = snd_pcm_open(&handle, ALSA_HDMI1_OUT, SND_PCM_STREAM_PLAYBACK, 0);
+                if (status < 0) {
+                    printf("audio_lag_module.c l.428: Unable to open PCM Device\n");
+                    return;
+                }
+            }
+        }
+        // PCIE_MODE
+        else {
+            status = snd_pcm_open(&handle, ALSA_PCIE_OUT, SND_PCM_STREAM_PLAYBACK, 0);
+            if (status < 0) {
+                printf("audio_lag_module.c l.437: Unable to open PCM Device\n");
                 return;
             }
         }
-    }
-    else if (measurementMode == HDMI_OUT_MODE_BUTTON) {
-        status = snd_pcm_open(&handle, ALSA_HDMI0_OUT, SND_PCM_STREAM_PLAYBACK, 0);
+
+        // Allocate a hardware parameters object. 
+        snd_pcm_hw_params_alloca(&params);
+
+        // Fill it in with default values. 
+        snd_pcm_hw_params_any(handle, params);
+
+        // Set the desired hardware parameters. 
+        snd_pcm_hw_params_set_access(handle, params, ACCESS_TYPE);
+        //snd_pcm_hw_params_set_access(handle, params, SND_PCM_FORMAT_S32_LE);
+        snd_pcm_hw_params_set_format(handle, params, FORMAT_TYPE);
+        snd_pcm_hw_params_set_channels(handle, params, NUMBER_OF_CHANNELS);
+        sampleRate = PREFERRED_SAMPLE_RATE;
+        snd_pcm_hw_params_set_rate_near(handle, params, &sampleRate, &dir);
+        // Set period size to minimum to create smallest possible buffer size.
+        snd_pcm_hw_params_get_period_size_min(params, (snd_pcm_uframes_t *) &frames, &dir);
+        snd_pcm_hw_params_set_period_size_near(handle, params, &frames, &dir);
+
+        // Write the parameters to the driver 
+        status = snd_pcm_hw_params(handle, params);
         if (status < 0) {
-            // Unable to open pcm device
-            status = snd_pcm_open(&handle, ALSA_HDMI1_OUT, SND_PCM_STREAM_PLAYBACK, 0);
-            if (status < 0) {
-                printf("audio_lag_module.c l.425: Unable to open PCM Device\n");
-                return;
-            }
-        }
-    }
-    // PCIE_MODE
-    else {
-        status = snd_pcm_open(&handle, ALSA_PCIE_OUT, SND_PCM_STREAM_PLAYBACK, 0);
-        if (status < 0) {
-            printf("audio_lag_module.c l.434: Unable to open PCM Device\n");
+            printf("audio_lag_module.c l.462: Unable to set PCM devices hardware parameters\n");
             return;
         }
-    }
+        
+        // Use a buffer large enough to hold one period 
+        snd_pcm_hw_params_get_period_size(params, &frames, &dir);
+        bufferSize = frames * BYTES_PER_SAMPLE * NUMBER_OF_CHANNELS;
+        buffer = (char *) malloc(bufferSize);
 
-    // Allocate a hardware parameters object. 
-    snd_pcm_hw_params_alloca(&params);
-
-    // Fill it in with default values. 
-    snd_pcm_hw_params_any(handle, params);
-
-    // Set the desired hardware parameters. 
-    snd_pcm_hw_params_set_access(handle, params, ACCESS_TYPE);
-    //snd_pcm_hw_params_set_access(handle, params, SND_PCM_FORMAT_S32_LE);
-    snd_pcm_hw_params_set_format(handle, params, FORMAT_TYPE);
-    snd_pcm_hw_params_set_channels(handle, params, NUMBER_OF_CHANNELS);
-    sampleRate = PREFERRED_SAMPLE_RATE;
-    snd_pcm_hw_params_set_rate_near(handle, params, &sampleRate, &dir);
-    // Set period size to minimum to create smallest possible buffer size.
-    snd_pcm_hw_params_get_period_size_min(params, (snd_pcm_uframes_t *) &frames, &dir);
-    snd_pcm_hw_params_set_period_size_near(handle, params, &frames, &dir);
-
-    // Write the parameters to the driver 
-    status = snd_pcm_hw_params(handle, params);
-    if (status < 0) {
-        printf("audio_lag_module.c l.459: Unable to set PCM devices hardware parameters\n");
-        return;
-    }
-    
-    // Use a buffer large enough to hold one period 
-    snd_pcm_hw_params_get_period_size(params, &frames, &dir);
-    bufferSize = frames * BYTES_PER_SAMPLE * NUMBER_OF_CHANNELS;
-    buffer = (char *) malloc(bufferSize);
-
-    // Fill audio buffer
-    for (int byte = 0; byte < bufferSize; byte++) {
-        buffer[byte] = 127;
-    }
-    
-    /* We want to loop for SIGNAL_LENGTH_IN_S */
-    snd_pcm_hw_params_get_period_time(params, &periodTimeInMicros, &dir);
-    
-
-    //
-        printf("### Measurement %d\n", i);
+        // Fill audio buffer
+        for (int byte = 0; byte < bufferSize; byte++) {
+            buffer[byte] = 127;
+        }
+        
+        /* We want to loop for SIGNAL_LENGTH_IN_S */
+        snd_pcm_hw_params_get_period_time(params, &periodTimeInMicros, &dir);
+        
         if (measurementMethod == MEASURE) {
             signalIntervalInS = calculateSignalInterval(i);
         }
@@ -491,11 +490,11 @@ void startMeasurementDigitalOut(int measurementMethod) {
         while (numberOfPeriods > 0) {
             status = snd_pcm_writei(handle, buffer, frames);
             if (status == -EPIPE) {
-                printf("audio_lag_module.c l.494: Underrun occured during snd_pcm_writei -> Preparing PCM device to continue measurement\n");
+                printf("audio_lag_module.c l.493: Underrun occured during snd_pcm_writei -> Preparing PCM device to continue measurement\n");
                 snd_pcm_prepare(handle);
             }
             else if (status < 0) {
-                printf("audio_lag_module.c l.498: Error during snd_pcm_writei -> Reopening PCM device\n");
+                printf("audio_lag_module.c l.497: Error during snd_pcm_writei -> Reopening PCM device\n");
                 break;
             }
             else {
@@ -558,10 +557,7 @@ void waitForUserInput() {
             }
             // USB_, HDMI_, PCIE_OUT
             else {
-                //while (validMeasurementsCount != TOTAL_MEASUREMENTS) {
-                    startMeasurementDigitalOut(MEASURE);
-                    //time_sleep(1);
-                //}
+                startMeasurementDigitalOut(MEASURE);
             }
             writeMeasurementsToCSV();
             gpioWrite(START_MEASUREMENT_LED, 0);
