@@ -555,6 +555,7 @@ void waitForUserInput() {
                 // That guarantees to obtain the number of TOTAL_MEASUREMENTS.
                 while (validMeasurementsCount < TOTAL_MEASUREMENTS) {
                     startMeasurementDigitalOut(MEASURE);
+                    printf("validMeasurementsCount: %d\n", validMeasurementsCount);
                     time_sleep(1);
                 }
             }
