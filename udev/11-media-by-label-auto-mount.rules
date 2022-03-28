@@ -1,6 +1,7 @@
 # Code base retrieved from https://www.axllent.org/docs/auto-mounting-usb-storage/
 
-KERNEL!="sd[a-z][0-9]", GOTO="media_by_label_auto_mount_end"  
+#KERNEL!="sd[a-z][0-9]", GOTO="media_by_label_auto_mount_end"
+KERNEL!="s[a-z]*[0-9]", GOTO="media_by_label_auto_mount_end"
 # Import FS infos  
 IMPORT{program}="/usr/sbin/blkid -o udev -p %N" 
 # Copy latency measurements to device
