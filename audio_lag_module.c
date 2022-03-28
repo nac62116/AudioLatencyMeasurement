@@ -198,9 +198,12 @@ void writeMeasurementsToCSV() {
     getMeasurementDependentValuesForCSV(fileName, dutInput, dutOutput);
     addTimestampToFileName(fileName);
     // Removing ":" character to make it windows compatible
-    while(fileName[i] != '\0') {
-        if(fileName[i] == ':') {
-            fileName[i] = '_';
+    while (fileName[i] != "\0") {
+        if (fileName[i] == ":") {
+            fileName[i] = "_";
+        }
+        if (fileName[i] == "\n") {
+            fileName[i] = "";
         }
         i++;
     }
@@ -225,7 +228,7 @@ void writeMeasurementsToCSV() {
         fclose(filePointer);
     }
     else {
-        printf("audio_lag_module.c l.220: Could not open file\n");
+        printf("audio_lag_module.c l.231: Could not open file\n");
     }
 }
 
@@ -408,7 +411,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
             // Unable to open pcm device
             status = snd_pcm_open(&handle, ALSA_USB_BOTTOM_OUT, SND_PCM_STREAM_PLAYBACK, 0);
             if (status < 0) {
-                printf("audio_lag_module.c l.403: Unable to open PCM Device\n");
+                printf("audio_lag_module.c l.414: Unable to open PCM Device\n");
                 return;
             }
         }
@@ -419,7 +422,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
             // Unable to open pcm device
             status = snd_pcm_open(&handle, ALSA_HDMI1_OUT, SND_PCM_STREAM_PLAYBACK, 0);
             if (status < 0) {
-                printf("audio_lag_module.c l.414: Unable to open PCM Device\n");
+                printf("audio_lag_module.c l.425: Unable to open PCM Device\n");
                 return;
             }
         }
@@ -428,7 +431,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
     else {
         status = snd_pcm_open(&handle, ALSA_PCIE_OUT, SND_PCM_STREAM_PLAYBACK, 0);
         if (status < 0) {
-            printf("audio_lag_module.c l.423: Unable to open PCM Device\n");
+            printf("audio_lag_module.c l.434: Unable to open PCM Device\n");
             return;
         }
     }
@@ -453,7 +456,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
     // Write the parameters to the driver 
     status = snd_pcm_hw_params(handle, params);
     if (status < 0) {
-        printf("audio_lag_module.c l.448: Unable to set PCM devices hardware parameters\n");
+        printf("audio_lag_module.c l.459: Unable to set PCM devices hardware parameters\n");
         return;
     }
     
@@ -488,11 +491,11 @@ void startMeasurementDigitalOut(int measurementMethod) {
         while (numberOfPeriods > 0) {
             status = snd_pcm_writei(handle, buffer, frames);
             if (status == -EPIPE) {
-                printf("audio_lag_module.c l.484: Underrun occured during snd_pcm_writei -> Preparing PCM device to continue measurement\n");
+                printf("audio_lag_module.c l.494: Underrun occured during snd_pcm_writei -> Preparing PCM device to continue measurement\n");
                 snd_pcm_prepare(handle);
             }
             else if (status < 0) {
-                printf("audio_lag_module.c l.487: Error during snd_pcm_writei -> Reopening PCM device\n");
+                printf("audio_lag_module.c l.498: Error during snd_pcm_writei -> Reopening PCM device\n");
                 snd_pcm_drain(handle);
                 snd_pcm_close(handle);
                 free(buffer);
