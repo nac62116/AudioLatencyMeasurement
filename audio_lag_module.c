@@ -47,7 +47,7 @@ int measurementMode = LINE_OUT_MODE_BUTTON;
 uint32_t startTimestamp, endTimestamp;
 int latencyInMicros;
 int latencyMeasurementsInMicros[TOTAL_MEASUREMENTS];
-int validMeasurmentsCount = 0;
+int validMeasurementsCount = 0;
 int maxLatencyInMicros = -1;
 int signalStatus;
 
@@ -95,7 +95,7 @@ const char *CSV_HEADER = "LATENCY_IN_MICROS,DUT_INPUT,DUT_OUTPUT,BUFFER_SIZE,SAM
 // #### LOGIC ####
 
 void resetMeasurement() {
-    validMeasurmentsCount = 0;
+    validMeasurementsCount = 0;
     maxLatencyInMicros = -1;
     bufferSize = 0;
     sampleRate = 0;
@@ -243,11 +243,11 @@ void onLineIn(int gpio, int level, uint32_t tick) {
             // The uint32_t tick parameter represents the number of microseconds since boot.
             // This wraps around from 4294967295 to 0 approximately every 72 minutes.
             // Thats why the provided latency could be both negative and wrong in this specific situation.
-            if (latencyInMicros >= 0) {
+            if (latencyInMicros >= 0 && validMeasurementsCount <= TOTAL_MEASUREMENTS) {
                 
                 // Saving valid measurement
-                latencyMeasurementsInMicros[validMeasurmentsCount] = latencyInMicros;
-                validMeasurmentsCount += 1;
+                latencyMeasurementsInMicros[validMeasurementsCount] = latencyInMicros;
+                validMeasurementsCount += 1;
                 
                 // Updating maximum latency
                 if (maxLatencyInMicros == -1) {
@@ -376,30 +376,6 @@ void prepareExit() {
 // ####
 // #### PCM DEVICES (USB, HDMI, PCIE) VIA ALSA ####
 
-static int xrun_recovery(snd_pcm_t *handle, int err) {
-
-    if (err == -EPIPE) {    /* under-run */
-        err = snd_pcm_prepare(handle);
-        if (err < 0) {
-            printf("Can't recovery from underrun, prepare failed: %s\n", snd_strerror(err));
-            return 0;
-        }
-    }
-    else if (err == -ESTRPIPE) {
-        while ((err = snd_pcm_resume(handle)) == -EAGAIN) {
-            sleep(1);   /* wait until the suspend flag is released */
-        }
-        if (err < 0) {
-            err = snd_pcm_prepare(handle);
-            if (err < 0) {
-                printf("Can't recover from suspend, prepare failed: %s\n", snd_strerror(err));
-            }
-        }
-        return 0;
-    }
-    return err;
-}
-
 void startMeasurementDigitalOut(int measurementMethod) {
     double signalIntervalInS;
     int status;
@@ -488,10 +464,12 @@ void startMeasurementDigitalOut(int measurementMethod) {
     /* We want to loop for SIGNAL_LENGTH_IN_S */
     snd_pcm_hw_params_get_period_time(params, &periodTimeInMicros, &dir);
     
-    for (int i = 0; i < iterations; i++) {
-        printf("### Measurement %d\n", i);
+    // TODO: underrun mit prepare handlen, alles andere mit return
+    // while (validMeasurementsCount < TOTAL_MEASUREMENTS) hier und in waitForUserInput
+    while (validMeasurementsCount <= TOTAL_MEASUREMENTS) {
+        printf("### Measurement %d\n", validMeasurementsCount);
         if (measurementMethod == MEASURE) {
-            signalIntervalInS = calculateSignalInterval(i);
+            signalIntervalInS = calculateSignalInterval(validMeasurementsCount);
         }
         else {
             signalIntervalInS = SIGNAL_START_INTERVAL_IN_S;
@@ -503,15 +481,14 @@ void startMeasurementDigitalOut(int measurementMethod) {
         
         while (numberOfPeriods > 0) {
             status = snd_pcm_writei(handle, buffer, frames);
-            if (status == -EAGAIN) {
-                continue;
+            if (status == -EPIPE) {
+                snd_pcm_prepare(handle);
             }
-            if (status < 0) {
-                if (xrun_recovery(handle, status) < 0) {
-                    printf("Write error: %s\n", snd_strerror(status));
-                    exit(EXIT_FAILURE);
-                }
-                continue;  /* skip one period */
+            else if (status < 0) {
+                snd_pcm_drain(handle);
+                snd_pcm_close(handle);
+                free(buffer);
+                return;
             }
             else {
                 if (signalStatus != SIGNAL_ON_THE_WAY) {
@@ -574,7 +551,12 @@ void waitForUserInput() {
             }
             // USB_, HDMI_, PCIE_OUT
             else {
-                startMeasurementDigitalOut(MEASURE);
+                // This loop restarts the digital measurement when it is cancelled due to an error.
+                // That guarantees to obtain the number of TOTAL_MEASUREMENTS.
+                while (validMeasurementsCount <= TOTAL_MEASUREMENTS) {
+                    startMeasurementDigitalOut(MEASURE);
+                    //time_sleep(1)
+                }
             }
             writeMeasurementsToCSV();
             gpioWrite(START_MEASUREMENT_LED, 0);
@@ -593,10 +575,10 @@ void waitForUserInput() {
                 else {
                     startMeasurementDigitalOut(CALIBRATE);
                 }
-                if (validMeasurmentsCount == TOTAL_CALIBRATION_MEASUREMENTS) {
+                if (validMeasurementsCount == TOTAL_CALIBRATION_MEASUREMENTS) {
                     userFeedbackGoodSignal();
                 }
-                else if (validMeasurmentsCount > TOTAL_CALIBRATION_MEASUREMENTS / 5) {
+                else if (validMeasurementsCount > TOTAL_CALIBRATION_MEASUREMENTS / 5) {
                     userFeedbackMediumSignal();
                 }
                 else {
