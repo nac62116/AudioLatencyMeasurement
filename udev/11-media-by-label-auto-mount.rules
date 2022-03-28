@@ -1,35 +1,35 @@
 # Code base retrieved from https://www.axllent.org/docs/auto-mounting-usb-storage/
 
-#KERNEL!="sd[a-z][0-9]", GOTO="media_by_label_auto_mount_end"
-# Import FS infos  
-#IMPORT{program}="/usr/sbin/blkid -o udev -p %N" 
-# Copy latency measurements to device
-#ACTION=="change", ENV{ID_FS_LABEL}!="", RUN+="/usr/bin/cp -r /home/pi/Desktop/AudioLatencyMeasurement/measurements /media/pi/%E{ID_FS_LABEL}"
-#ACTION=="change", ENV{ID_FS_LABEL}=="", RUN+="/usr/bin/cp -r /home/pi/Desktop/AudioLatencyMeasurement/measurements /media/pi/usbhd-%k"
-# Delete ghost directories
-#ACTION=="remove", ENV{ID_FS_LABEL}!="", RUN+="/usr/bin/rm -r /media/pi/%E{ID_FS_LABEL}"
-#ACTION=="remove", ENV{ID_FS_LABEL}=="", RUN+="/usr/bin/rm -r /media/pi/usbhd-%k"
-# Exit
-#LABEL="media_by_label_auto_mount_end"
-
-
 KERNEL!="sd[a-z][0-9]", GOTO="media_by_label_auto_mount_end"  
 # Import FS infos  
-IMPORT{program}="/usr/sbin/blkid -o udev -p %N"  
+IMPORT{program}="/usr/sbin/blkid -o udev -p %N" 
+# Copy latency measurements to device
+ACTION=="change", ENV{ID_FS_LABEL}!="", RUN+="/usr/bin/cp -r /home/pi/Desktop/AudioLatencyMeasurement/measurements /media/pi/%E{ID_FS_LABEL}"
+ACTION=="change", ENV{ID_FS_LABEL}=="", RUN+="/usr/bin/cp -r /home/pi/Desktop/AudioLatencyMeasurement/measurements /media/pi/usbhd-%k"
+# Delete ghost directories
+ACTION=="remove", ENV{ID_FS_LABEL}!="", RUN+="/usr/bin/rm -r /media/pi/%E{ID_FS_LABEL}"
+ACTION=="remove", ENV{ID_FS_LABEL}=="", RUN+="/usr/bin/rm -r /media/pi/usbhd-%k"
+# Exit
+LABEL="media_by_label_auto_mount_end"
+
+
+#KERNEL!="sd[a-z][0-9]", GOTO="media_by_label_auto_mount_end"  
+# Import FS infos  
+#IMPORT{program}="/usr/sbin/blkid -o udev -p %N"  
 # Get a label if present, otherwise specify one  
-ENV{ID_FS_LABEL}!="", ENV{dir_name}="%E{ID_FS_LABEL}"  
-ENV{ID_FS_LABEL}=="", ENV{dir_name}="usbhd-%k"  
+#ENV{ID_FS_LABEL}!="", ENV{dir_name}="%E{ID_FS_LABEL}"  
+#ENV{ID_FS_LABEL}=="", ENV{dir_name}="usbhd-%k"  
 # Global mount options  
-ACTION=="add", ENV{mount_options}="relatime"  
+#ACTION=="add", ENV{mount_options}="relatime"  
 # Filesystem-specific mount options  
-ACTION=="add", ENV{ID_FS_TYPE}=="vfat|ntfs", ENV{mount_options}="$env{mount_options},utf8,gid=100,umask=002"  
+#ACTION=="add", ENV{ID_FS_TYPE}=="vfat|ntfs", ENV{mount_options}="$env{mount_options},utf8,gid=100,umask=002"  
 # Mount the device  
-ACTION=="add", RUN+="/usr/bin/mkdir -p /media/%E{dir_name}", RUN+="/usr/bin/mount -o $env{mount_options} /dev/%k /media/%E{dir_name}"
+#ACTION=="add", RUN+="/usr/bin/mkdir -p /media/%E{dir_name}", RUN+="/usr/bin/mount -o $env{mount_options} /dev/%k /media/%E{dir_name}"
 
 # Copy latency measurements to device
-ACTION=="change", ENV{dir_name}!="", RUN+="/usr/bin/cp -r /home/pi/Desktop/AudioLatencyMeasurement/measurements /media/%E{dir_name}"
+#ACTION=="change", ENV{dir_name}!="", RUN+="/usr/bin/cp -r /home/pi/Desktop/AudioLatencyMeasurement/measurements /media/%E{dir_name}"
 
 # Clean up after removal  
-ACTION=="remove", ENV{dir_name}!="", RUN+="/usr/bin/umount -l /media/%E{dir_name}", RUN+="/usr/bin/rmdir /media/%E{dir_name}"  
+#ACTION=="remove", ENV{dir_name}!="", RUN+="/usr/bin/umount -l /media/%E{dir_name}", RUN+="/usr/bin/rmdir /media/%E{dir_name}"  
 # Exit  
-LABEL="media_by_label_auto_mount_end"
+#LABEL="media_by_label_auto_mount_end"
