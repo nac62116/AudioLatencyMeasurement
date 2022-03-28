@@ -473,9 +473,10 @@ void startMeasurementDigitalOut(int measurementMethod) {
     /* We want to loop for SIGNAL_LENGTH_IN_S */
     snd_pcm_hw_params_get_period_time(params, &periodTimeInMicros, &dir);
     
-    // TODO: underrun mit prepare handlen, alles andere mit return
-    // while (validMeasurementsCount < TOTAL_MEASUREMENTS) hier und in waitForUserInput
     for (int i = 0; i < iterations; i++) {
+        if (validMeasurementsCount == TOTAL_MEASUREMENTS) {
+            break;
+        }
         printf("### Measurement %d\n", i);
         if (measurementMethod == MEASURE) {
             signalIntervalInS = calculateSignalInterval(i);
@@ -562,7 +563,10 @@ void waitForUserInput() {
             }
             // USB_, HDMI_, PCIE_OUT
             else {
-                startMeasurementDigitalOut(MEASURE);
+                while (validMeasurementsCount != TOTAL_MEASUREMENTS) {
+                    startMeasurementDigitalOut(MEASURE);
+                    time_sleep(1);
+                }
             }
             writeMeasurementsToCSV();
             gpioWrite(START_MEASUREMENT_LED, 0);
