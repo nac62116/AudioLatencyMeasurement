@@ -558,10 +558,10 @@ void waitForUserInput() {
             }
             // USB_, HDMI_, PCIE_OUT
             else {
-                while (validMeasurementsCount != TOTAL_MEASUREMENTS) {
+                //while (validMeasurementsCount != TOTAL_MEASUREMENTS) {
                     startMeasurementDigitalOut(MEASURE);
-                    time_sleep(1);
-                }
+                    //time_sleep(1);
+                //}
             }
             writeMeasurementsToCSV();
             gpioWrite(START_MEASUREMENT_LED, 0);
