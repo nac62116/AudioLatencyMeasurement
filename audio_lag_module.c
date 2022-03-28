@@ -196,6 +196,13 @@ void writeMeasurementsToCSV() {
 
     getMeasurementDependentValuesForCSV(fileName, dutInput, dutOutput);
     addTimestampToFileName(fileName);
+    // Removing ":" character to make it windows compatible
+    while(fileName[i] != '\0') {
+        if(fileName[i] == ':') {
+            fileName[i] = '_';
+        }
+        i++;
+    }
     // Adding file type .csv and writing csv file
     strcat(fileName, FILE_TYPE_SUFFIX);
     // Appending file name to measurements folder path
