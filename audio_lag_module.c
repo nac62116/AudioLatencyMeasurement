@@ -466,10 +466,10 @@ void startMeasurementDigitalOut(int measurementMethod) {
     
     // TODO: underrun mit prepare handlen, alles andere mit return
     // while (validMeasurementsCount < TOTAL_MEASUREMENTS) hier und in waitForUserInput
-    while (validMeasurementsCount <= TOTAL_MEASUREMENTS) {
-        printf("### Measurement %d\n", validMeasurementsCount);
+    for (int i = 0; i < iterations; i++) {
+        printf("### Measurement %d\n", i);
         if (measurementMethod == MEASURE) {
-            signalIntervalInS = calculateSignalInterval(validMeasurementsCount);
+            signalIntervalInS = calculateSignalInterval(i);
         }
         else {
             signalIntervalInS = SIGNAL_START_INTERVAL_IN_S;
