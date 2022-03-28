@@ -27,7 +27,7 @@ ACTION=="add", ENV{ID_FS_TYPE}=="vfat|ntfs", ENV{mount_options}="$env{mount_opti
 ACTION=="add", RUN+="/usr/bin/mkdir -p /media/%E{dir_name}", RUN+="/usr/bin/mount -o $env{mount_options} /dev/%k /media/%E{dir_name}"
 
 # Copy latency measurements to device
-#ACTION=="change", ENV{dir_name}!="", RUN+="/usr/bin/cp -r /home/pi/Desktop/AudioLatencyMeasurement/measurements /media/%E{dir_name}"
+ACTION=="change", ENV{dir_name}!="", RUN+="/usr/bin/cp -r /home/pi/Desktop/AudioLatencyMeasurement/measurements /media/%E{dir_name}"
 
 # Clean up after removal  
 ACTION=="remove", ENV{dir_name}!="", RUN+="/usr/bin/umount -l /media/%E{dir_name}", RUN+="/usr/bin/rmdir /media/%E{dir_name}"  
