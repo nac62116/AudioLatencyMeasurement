@@ -203,7 +203,7 @@ void writeMeasurementsToCSV() {
             fileName[i] = '_';
         }
         if (fileName[i] == '\n') {
-            fileName[i] = '';
+            fileName[i] = ' ';
         }
         i++;
     }
