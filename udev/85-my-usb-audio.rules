@@ -6,4 +6,6 @@ ACTION!="add", GOTO="my_usb_audio_end"
 DEVPATH=="/devices/platform/scb/fe9c0000.xhci/usb1/1-1/1-1.1/*/sound/card?", ATTR{id}="usb_audio_top"
 DEVPATH=="/devices/platform/scb/fe9c0000.xhci/usb1/1-1/1-1.2/*/sound/card?", ATTR{id}="usb_audio_bot"
 
+# TODO: CM4IO HDMI and Pi 3 USB/HDMI
+
 LABEL="my_usb_audio_end"
