@@ -292,7 +292,7 @@ void startMeasurementLineOut(int measurementMethod) {
         iterations = TOTAL_MEASUREMENTS;
     }
     for (int i = 0; i < iterations; i++) {
-
+        printf("### Measurement %d\n", i);
         if (measurementMethod == MEASURE) {
             signalIntervalInS = calculateSignalInterval(i);
         }
@@ -555,7 +555,6 @@ void waitForUserInput() {
                 // That guarantees to obtain the number of TOTAL_MEASUREMENTS.
                 while (validMeasurementsCount < TOTAL_MEASUREMENTS) {
                     startMeasurementDigitalOut(MEASURE);
-                    printf("validMeasurementsCount: %d\n", validMeasurementsCount);
                     time_sleep(1);
                 }
             }
