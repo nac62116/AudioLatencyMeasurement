@@ -559,12 +559,7 @@ void waitForUserInput() {
             }
             // USB_, HDMI_, PCIE_OUT
             else {
-                // This loop restarts the digital measurement when it is cancelled due to an error.
-                // That guarantees to obtain the number of TOTAL_MEASUREMENTS.
-                while (validMeasurementsCount < TOTAL_MEASUREMENTS) {
-                    startMeasurementDigitalOut(MEASURE);
-                    time_sleep(1);
-                }
+                startMeasurementDigitalOut(MEASURE);
             }
             writeMeasurementsToCSV();
             gpioWrite(START_MEASUREMENT_LED, 0);
