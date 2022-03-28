@@ -404,6 +404,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
         iterations = TOTAL_MEASUREMENTS;
     }
 
+    for (int i = 0; i < iterations; i++) {
     // Open PCM device for playback. 
     if (measurementMode == USB_OUT_MODE_BUTTON) {
         status = snd_pcm_open(&handle, ALSA_USB_TOP_OUT, SND_PCM_STREAM_PLAYBACK, 0);
@@ -473,10 +474,8 @@ void startMeasurementDigitalOut(int measurementMethod) {
     /* We want to loop for SIGNAL_LENGTH_IN_S */
     snd_pcm_hw_params_get_period_time(params, &periodTimeInMicros, &dir);
     
-    for (int i = 0; i < iterations; i++) {
-        if (validMeasurementsCount == TOTAL_MEASUREMENTS) {
-            break;
-        }
+
+    //
         printf("### Measurement %d\n", i);
         if (measurementMethod == MEASURE) {
             signalIntervalInS = calculateSignalInterval(i);
@@ -497,10 +496,7 @@ void startMeasurementDigitalOut(int measurementMethod) {
             }
             else if (status < 0) {
                 printf("audio_lag_module.c l.498: Error during snd_pcm_writei -> Reopening PCM device\n");
-                snd_pcm_drain(handle);
-                snd_pcm_close(handle);
-                free(buffer);
-                return;
+                break;
             }
             else {
                 if (signalStatus != SIGNAL_ON_THE_WAY) {
@@ -511,12 +507,11 @@ void startMeasurementDigitalOut(int measurementMethod) {
             }
             numberOfPeriods--;
         }
+        snd_pcm_drain(handle);
+        snd_pcm_close(handle);
+        free(buffer);
         time_sleep(signalIntervalInS);
     }
-
-    snd_pcm_drain(handle);
-    snd_pcm_close(handle);
-    free(buffer);
 }
 
 // ####
