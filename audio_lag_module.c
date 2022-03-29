@@ -69,7 +69,7 @@ int signalStatus;
 #define PREFERRED_SAMPLE_RATE 44100
 #define NUMBER_OF_CHANNELS 1
 #define MINIMUM_NUMBER_OF_PERIODS 25
-#define BYTES_PER_SAMPLE = 2 /* Depends on the format type */
+#define BYTES_PER_SAMPLE 2 /* Depends on the format type */
 snd_pcm_access_t ACCESS_TYPE = SND_PCM_ACCESS_RW_INTERLEAVED;
 snd_pcm_format_t FORMAT_TYPE = SND_PCM_FORMAT_S16_LE;
 unsigned int sampleRate;
