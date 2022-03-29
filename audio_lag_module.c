@@ -10,39 +10,38 @@ gcc -Wall -pthread latency_measurement_new.c -lasound -o latency_measurement_new
 #include <stdio.h>
 #include <time.h>
 
-#define TOTAL_MEASUREMENTS 1000
-#define TOTAL_CALIBRATION_MEASUREMENTS 10
-
 // Line level in and output
-const int LINE_IN = 4; // GPIO 4
-const int LINE_OUT = 5; // GPIO 5
+#define LINE_IN 4; // GPIO 4
+#define LINE_OUT 5; // GPIO 5
 
 // User inputs
-const int START_MEASUREMENT_BUTTON = 9; // GPIO 9
-const int CALIBRATION_MODE_BUTTON = 10; // GPIO 10
-const int LINE_OUT_MODE_BUTTON = 15; // GPIO 15
-const int USB_OUT_MODE_BUTTON = 23; // GPIO 23
-const int HDMI_OUT_MODE_BUTTON = 25; // GPIO 25
-const int EXIT_BUTTON = 7; // GPIO 7
+#define START_MEASUREMENT_BUTTON 9; // GPIO 9
+#define CALIBRATION_MODE_BUTTON 10; // GPIO 10
+#define LINE_OUT_MODE_BUTTON 15; // GPIO 15
+#define USB_OUT_MODE_BUTTON 23; // GPIO 23
+#define HDMI_OUT_MODE_BUTTON 25; // GPIO 25
+#define EXIT_BUTTON 7; // GPIO 7
 
 // User feedback
-const int START_MEASUREMENT_LED = 11; // GPIO 11
-const int CALIBRATION_MODE_RED_LED = 22; // GPIO 22
-const int CALIBRATION_MODE_YELLOW_LED = 27; // GPIO 27
-const int CALIBRATION_MODE_GREEN_LED = 17; // GPIO 17
-const int LINE_OUT_MODE_LED = 14; // GPIO 14
-const int USB_OUT_MODE_LED = 18; // GPIO 18
-const int HDMI_OUT_MODE_LED = 24; // GPIO 24
-const int EXIT_LED = 8; // GPIO 8
+#define START_MEASUREMENT_LED 11; // GPIO 11
+#define CALIBRATION_MODE_RED_LED 22; // GPIO 22
+#define CALIBRATION_MODE_YELLOW_LED 27; // GPIO 27
+#define CALIBRATION_MODE_GREEN_LED 17; // GPIO 17
+#define LINE_OUT_MODE_LED 14; // GPIO 14
+#define USB_OUT_MODE_LED 18; // GPIO 18
+#define HDMI_OUT_MODE_LED 24; // GPIO 24
+#define EXIT_LED 8; // GPIO 8
 
 // Latency measurement
-const double SIGNAL_LENGTH_IN_S = 0.001;
-const double SIGNAL_START_INTERVAL_IN_S = 0.1;
-const double SIGNAL_MINIMUM_INTERVAL_IN_S = 0.02; // Minimum interval to ensure correct amplification
-const int SIGNAL_ARRIVED = 1;
-const int SIGNAL_ON_THE_WAY = 0;
-const int CALIBRATE = 0;
-const int MEASURE = 1;
+#define TOTAL_MEASUREMENTS 1000
+#define TOTAL_CALIBRATION_MEASUREMENTS 10
+#define SIGNAL_LENGTH_IN_S 0.001;
+#define SIGNAL_START_INTERVAL_IN_S 0.1;
+#define SIGNAL_MINIMUM_INTERVAL_IN_S 0.02; // Minimum interval to ensure correct amplification
+#define SIGNAL_ARRIVED 1;
+#define SIGNAL_ON_THE_WAY 0;
+#define CALIBRATE 0;
+#define MEASURE 1;
 int measurementMode = LINE_OUT_MODE_BUTTON;
 uint32_t startTimestamp, endTimestamp;
 int latencyInMicros;
@@ -61,35 +60,35 @@ int signalStatus;
 /* file changes the card id depending on the used port.    */
 /* With that pcm devices can be identified like below      */
 /* (hw:CARD=usb_audio_top, ...)                            */
-const char *ALSA_USB_TOP_OUT = "hw:CARD=usb_audio_top";
-const char *ALSA_USB_TOP2_OUT = "hw:CARD=usb_audio_top2";
-const char *ALSA_USB_BOTTOM_OUT = "hw:CARD=usb_audio_bot";
-const char *ALSA_USB_BOTTOM2_OUT = "hw:CARD=usb_audio_bot2";
-const char *ALSA_HDMI_OUT = "hw:CARD=vc4hdmi";
+#define ALSA_USB_TOP_OUT "hw:CARD=usb_audio_top";
+#define ALSA_USB_TOP2_OUT "hw:CARD=usb_audio_top2";
+#define ALSA_USB_BOTTOM_OUT "hw:CARD=usb_audio_bot";
+#define ALSA_USB_BOTTOM2_OUT "hw:CARD=usb_audio_bot2";
+#define ALSA_HDMI_OUT "hw:CARD=vc4hdmi";
 /* Specific hardware parameters */
-const unsigned int PREFERRED_SAMPLE_RATE = 44100;
-const unsigned int NUMBER_OF_CHANNELS = 1;
-const long MINIMUM_NUMBER_OF_PERIODS = 25;
-const snd_pcm_access_t ACCESS_TYPE = SND_PCM_ACCESS_RW_INTERLEAVED;
-const snd_pcm_format_t FORMAT_TYPE = SND_PCM_FORMAT_S16_LE;
-const int BYTES_PER_SAMPLE = 2; /* Depends on the format type */
+#define PREFERRED_SAMPLE_RATE 44100;
+#define NUMBER_OF_CHANNELS 1;
+#define MINIMUM_NUMBER_OF_PERIODS 25;
+#define BYTES_PER_SAMPLE = 2; /* Depends on the format type */
+snd_pcm_access_t ACCESS_TYPE = SND_PCM_ACCESS_RW_INTERLEAVED;
+snd_pcm_format_t FORMAT_TYPE = SND_PCM_FORMAT_S16_LE;
 unsigned int sampleRate;
 int bufferSize;
 
 // File creation
-const char *FILE_NAME_PREFIX_LINE_TO_LINE = "line-to-line_";
-const char *FILE_NAME_PREFIX_USB_TO_LINE = "usb-to-line_";
-const char *FILE_NAME_PREFIX_HDMI_TO_LINE = "hdmi-to-line_";
-const char *FILE_NAME_PREFIX_PCIE_TO_LINE = "pcie-to-line_";
-const char *FILE_NAME_SUFFIX_NO_TIMESTAMP = "no-timestamp";
-const char *FILE_TYPE_SUFFIX = ".csv";
-const char *DUT_OUTPUT_VALUE_LINE = "LINE OUT";
-const char *DUT_INPUT_VALUE_LINE = "LINE IN";
-const char *DUT_INPUT_VALUE_USB = "USB IN";
-const char *DUT_INPUT_VALUE_HDMI = "HDMI IN";
-const char *DUT_INPUT_VALUE_PCIE = "PCIE IN";
-const char *MEASUREMENTS_FOLDER_PATH = "/home/pi/Desktop/AudioLatencyMeasurement/measurements/";
-const char *CSV_HEADER = "LATENCY_IN_MICROS,DUT_INPUT,DUT_OUTPUT,BUFFER_SIZE,SAMPLE_RATE,CHANNELS\n";
+#define FILE_NAME_PREFIX_LINE_TO_LINE "line-to-line_";
+#define FILE_NAME_PREFIX_USB_TO_LINE "usb-to-line_";
+#define FILE_NAME_PREFIX_HDMI_TO_LINE "hdmi-to-line_";
+#define FILE_NAME_PREFIX_PCIE_TO_LINE "pcie-to-line_";
+#define FILE_NAME_SUFFIX_NO_TIMESTAMP "no-timestamp";
+#define FILE_TYPE_SUFFIX ".csv";
+#define DUT_OUTPUT_VALUE_LINE "LINE OUT";
+#define DUT_INPUT_VALUE_LINE "LINE IN";
+#define DUT_INPUT_VALUE_USB "USB IN";
+#define DUT_INPUT_VALUE_HDMI "HDMI IN";
+#define DUT_INPUT_VALUE_PCIE "PCIE IN";
+#define MEASUREMENTS_FOLDER_PATH "/home/pi/Desktop/AudioLatencyMeasurement/measurements/";
+#define CSV_HEADER "LATENCY_IN_MICROS,DUT_INPUT,DUT_OUTPUT,BUFFER_SIZE,SAMPLE_RATE,CHANNELS\n";
 
 // ####
 // #### LOGIC ####
