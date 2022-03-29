@@ -79,14 +79,12 @@ int bufferSize;
 #define FILE_NAME_PREFIX_LINE_TO_LINE "line-to-line_"
 #define FILE_NAME_PREFIX_USB_TO_LINE "usb-to-line_"
 #define FILE_NAME_PREFIX_HDMI_TO_LINE "hdmi-to-line_"
-#define FILE_NAME_PREFIX_PCIE_TO_LINE "pcie-to-line_"
 #define FILE_NAME_SUFFIX_NO_TIMESTAMP "no-timestamp"
 #define FILE_TYPE_SUFFIX ".csv"
 #define DUT_OUTPUT_VALUE_LINE "LINE OUT"
 #define DUT_INPUT_VALUE_LINE "LINE IN"
 #define DUT_INPUT_VALUE_USB "USB IN"
 #define DUT_INPUT_VALUE_HDMI "HDMI IN"
-#define DUT_INPUT_VALUE_PCIE "PCIE IN"
 #define MEASUREMENTS_FOLDER_PATH "/home/pi/Desktop/AudioLatencyMeasurement/measurements/"
 #define CSV_HEADER "LATENCY_IN_MICROS,DUT_INPUT,DUT_OUTPUT,BUFFER_SIZE,SAMPLE_RATE,CHANNELS\n"
 
@@ -138,13 +136,9 @@ void getMeasurementDependentValuesForCSV(char *fileName, char *dutInput, char *d
         fileNamePrefix = FILE_NAME_PREFIX_USB_TO_LINE;
         strcpy(dutInput, DUT_INPUT_VALUE_USB);
     }
-    else if (measurementMode == HDMI_OUT_MODE_BUTTON) {
+    else {
         fileNamePrefix = FILE_NAME_PREFIX_HDMI_TO_LINE;
         strcpy(dutInput, DUT_INPUT_VALUE_HDMI);
-    }
-    else {
-        fileNamePrefix = FILE_NAME_PREFIX_PCIE_TO_LINE;
-        strcpy(dutInput, DUT_INPUT_VALUE_PCIE);
     }
     strcpy(fileName, fileNamePrefix);
     strcpy(dutOutput, DUT_OUTPUT_VALUE_LINE);
