@@ -62,10 +62,10 @@ int signalStatus;
 /* With that pcm devices can be identified like below      */
 /* (hw:CARD=usb_audio_top, ...)                            */
 const char *ALSA_USB_TOP_OUT = "hw:CARD=usb_audio_top";
+const char *ALSA_USB_TOP2_OUT = "hw:CARD=usb_audio_top2";
 const char *ALSA_USB_BOTTOM_OUT = "hw:CARD=usb_audio_bot";
-const char *ALSA_HDMI1_OUT = "hw:CARD=hdmi_audio_0";
-const char *ALSA_HDMI0_OUT = "hw:CARD=hdmi_audio_1";
-const char *ALSA_PCIE_OUT = "hw:CARD=pcie_audio";
+const char *ALSA_USB_BOTTOM2_OUT = "hw:CARD=usb_audio_bot2";
+const char *ALSA_HDMI_OUT = "hw:CARD=vc4hdmi";
 /* Specific hardware parameters */
 const unsigned int PREFERRED_SAMPLE_RATE = 44100;
 const unsigned int NUMBER_OF_CHANNELS = 1;
@@ -414,28 +414,25 @@ void startMeasurementDigitalOut(int measurementMethod) {
                 // Unable to open pcm device
                 status = snd_pcm_open(&handle, ALSA_USB_BOTTOM_OUT, SND_PCM_STREAM_PLAYBACK, 0);
                 if (status < 0) {
-                    printf("audio_lag_module.c l.417: Unable to open PCM Device\n");
-                    return;
+                    // Unable to open pcm device
+                    status = snd_pcm_open(&handle, ALSA_USB_TOP2_OUT, SND_PCM_STREAM_PLAYBACK, 0);
+                    if (status < 0) {
+                        // Unable to open pcm device
+                        status = snd_pcm_open(&handle, ALSA_USB_BOTTOM2_OUT, SND_PCM_STREAM_PLAYBACK, 0);
+                        if (status < 0) {
+                            printf("audio_lag_module.c l.417: Unable to open PCM Device\n");
+                            return;
+                        }
+                    }
                 }
             }
         }
-        else if (measurementMode == HDMI_OUT_MODE_BUTTON) {
-            status = snd_pcm_open(&handle, ALSA_HDMI0_OUT, SND_PCM_STREAM_PLAYBACK, 0);
-            if (status < 0) {
-                // Unable to open pcm device
-                status = snd_pcm_open(&handle, ALSA_HDMI1_OUT, SND_PCM_STREAM_PLAYBACK, 0);
-                if (status < 0) {
-                    printf("audio_lag_module.c l.428: Unable to open PCM Device\n");
-                    return;
-                }
-            }
-        }
-        // PCIE_MODE
+        // HDMI_MODE
         else {
-            status = snd_pcm_open(&handle, ALSA_PCIE_OUT, SND_PCM_STREAM_PLAYBACK, 0);
+            status = snd_pcm_open(&handle, ALSA_HDMI_OUT, SND_PCM_STREAM_PLAYBACK, 0);
             if (status < 0) {
-                printf("audio_lag_module.c l.437: Unable to open PCM Device\n");
-                return;
+                printf("audio_lag_module.c l.428: Unable to open PCM Device\n");
+                return;   
             }
         }
 

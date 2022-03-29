@@ -3,9 +3,14 @@
 SUBSYSTEM!="sound", GOTO="my_usb_audio_end"
 ACTION!="add", GOTO="my_usb_audio_end"
 
+# DEVPATHS of the Raspberry Pi Compute Module 4 I/O Board
 DEVPATH=="/devices/platform/scb/fe9c0000.xhci/usb1/1-1/1-1.1/*/sound/card?", ATTR{id}="usb_audio_top"
 DEVPATH=="/devices/platform/scb/fe9c0000.xhci/usb1/1-1/1-1.2/*/sound/card?", ATTR{id}="usb_audio_bot"
 
-# TODO: CM4IO HDMI and Pi 3 USB/HDMI
+# DEVPATHS of the Raspberry Pi 3 Model Board
+DEVPATH=="/devices/platform/soc/3f980000.usb/usb1/1-1/1-1.1/*/sound/card?", ATTR{id}="usb_audio_top"
+DEVPATH=="/devices/platform/soc/3f980000.usb/usb1/1-1/1-1.2/*/sound/card?", ATTR{id}="usb_audio_bot"
+DEVPATH=="/devices/platform/soc/3f980000.usb/usb1/1-1/1-1.3/*/sound/card?", ATTR{id}="usb_audio_top2"
+DEVPATH=="/devices/platform/soc/3f980000.usb/usb1/1-1/1-1.4/*/sound/card?", ATTR{id}="usb_audio_bot2"
 
 LABEL="my_usb_audio_end"
